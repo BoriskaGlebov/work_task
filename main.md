@@ -25,6 +25,8 @@
 
 [репка с образами](https://disk.yandex.ru/d/mwNyjrgPqyo8oA)<br>
 [grafana](https://disk.yandex.ru/d/FeRgvtyFiNpXFw)
-[образцы верстки](https://disk.yandex.ru/d/skEKMmowHtxEMg
-https://disk.yandex.ru/d/YBTowH1VvyaiDA) 
+
+[верстка1](https://disk.yandex.ru/d/YBTowH1VvyaiDA) 
+[верстка2]
+(https://disk.yandex.ru/d/skEKMmowHtxEMg) 
 
