@@ -1,0 +1,111 @@
+{% load static %}
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Конвертер документов DOC или RTF в TXT</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Конвертер документов DOCX или RTF в TXT для ленивого Ильи!</h1>
+    </header>
+
+    <div class="toolbar">
+        <label for="fileInput" class="upload-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24">
+                <path fill="currentColor"
+                      d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+            </svg>
+            Загрузить DOCX файл
+        </label>
+        <input type="file" id="fileInput" accept=".doc, .docx, .rtf" style="display: none;">
+
+        <button id="uploadBtn" disabled>Отправить файл</button>
+
+        <button id="saveAsTxt" disabled>
+            <svg width="20" height="20" viewBox="0 0 24 24">
+                <path fill="currentColor"
+                      d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/>
+            </svg>
+            Сохранить как TXT
+        </button>
+    </div>
+
+    <div class="document-form">
+        <div class="form-header">
+            <div class="form-group">
+                <label>Название файла:</label>
+                <input type="text" id="fileName" readonly>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <label>Содержимое документа:</label>
+            <div id="editor" contenteditable="true">
+                <p>Загрузите DOCX файл для просмотра и редактирования...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Скрытое поле для CSRF-токена -->
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+</div>
+
+<script>
+// Функция для получения CSRF токена из cookie
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+$(document).ready(function() {
+    $('#fileInput').on('change', function() {
+        const fileName = $(this).val().split('\\').pop();
+        $('#fileName').val(fileName);
+        $('#uploadBtn').prop('disabled', false);
+    });
+
+    $('#uploadBtn').on('click', function() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+
+        if (file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Получаем CSRF токен
+            const csrfToken = getCookie('csrftoken');
+
+            $.ajax({
+                url: '{% url "work_for_ilia:index" %}', // Замените на ваш URL Django
+                type: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken // Устанавливаем CSRF токен в заголовок
+                },
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    // Предполагается, что ответ содержит обработанное содержимое
+                    $('#editor').html(response.content); // Обновляем редактор новым содержимым
+                    $('#fileInput').val(''); // Очищаем поле ввода файла
+                    $('#fileName').val(''); // Очищаем отображение имени файла
+                    $('#uploadBtn').prop('disabled', true); // Снова отключаем кнопку загрузки
+                },
+                error: function(xhr, status, error) {
+                    console.error("Ошибка загрузки:", error);
+                    alert("Ошибка при загрузке файла.");
+                }
+            });
+        }
+    });
+});
+</script>
+
+</body>
+</html>

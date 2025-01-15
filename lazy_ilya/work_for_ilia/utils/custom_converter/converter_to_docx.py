@@ -2,7 +2,7 @@ import os
 
 from spire.doc import Document, FileFormat
 
-from settings.main_settings import ProjectSettings
+from work_for_ilia.utils.my_settings.disrs_for_app import ProjectSettings
 
 
 class Converter:

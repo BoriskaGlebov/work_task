@@ -3,7 +3,7 @@ import os
 
 from docx import Document
 
-from settings.main_settings import ProjectSettings
+from work_for_ilia.utils.my_settings.disrs_for_app import ProjectSettings
 
 
 class Parser:
@@ -49,8 +49,13 @@ class Parser:
                 # number = False
                 # anal = False
                 # from_iz = False
+                special_header = document.sections[0].first_page_header
+                common_header = document.sections[0].header
 
-                header = document.sections[0].header
+                if len(special_header.tables):
+                    header = special_header
+                else:
+                    header = common_header
                 for table in header.tables:
                     for row in table.rows:
                         for cell in row.cells:
@@ -63,8 +68,8 @@ class Parser:
                                     self.format_text(cell.text.strip().upper()) + '  НР ' + str(
                                         self.start_number) + '   Для анального пользования\n'.upper())
 
-                # # Читаем основной текст документа и таблицы
-                # output_file.write("\n\n          Содержимое документа:\n\n")
+                # Читаем основной текст документа и таблицы
+                output_file.write("\n\n          Содержимое документа:\n\n")
                 num_tables = 0
                 for element in document.element.body:
                     if element.tag.endswith('p'):  # Проверяем, является ли элемент абзацем
@@ -96,7 +101,7 @@ class Parser:
 
                             num_tables += 1
                     #
-                    # # Читаем нижний колонтитул
+                    # Читаем нижний колонтитул
                     # footer = document.sections[0].footer
                     # output_file.write("\nНижний колонтитул:\n")
                     # for paragraph in footer.paragraphs:
@@ -104,9 +109,10 @@ class Parser:
 
                 self.start_number += 1
 
+
 if __name__ == '__main__':
     start_numm = 123
     s = Parser(ProjectSettings.tlg_dir, start_numm)
-    print(s)
-    print(s.all_files())
+    # print(s)
+    # print(s.all_files())
     print(s.create_file_parsed())
