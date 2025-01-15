@@ -18,6 +18,7 @@ class Greater(View):
 
     def post(self, request: HttpRequest) -> JsonResponse:
         uploaded_file = request.FILES['file']
+        document_number = request.POST.get('document_number')
 
         fs = FileSystemStorage(location=ProjectSettings.tlg_dir,allow_overwrite=True)
         print(ProjectSettings.tlg_dir)
@@ -25,9 +26,9 @@ class Greater(View):
         # Сохраните файл и получите его имя
         filename = fs.save(uploaded_file.name, uploaded_file)
         conv = Converter(ProjectSettings.tlg_dir).convert_files()
-        pars = Parser(ProjectSettings.tlg_dir, 123).create_file_parsed()
+        pars = Parser(ProjectSettings.tlg_dir, int(document_number)).create_file_parsed()
 
-        with open(os.path.join(ProjectSettings.tlg_dir, '123_example.txt'), 'r', encoding='utf-8') as file:
+        with open(os.path.join(ProjectSettings.tlg_dir, f'{document_number}_{os.path.splitext(uploaded_file.name)[0]}.txt'), 'r', encoding='utf-8') as file:
             s = file.read()
             # Получите URL сохранённого файла (если нужно)
             file_url = fs.url(filename)
