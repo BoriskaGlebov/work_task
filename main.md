@@ -27,6 +27,5 @@
 [grafana](https://disk.yandex.ru/d/FeRgvtyFiNpXFw)
 
 [верстка1](https://disk.yandex.ru/d/YBTowH1VvyaiDA) 
-[верстка2]
-(https://disk.yandex.ru/d/skEKMmowHtxEMg) 
+[верстка2](https://disk.yandex.ru/d/skEKMmowHtxEMg) 
 
