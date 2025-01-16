@@ -8,6 +8,9 @@ load_dotenv()
 
 @dataclass
 class ProjectSettings:
+    """
+    Класс получения базовых настроек для парсера
+    """
     base_dir = os.getenv('BASE_PATH')
     tlg_dir = os.getenv('TLG_PATH')
 

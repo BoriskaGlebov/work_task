@@ -7,18 +7,20 @@ from work_for_ilia.utils.my_settings.disrs_for_app import ProjectSettings
 
 class Converter:
     """
-    Конверитрует из любого .rtf формата в .docx
+    Конвертирует из любого .rtf .doc формата в .docx
     """
 
     def __init__(self, directory: str):
         self.dir = directory
 
     def all_files(self) -> list:
+        """Получает список файлов в директории для обработки"""
         files = [file for file in os.listdir(self.dir) if
                  os.path.isfile(os.path.join(self.dir, file)) and not file.endswith(('.txt', '.docx'))]
         return files
 
-    def convert_files(self):
+    def convert_files(self) -> list:
+        """Конвертирует файлы в нужный формат"""
         out_list = list()
         for file_name in self.all_files():
             n_name = os.path.splitext(file_name)[0]

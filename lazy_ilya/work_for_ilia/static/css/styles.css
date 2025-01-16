@@ -103,6 +103,11 @@ input {
   font-size: clamp(14px, 2vw, 16px);
   overflow-wrap: break-word;
   background: #fff;
+  overflow-y: auto; /* Добавляет вертикальную прокрутку */
+  overflow-x: auto; /* Добавляет горизонтальную прокрутку */
+  word-wrap: break-word; /* Переносит длинные слова на новую строку */
+  white-space: pre-wrap;
+
 }
 
 @media (max-width: 600px) {
