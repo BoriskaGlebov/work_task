@@ -45,29 +45,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
 class DocumentConverter {
   constructor() {
-    this.files = new Map();
-    this.initializeElements();
-    this.setupEventListeners();
-  }
+        this.files = new Map();
+        this.textContents = new Map(); // Для хранения содержимого каждого textarea
+        this.initializeElements();
+        this.setupEventListeners();
+    }
 
   initializeElements() {
-    this.fileInput = document.getElementById('fileInput');
-    this.uploadBtn = document.getElementById('uploadBtn');
-    this.filesList = document.getElementById('filesList');
-    this.fileSelector = document.getElementById('fileSelector');
-    this.docNumber = document.getElementById('docNumber');
-    this.textPreview = document.getElementById('textPreview');
-    this.saveBtn = document.getElementById('saveBtn');
-    this.clearBtn = document.getElementById('clearBtn');
-  }
+        this.fileInput = document.getElementById('fileInput');
+        this.uploadBtn = document.getElementById('uploadBtn');
+        this.filesList = document.getElementById('filesList');
+        this.fileSelector = document.getElementById('fileSelector');
+        this.docNumber = document.getElementById('docNumber');
+        this.textPreview = document.getElementById('textPreview');
+        this.saveBtn = document.getElementById('saveBtn');
+        this.clearBtn = document.getElementById('clearBtn');
+    }
 
   setupEventListeners() {
-    this.fileInput.addEventListener('change', () => this.handleFileSelection());
-    this.uploadBtn.addEventListener('click', () => this.uploadFiles());
-    this.fileSelector.addEventListener('change', () => this.showFilePreview());
-    this.saveBtn.addEventListener('click', () => this.saveFiles());
-    this.clearBtn.addEventListener('click', () => this.clearAll());
-  }
+        this.fileInput.addEventListener('change', () => this.handleFileSelection());
+        this.uploadBtn.addEventListener('click', () => this.uploadFiles());
+        this.fileSelector.addEventListener('change', () => this.showFilePreview());
+        this.saveBtn.addEventListener('click', () => this.saveFiles());
+        this.clearBtn.addEventListener('click', () => this.clearAll());
+
+        // Добавляем обработчик для изменения текста в textarea
+        this.textPreview.addEventListener('input', () => {
+            const selectedFile = this.fileSelector.value;
+            if (selectedFile) {
+                // Сохраняем текущее содержимое textarea в textContents
+                this.textContents.set(selectedFile, this.textPreview.value);
+            }
+        });
+    }
+
 
   handleFileSelection() {
     const files = Array.from(this.fileInput.files);
@@ -78,11 +89,17 @@ class DocumentConverter {
           docNumber: '',
           convertedText: ''
         });
+        this.textContents.set(file.name, '');
+            }
+        });
+        this.updateFilesList();
       }
-    });
-    this.updateFilesList();
-//    this.updateFileSelector();
-  }
+//    });
+//    this.updateFilesList();
+////    this.updateFileSelector();
+//  }
+
+
 
   isValidFileType(file) {
     const validTypes = ['.doc', '.docx', '.rtf'];
@@ -215,56 +232,57 @@ class DocumentConverter {
         const fileData = this.files.get(selectedFile);
 
         // Отображаем содержимое выбранного файла в текстовом поле
-        this.textPreview.value = fileData.convertedText;
-        this.docNumber.value = fileData.docNumber; // Отображаем номер документа (если нужно)
-
-    } else {
-        this.textPreview.value = ''; // Очищаем текстовое поле, если файл не выбран
-        this.docNumber.value = ''; // Очищаем номер документа, если файл не выбран
-    }
-  }
-
-async saveFiles() {
-    if (this.files.size === 0) {
-        alert('Пожалуйста, выберите файл для сохранения');
-        return;
-    }
-
-    const dataToSend = []; // Массив для хранения данных обоих файлов
-
-    // Собираем данные для каждого файла
-    this.files.forEach((fileData, fileName) => {
-        dataToSend.push({
-            document_number: fileData.docNumber,
-            content: fileData.convertedText,
-            new_file_name: fileName // Новое имя файла
-        });
-    });
-
-    try {
-        const response = await fetch(updateUrl, { // Укажите правильный URL для вашего API
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken') // Устанавливаем CSRF-токен в заголовок
-            },
-            body: JSON.stringify(dataToSend) // Преобразуем данные в JSON
-        });
-
-        const responseData = await response.json();
-
-        // Проверка успешности ответа
-        if (response.ok) {
-            alert('Файлы успешно сохранены');
-            this.clearAll(); // Очищаем все поля после успешного сохранения
+        this.textPreview.value = this.textContents.get(selectedFile) || fileData.convertedText;
+            this.docNumber.value = fileData.docNumber;
         } else {
-            alert(responseData.message || 'Произошла ошибка при сохранении файлов');
+            // Очищаем текстовое поле, если файл не выбран
+            this.textPreview.value = '';
+            this.docNumber.value = '';
         }
-    } catch (error) {
-        alert('Произошла ошибка при сохранении файлов');
-        console.error(error);
     }
-}
+
+    async saveFiles() {
+        if (this.files.size === 0) {
+            alert('Пожалуйста, выберите файл для сохранения');
+            return;
+        }
+
+        const dataToSend = [];
+
+        this.files.forEach((fileData, fileName) => {
+            dataToSend.push({
+                document_number: fileData.docNumber,
+               content: this.textContents.get(fileName) || '', // Получаем измененное содержимое из textContents
+                new_file_name: fileName
+            });
+        });
+
+        try {
+            const response = await fetch(updateUrl, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(dataToSend)
+            });
+
+            const responseData = await response.json();
+
+            if (response.ok) {
+                alert('Файлы успешно сохранены');
+                this.clearAll();
+            } else {
+                alert(responseData.message || 'Произошла ошибка при сохранении файлов');
+            }
+        } catch (error) {
+            alert('Произошла ошибка при сохранении файлов');
+            console.error(error);
+        }
+    }
+
+
+
 
 
 

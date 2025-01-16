@@ -95,9 +95,9 @@ class Greater(View):
             for file_data in data:
                 document_number = file_data.get('document_number')
                 new_content = file_data.get('content')
-                if new_content == '':
+                new_file_name:str = file_data.get('new_file_name')  # Получаем новое имя файла
+                if not new_file_name.endswith('.txt'):
                     continue
-                new_file_name = file_data.get('new_file_name')  # Получаем новое имя файла
                 # Определяем путь к файлу для сохранения
                 file_path = os.path.join(ProjectSettings.tlg_dir, f"{new_file_name}")  # Используем новое имя файла
 
