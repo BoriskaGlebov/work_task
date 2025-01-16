@@ -1,240 +1,312 @@
-class DocumentEditor {
-  constructor() {
-    this.documents = JSON.parse(localStorage.getItem('documents')) || [];
-    this.currentDoc = null;
-    this.initializeElements();
-    this.attachEventListeners();
-    this.renderDocumentsList();
-  }
+document.addEventListener('DOMContentLoaded', () => {
+  const splashScreen = document.getElementById('splash-screen');
+  const mainContent = document.getElementById('main-content');
+  const fileInput = document.getElementById('fileInput');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const saveBtn = document.getElementById('saveBtn');
+  const clearBtn = document.getElementById('clearBtn');
 
-  initializeElements() {
-    this.editor = document.getElementById('editor');
-    this.docsList = document.getElementById('docsList');
-    this.newDocBtn = document.getElementById('newDoc');
-    this.saveBtn = document.getElementById('save');
-    this.boldBtn = document.getElementById('bold');
-    this.italicBtn = document.getElementById('italic');
-    this.underlineBtn = document.getElementById('underline');
-    this.fontSizeSelect = document.getElementById('fontSize');
-    
-    // New form elements
-    this.urgencyCategory = document.getElementById('urgencyCategory');
-    this.documentNumber = document.getElementById('documentNumber');
-    this.senderAddress = document.getElementById('senderAddress');
-    this.senderName = document.getElementById('senderName');
-    this.receiverAddress = document.getElementById('receiverAddress');
-    this.receiverName = document.getElementById('receiverName');
-    this.signatureNumber = document.getElementById('signatureNumber');
-    this.signatureDate = document.getElementById('signatureDate');
-    this.signerName = document.getElementById('signerName');
-  }
+  // Функция для обработки перехода от экрана загрузки к основному контенту
+  const handleSplashScreen = () => {
+    setTimeout(() => {
+      splashScreen.style.opacity = '0';
+      splashScreen.style.transition = 'opacity 0.5s ease-out';
 
-  attachEventListeners() {
-    this.newDocBtn.addEventListener('click', () => this.createNewDocument());
-    this.saveBtn.addEventListener('click', () => this.saveCurrentDocument());
-    this.boldBtn.addEventListener('click', () => this.formatText('bold'));
-    this.italicBtn.addEventListener('click', () => this.formatText('italic'));
-    this.underlineBtn.addEventListener('click', () => this.formatText('underline'));
-    this.fontSizeSelect.addEventListener('change', (e) => this.changeFontSize(e.target.value));
-    
-    // Auto-save every 30 seconds
-    setInterval(() => this.saveCurrentDocument(), 30000);
-  }
+      setTimeout(() => {
+        splashScreen.style.display = 'none';
+        mainContent.style.display = 'block';
+        mainContent.style.opacity = '0';
+        mainContent.style.transition = 'opacity 0.5s ease-in';
 
-  createNewDocument() {
-    const doc = {
-      id: Date.now(),
-      title: `Документ ${this.documents.length + 1}`,
-      urgencyCategory: 'normal',
-      documentNumber: '',
-      senderAddress: '',
-      senderName: '',
-      receiverAddress: '',
-      receiverName: '',
-      content: '',
-      signatureNumber: '',
-      signatureDate: '',
-      signerName: '',
-      created: new Date().toISOString(),
-      modified: new Date().toISOString()
-    };
+        setTimeout(() => {
+          mainContent.style.opacity = '1';
+        }, 50);
+      }, 500);
+    }, 3000);
+  };
 
-    this.documents.push(doc);
-    this.currentDoc = doc;
-    this.clearForm();
-    this.editor.innerHTML = '';
-    this.editor.focus();
-    this.saveToLocalStorage();
-    this.renderDocumentsList();
-  }
-
-  clearForm() {
-    this.urgencyCategory.value = 'normal';
-    this.documentNumber.value = '';
-    this.senderAddress.value = '';
-    this.senderName.value = '';
-    this.receiverAddress.value = '';
-    this.receiverName.value = '';
-    this.signatureNumber.value = '';
-    this.signatureDate.value = '';
-    this.signerName.value = '';
-  }
-
-  saveCurrentDocument() {
-    if (!this.currentDoc) return;
-
-    this.currentDoc.urgencyCategory = this.urgencyCategory.value;
-    this.currentDoc.documentNumber = this.documentNumber.value;
-    this.currentDoc.senderAddress = this.senderAddress.value;
-    this.currentDoc.senderName = this.senderName.value;
-    this.currentDoc.receiverAddress = this.receiverAddress.value;
-    this.currentDoc.receiverName = this.receiverName.value;
-    this.currentDoc.content = this.editor.innerHTML;
-    this.currentDoc.signatureNumber = this.signatureNumber.value;
-    this.currentDoc.signatureDate = this.signatureDate.value;
-    this.currentDoc.signerName = this.signerName.value;
-    this.currentDoc.modified = new Date().toISOString();
-
-    this.saveToLocalStorage();
-    this.renderDocumentsList();
-  }
-
-  loadDocument(id) {
-    const doc = this.documents.find(d => d.id === id);
-    if (doc) {
-      this.currentDoc = doc;
-      this.urgencyCategory.value = doc.urgencyCategory || 'normal';
-      this.documentNumber.value = doc.documentNumber || '';
-      this.senderAddress.value = doc.senderAddress || '';
-      this.senderName.value = doc.senderName || '';
-      this.receiverAddress.value = doc.receiverAddress || '';
-      this.receiverName.value = doc.receiverName || '';
-      this.editor.innerHTML = doc.content || '';
-      this.signatureNumber.value = doc.signatureNumber || '';
-      this.signatureDate.value = doc.signatureDate || '';
-      this.signerName.value = doc.signerName || '';
+  // Функция для обработки изменения состояния файлового ввода
+  const handleFileInputChange = () => {
+    if (fileInput.files.length > 0) {
+      uploadBtn.disabled = false; // Активируем кнопку "Загрузить"
+      saveBtn.disabled = false; // Активируем кнопку "Сохранить"
+      clearBtn.disabled = false; // Активируем кнопку "Очистить всё"
+    } else {
+      uploadBtn.disabled = true; // Деактивируем кнопку "Загрузить"
+      saveBtn.disabled = true; // Деактивируем кнопку "Сохранить"
+      clearBtn.disabled = true; // Деактивируем кнопку "Очистить всё"
     }
-  }
+  };
 
-  deleteDocument(id) {
-    this.documents = this.documents.filter(d => d.id !== id);
-    if (this.currentDoc && this.currentDoc.id === id) {
-      this.currentDoc = null;
-      this.clearForm();
-      this.editor.innerHTML = '<p>Введите текст документа здесь...</p>';
-    }
-    this.saveToLocalStorage();
-    this.renderDocumentsList();
-  }
-
-  formatText(command) {
-    document.execCommand(command, false, null);
-    this.editor.focus();
-  }
-
-  changeFontSize(size) {
-    document.execCommand('fontSize', false, size);
-    this.editor.focus();
-  }
-
-  saveToLocalStorage() {
-    localStorage.setItem('documents', JSON.stringify(this.documents));
-  }
-
-  renderDocumentsList() {
-    this.docsList.innerHTML = '';
-    this.documents.forEach(doc => {
-      const li = document.createElement('li');
-      li.innerHTML = `
-        <div class="document-item">
-          <svg width="16" height="16" viewBox="0 0 24 24">
-            <path fill="currentColor" d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
-          </svg>
-          <span class="urgency-${doc.urgencyCategory}">●</span>
-          ${doc.documentNumber ? `№${doc.documentNumber} - ` : ''}${doc.title}
-        </div>
-        <button class="delete-btn" data-id="${doc.id}">
-          <svg width="16" height="16" viewBox="0 0 24 24">
-            <path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-          </svg>
-        </button>
-      `;
-      
-      li.querySelector('.document-item').addEventListener('click', () => this.loadDocument(doc.id));
-      li.querySelector('.delete-btn').addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.deleteDocument(doc.id);
-      });
-
-      this.docsList.appendChild(li);
-    });
-  }
-}
+  // Запуск функций
+  handleSplashScreen();
+  fileInput.addEventListener('change', handleFileInputChange);
+});
 
 class DocumentConverter {
   constructor() {
+    this.files = new Map();
     this.initializeElements();
-    this.attachEventListeners();
-    this.currentFileName = '';
+    this.setupEventListeners();
   }
 
   initializeElements() {
     this.fileInput = document.getElementById('fileInput');
-    this.fileName = document.getElementById('fileName');
-    this.editor = document.getElementById('editor');
-    this.saveBtn = document.getElementById('saveAsTxt');
+    this.uploadBtn = document.getElementById('uploadBtn');
+    this.filesList = document.getElementById('filesList');
+    this.fileSelector = document.getElementById('fileSelector');
+    this.docNumber = document.getElementById('docNumber');
+    this.textPreview = document.getElementById('textPreview');
+    this.saveBtn = document.getElementById('saveBtn');
+    this.clearBtn = document.getElementById('clearBtn');
   }
 
-  attachEventListeners() {
-    this.fileInput.addEventListener('change', (e) => this.handleFileUpload(e));
-    this.saveBtn.addEventListener('click', () => this.saveAsTxt());
+  setupEventListeners() {
+    this.fileInput.addEventListener('change', () => this.handleFileSelection());
+    this.uploadBtn.addEventListener('click', () => this.uploadFiles());
+    this.fileSelector.addEventListener('change', () => this.showFilePreview());
+    this.saveBtn.addEventListener('click', () => this.saveFiles());
+    this.clearBtn.addEventListener('click', () => this.clearAll());
   }
 
-  async handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+  handleFileSelection() {
+    const files = Array.from(this.fileInput.files);
+    files.forEach(file => {
+      if(this.isValidFileType(file)) {
+        this.files.set(file.name, {
+          file,
+          docNumber: '',
+          convertedText: ''
+        });
+      }
+    });
+    this.updateFilesList();
+//    this.updateFileSelector();
+  }
 
-    if (!file.name.toLowerCase().endsWith('.docx')) {
-      alert('Пожалуйста, загрузите файл формата .docx');
-      return;
+  isValidFileType(file) {
+    const validTypes = ['.doc', '.docx', '.rtf'];
+    return validTypes.some(type => file.name.toLowerCase().endsWith(type));
+  }
+
+  updateFilesList() {
+    this.filesList.innerHTML = '';
+    this.files.forEach((fileData, fileName) => {
+      const fileItem = document.createElement('div');
+      fileItem.className = 'file-item';
+      fileItem.innerHTML = `
+        <span>${fileName}</span>
+        <button class="delete-btn" onclick="converter.removeFile('${fileName}')">
+          Удалить
+        </button>
+      `;
+      this.filesList.appendChild(fileItem);
+    });
+  }
+
+  updateFileSelector(newFiles) {
+    this.fileSelector.innerHTML = '<option value="">Выберите файл для просмотра</option>';
+    newFiles.forEach(( fileName) => {
+      const option = document.createElement('option');
+      option.value = fileName;
+      option.textContent = fileName;
+      this.fileSelector.appendChild(option);
+    });
+  }
+
+  removeFile(fileName) {
+    this.files.delete(fileName);
+    this.updateFilesList();
+    this.updateFileSelector();
+    if(this.fileSelector.value === fileName) {
+      this.textPreview.value = '';
+      this.docNumber.value = '';
+    }
+  }
+
+
+  async uploadFiles() {
+    if (this.files.size === 0) {
+        alert('Пожалуйста, выберите файлы для загрузки');
+        return;
     }
 
-    this.currentFileName = file.name.replace('.docx', '');
-    this.fileName.value = file.name;
-    
+    const docNumberValue = this.docNumber.value; // Получаем значение номера документа
+
+    // Проверка на валидность номера документа
+    if (!docNumberValue || docNumberValue <= 0) {
+        alert('Пожалуйста, введите номер документа больше нуля');
+        return;
+    }
+
+    // Создаем FormData для отправки файлов на сервер
+    const formData = new FormData();
+
+    // Добавляем файлы в FormData
+    this.files.forEach((fileData) => {
+        formData.append('file', fileData.file);
+    });
+
+    // Добавляем номер документа в FormData
+    formData.append('document_number', docNumberValue);
+
     try {
-      const arrayBuffer = await file.arrayBuffer();
-      const result = await mammoth.convertToHtml({ arrayBuffer });
-      this.editor.innerHTML = result.value;
-      this.saveBtn.disabled = false;
+        const csrftoken = getCookie('csrftoken'); // Получаем CSRF-токен
+
+        const response = await fetch(uploadUrl, { // Укажите правильный URL для вашего API
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': csrftoken // Устанавливаем CSRF-токен в заголовок
+            },
+        });
+
+        const data = await response.json();
+
+        // Проверка успешности ответа
+        if (response.ok) {
+            // Обновляем выпадающий список с именами новых файлов
+            this.updateFileSelector(data.new_files);
+
+            // Сохраняем содержимое файлов в объекте files
+            data.new_files.forEach((fileName, index) => {
+                this.files.set(fileName, {
+                    file: fileName,
+                    convertedText: data.content[index], // Содержимое файла
+                    docNumber: docNumberValue
+                });
+            });
+
+            // Если есть хотя бы один файл, выбираем первый по умолчанию
+            if (data.new_files.length > 0) {
+                this.fileSelector.value = data.new_files[0]; // Выбираем первый файл
+                this.showFilePreview(); // Отображаем содержимое первого файла
+            }
+
+            // Очищаем текстовое поле, если нужно
+//            this.textPreview.value = '';
+
+            console.log('Новые файлы:', data.new_files);
+        } else {
+            alert(data.message || 'Произошла ошибка при загрузке файлов');
+        }
+
     } catch (error) {
-      console.error('Error converting file:', error);
-      alert('Ошибка при чтении файла. Пожалуйста, проверьте файл и попробуйте снова.');
+        alert('Произошла ошибка при загрузке файлов');
+        console.error(error);
+    }
+}
+
+
+
+//  // Имитация конвертации файла
+//  simulateConversion(file) {
+//    return new Promise((resolve) => {
+//      setTimeout(() => {
+//        resolve(`Сконвертированное содержимое файла ${file.name}\n\nЭто пример текста, который будет получен после конвертации файла на сервере.`);
+//      }, 1000);
+//    });
+//  }
+
+  showFilePreview() {
+    const selectedFile = this.fileSelector.value;
+
+    if (selectedFile && this.files.has(selectedFile)) {
+        const fileData = this.files.get(selectedFile);
+
+        // Отображаем содержимое выбранного файла в текстовом поле
+        this.textPreview.value = fileData.convertedText;
+        this.docNumber.value = fileData.docNumber; // Отображаем номер документа (если нужно)
+
+    } else {
+        this.textPreview.value = ''; // Очищаем текстовое поле, если файл не выбран
+        this.docNumber.value = ''; // Очищаем номер документа, если файл не выбран
     }
   }
 
-  saveAsTxt() {
-    // Get text content and clean it up
-    const content = this.editor.innerText;
-    
-    // Create blob and download
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${this.currentFileName || 'document'}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    
-    // Cleanup
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+async saveFiles() {
+    if (this.files.size === 0) {
+        alert('Пожалуйста, выберите файл для сохранения');
+        return;
+    }
+
+    const dataToSend = []; // Массив для хранения данных обоих файлов
+
+    // Собираем данные для каждого файла
+    this.files.forEach((fileData, fileName) => {
+        dataToSend.push({
+            document_number: fileData.docNumber,
+            content: fileData.convertedText,
+            new_file_name: fileName // Новое имя файла
+        });
+    });
+
+    try {
+        const response = await fetch(updateUrl, { // Укажите правильный URL для вашего API
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken') // Устанавливаем CSRF-токен в заголовок
+            },
+            body: JSON.stringify(dataToSend) // Преобразуем данные в JSON
+        });
+
+        const responseData = await response.json();
+
+        // Проверка успешности ответа
+        if (response.ok) {
+            alert('Файлы успешно сохранены');
+            this.clearAll(); // Очищаем все поля после успешного сохранения
+        } else {
+            alert(responseData.message || 'Произошла ошибка при сохранении файлов');
+        }
+    } catch (error) {
+        alert('Произошла ошибка при сохранении файлов');
+        console.error(error);
+    }
+}
+
+
+
+
+  // Имитация сохранения файлов
+  simulateSaving(fileData) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        console.log('Сохранено:', fileData);
+        resolve();
+      }, 1000);
+    });
+  }
+
+  clearAll() {
+    this.files.clear();
+    this.fileInput.value = '';
+    this.fileSelector.innerHTML = '<option value="">Выберите файл для просмотра</option>';
+    this.docNumber.value = '';
+    this.textPreview.value = '';
+    this.filesList.innerHTML = '';
+    // Отключаем кнопки
+    this.uploadBtn.disabled = true;
+    this.saveBtn.disabled = true;
+    this.clearBtn.disabled = true;
   }
 }
 
-// Initialize the editor and converter when the page loads
-document.addEventListener('DOMContentLoaded', () => {
-  new DocumentEditor();
-  new DocumentConverter();
-});
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Проверяем, начинается ли cookie с нужного имени
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+const converter = new DocumentConverter();

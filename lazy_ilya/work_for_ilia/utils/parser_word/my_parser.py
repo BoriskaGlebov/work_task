@@ -42,8 +42,9 @@ class Parser:
 
         return '\n'.join(formatted_lines)
 
-    def create_file_parsed(self):
+    def create_file_parsed(self)->list:
         """Создает файл отредактированный .txt"""
+        content_files=[]
         for file in self.all_files():
             # numm_tables = 0
             document = Document(os.path.join(self.directory, file))
@@ -126,7 +127,8 @@ class Parser:
             #     output_file.write(self.format_text(paragraph.text) + '\n')
 
             self.start_number += 1
-            return out_txt
+            content_files.append(out_txt)
+        return content_files
 
 
 if __name__ == '__main__':
