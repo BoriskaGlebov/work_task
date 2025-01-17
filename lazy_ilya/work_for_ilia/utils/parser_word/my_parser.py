@@ -1,5 +1,6 @@
 import datetime
 import os
+from typing import List
 
 from docx import Document
 
@@ -26,7 +27,7 @@ class Parser:
         self.directory = directory
         self.start_number = start_number
 
-    def all_files(self) -> list[str]:
+    def all_files(self) -> List[str]:
         """
         Находит все файлы .docx в указанной директории.
 
@@ -69,7 +70,7 @@ class Parser:
 
         return '\n'.join(formatted_lines)
 
-    def create_file_parsed(self) -> list[str]:
+    def create_file_parsed(self) -> List[str]:
         """
         Создает отредактированные файлы .txt из документов .docx.
 

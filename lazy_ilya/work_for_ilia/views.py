@@ -11,6 +11,7 @@ from plyer import notification
 from work_for_ilia.utils.custom_converter.converter_to_docx import Converter
 from work_for_ilia.utils.my_settings.disrs_for_app import ProjectSettings, logger
 from work_for_ilia.utils.parser_word.my_parser import Parser
+from work_for_ilia.utils.storage import OverwritingFileSystemStorage
 
 
 # Create your views here.
@@ -47,7 +48,8 @@ class Greater(View):
         """
         uploaded_files = request.FILES.getlist('file')
         document_number = int(request.POST.get('document_number', 0))
-        fs = FileSystemStorage(location=ProjectSettings.tlg_dir, allow_overwrite=True)
+        # fs = FileSystemStorage(location=ProjectSettings.tlg_dir,allow_overwrite=True )
+        fs=OverwritingFileSystemStorage(location=ProjectSettings.tlg_dir,allow_overwrite=True)
 
         if not uploaded_files:
             return JsonResponse({'error': 'Нет загруженных файлов'}, status=400)

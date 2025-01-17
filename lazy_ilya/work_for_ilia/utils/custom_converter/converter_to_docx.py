@@ -1,4 +1,5 @@
 import os
+from typing import List
 
 from spire.doc import Document, FileFormat
 
@@ -22,7 +23,7 @@ class Converter:
         """
         self.dir = directory
 
-    def all_files(self) -> list[str]:
+    def all_files(self) -> List[str]:
         """
         Получает список файлов в директории для обработки.
 
@@ -37,7 +38,7 @@ class Converter:
         ]
         return files
 
-    def convert_files(self) -> list[str]:
+    def convert_files(self) -> List[str]:
         """
         Конвертирует файлы в формат .docx.
 
