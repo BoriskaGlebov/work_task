@@ -7,21 +7,44 @@ from work_for_ilia.utils.my_settings.disrs_for_app import ProjectSettings
 
 class Converter:
     """
-    Конвертирует из любого .rtf .doc формата в .docx
+    Конвертирует файлы из форматов .rtf и .doc в .docx.
+
+    Attributes:
+        dir (str): Путь к директории, содержащей файлы для конвертации.
     """
 
     def __init__(self, directory: str):
+        """
+        Инициализирует экземпляр класса Converter.
+
+        Args:
+            directory (str): Путь к директории для обработки файлов.
+        """
         self.dir = directory
 
-    def all_files(self) -> list:
-        """Получает список файлов в директории для обработки"""
-        files = [file for file in os.listdir(self.dir) if
-                 os.path.isfile(os.path.join(self.dir, file)) and not file.endswith(('.txt', '.docx'))]
+    def all_files(self) -> list[str]:
+        """
+        Получает список файлов в директории для обработки.
+
+        Returns:
+            list[str]: Список имен файлов, которые будут конвертированы,
+            исключая файлы с расширениями .txt и .docx.
+        """
+        files = [
+            file for file in os.listdir(self.dir)
+            if os.path.isfile(os.path.join(self.dir, file))
+               and not file.endswith(('.txt', '.docx'))
+        ]
         return files
 
-    def convert_files(self) -> list:
-        """Конвертирует файлы в нужный формат"""
-        out_list = list()
+    def convert_files(self) -> list[str]:
+        """
+        Конвертирует файлы в формат .docx.
+
+        Returns:
+            list[str]: Список полных путей к новым .docx файлам после конвертации.
+        """
+        out_list = []
         for file_name in self.all_files():
             n_name = os.path.splitext(file_name)[0]
             new_file_name = os.path.join(self.dir, f'{n_name}.docx')
