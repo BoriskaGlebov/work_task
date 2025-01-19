@@ -2,12 +2,14 @@ import json
 import os.path
 from http.client import HTTPResponse
 
-from django.core.files.storage import FileSystemStorage
+from django.db.models import Sum
+from django.db.models.functions import TruncDate
 from django.http import HttpRequest, JsonResponse
 from django.shortcuts import render
 from django.views import View
 from plyer import notification
 
+from work_for_ilia.models import Counter
 from work_for_ilia.utils.custom_converter.converter_to_docx import Converter
 from work_for_ilia.utils.my_settings.disrs_for_app import ProjectSettings, logger
 from work_for_ilia.utils.parser_word.my_parser import Parser
@@ -49,7 +51,7 @@ class Greater(View):
         uploaded_files = request.FILES.getlist('file')
         document_number = int(request.POST.get('document_number', 0))
         # fs = FileSystemStorage(location=ProjectSettings.tlg_dir,allow_overwrite=True )
-        fs=OverwritingFileSystemStorage(location=ProjectSettings.tlg_dir,allow_overwrite=True)
+        fs = OverwritingFileSystemStorage(location=ProjectSettings.tlg_dir, allow_overwrite=True)
 
         if not uploaded_files:
             return JsonResponse({'error': 'Нет загруженных файлов'}, status=400)
@@ -91,7 +93,7 @@ class Greater(View):
         Returns:
             JsonResponse: Ответ с информацией о статусе операции.
         """
-
+        counter = 0
         try:
             data = json.loads(request.body)
 
@@ -116,8 +118,10 @@ class Greater(View):
                     # Путь к иконке (необязательно)
                     timeout=3,
                 )
-
+                counter += 1
                 logger.info(f'Сохранил файл {new_file_name}')
+            res = Counter.objects.create(num_files=counter)
+            res.save()
             return JsonResponse({'status': 'success', 'message': 'Все файлы успешно сохранены.'})
 
         except json.JSONDecodeError:
@@ -127,3 +131,45 @@ class Greater(View):
         except Exception as e:
             logger.error(str(e))
             return JsonResponse({'error': str(e)}, status=500)
+
+
+class Cities(View):
+    def get(self, request: HttpRequest) -> HTTPResponse:
+        return render(request=request, template_name='work_for_ilia/cities.html')
+
+
+class Statistic(View):
+    def get(self, request: HttpRequest) -> HTTPResponse:
+        total_files = Counter.objects.aggregate(total=Sum('num_files'))['total'] or 0
+        coffee = (total_files // 2) or 0
+        # Группируем записи по дате и подсчитываем сумму обработанных файлов за каждый день
+        daily_totals = Counter.objects.annotate(date=TruncDate('processed_at')).values('date').annotate(
+            total=Sum('num_files')).order_by('-total')
+
+        # Получаем день с максимальным количеством обработанных файлов
+        if daily_totals:
+            max_day = daily_totals[0]  # Первый элемент будет с максимальным значением
+            max_date = max_day['date']
+            max_total_files = max_day['total']
+        else:
+            max_date = None
+            max_total_files = 0
+        # Форматируем дату
+        if max_date:
+            formatted_date = max_date.strftime('%d - %m - %Y')
+        else:
+            formatted_date = "Нет данных"
+        logger.info(max_total_files)
+        context = {
+            'converted_files': str(total_files),
+            'hard_day': {
+                'max_date': formatted_date,
+                'max_day_files': str(max_total_files)
+            },
+            'coffee_drunk': {
+                'amount': str(coffee),
+                'note': '(1 кружка на 2 файла)'
+            }
+        }
+        print(context)
+        return render(request=request, template_name='work_for_ilia/statistics.html', context=context)
