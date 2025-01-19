@@ -169,3 +169,5 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+/lazy_ilya/db.db
+/lazy_ilya/work_for_ilia/utils/test_dir/
