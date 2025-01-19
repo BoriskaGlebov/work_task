@@ -292,3 +292,46 @@ textarea {
     width: 100%;
   }
 }
+/* Стили для контейнера прогресс-бара */
+.progress-container {
+  width: 100%;
+  background-color: var(--border-color); /* Цвет фона */
+  border-radius: 4px; /* Закругленные углы */
+  margin: 1rem 0; /* Отступы */
+  display: none; /* Скрываем по умолчанию */
+}
+
+.progress-bar {
+  width: 0%; /* Начальная ширина */
+  height: 20px; /* Высота прогресс-бара */
+  background: linear-gradient(
+    45deg,
+    var(--primary-color),
+    var(--secondary-color)
+  ); /* Градиентный фон */
+  background-size: 200% 200%; /* Размер фона для анимации */
+  border-radius: 4px; /* Закругленные углы */
+  transition: width 0.3s ease; /* Плавное изменение ширины */
+  animation: gradientPulse 3s linear infinite; /* Добавляем анимацию */
+}
+
+@keyframes gradientPulse {
+    0% {
+        background-position: 0% 50%; /* Начальная позиция градиента */
+        opacity: 0.8; /* Начальная прозрачность */
+    }
+    50% {
+        opacity: 1; /* Максимальная прозрачность */
+    }
+    100% {
+        background-position: 100% 50%; /* Конечная позиция градиента */
+        opacity: 0.8; /* Возвращаемся к начальной прозрачности */
+    }
+}
+
+.progress-text {
+  text-align: center; /* Центрируем текст */
+  font-size: 0.9rem; /* Размер шрифта текста прогресса */
+  margin-top: 0.5rem; /* Отступ сверху */
+  color: var(--primary-color); /* Цвет текста */
+}
