@@ -287,48 +287,77 @@ class DocumentConverter {
    */
   async saveFiles() {
     if (this.files.size === 0) {
-      alert('Пожалуйста, выберите файл для сохранения');
-      return;
+        alert('Пожалуйста, выберите файл для сохранения');
+        return;
     }
 
     const dataToSend = [];
 
     // Собираем данные для отправки на сервер
     this.files.forEach((fileData, fileName) => {
-      dataToSend.push({
-        document_number: fileData.docNumber,
-        content: this.textContents.get(fileName),
-        new_file_name: fileName
-      });
+        dataToSend.push({
+            document_number: fileData.docNumber,
+            content: this.textContents.get(fileName),
+            new_file_name: fileName
+        });
     });
 
-    try {
-      const response = await fetch(updateUrl, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify(dataToSend)
-      });
+    // Создаем новый XMLHttpRequest для отслеживания прогресса
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', updateUrl, true); // Указываем метод и URL
 
-      const responseData = await response.json();
+    // Отображаем прогресс-бар
+    document.getElementById('uploadProgress').style.display = 'block';
 
-      if (response.ok) {
-        uploadBtn.disabled = false;
-        fileInput.disabled=false;
-        alert('Файлы успешно сохранены');
-        this.clearAll();
-      } else {
-        alert(responseData.message || 'Произошла ошибка при сохранении файлов');
-      }
+    xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+            const percentComplete = (event.loaded / event.total) * 97; // Устанавливаем до 97%
+            document.getElementById('uploadProgressBar').style.width = percentComplete + '%'; // Обновляем ширину прогресс-бара
+            document.getElementById('uploadProgressText').innerText = `Сохранение: ${Math.round(percentComplete)}%`; // Обновляем текст
+        }
+    };
 
-    } catch (error) {
-      alert('Произошла ошибка при сохранении файлов');
-      console.error(error);
+    xhr.onload = async () => {
+        // Имитация обработки на сервере
+//        await new Promise(resolve => setTimeout(resolve, 2000)); // Задержка в 2 секунды для имитации обработки
 
-     }
-  }
+        if (xhr.status === 200) {
+            const responseData = JSON.parse(xhr.responseText);
+            uploadBtn.disabled = false;
+            fileInput.disabled=false;
+
+            // Достигаем 100% после обработки
+            document.getElementById('uploadProgressBar').style.width = '100%';
+            document.getElementById('uploadProgressText').innerText = 'Сохранение завершено: 100%';
+
+//            alert('Файлы успешно сохранены');
+            this.clearAll();
+        } else {
+            alert(responseData.message || 'Произошла ошибка при сохранении файлов');
+        }
+
+        // Скрываем прогресс-бар через некоторое время
+        setTimeout(() => {
+            document.getElementById('uploadProgress').style.display = 'none';
+            document.getElementById('uploadProgressBar').style.width = '0%'; // Сбрасываем ширину
+            document.getElementById('uploadProgressText').innerText = ''; // Очищаем текст
+        }, 2000); // Скрыть через 2 секунды
+    };
+
+    xhr.onerror = () => {
+        alert('Произошла ошибка при сохранении файлов');
+        document.getElementById('uploadProgress').style.display = 'none';
+    };
+
+    // Устанавливаем заголовки
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('X-CSRFToken', getCookie('csrftoken'));
+
+    // Отправляем данные на сервер
+    xhr.send(JSON.stringify(dataToSend));
+}
+
+
 
 
     /**
