@@ -176,70 +176,89 @@ class DocumentConverter {
    */
   async uploadFiles() {
     if (this.files.size === 0) {
-      alert('Пожалуйста, выберите файлы для загрузки');
-      return;
+        alert('Пожалуйста, выберите файлы для загрузки');
+        return;
     }
 
-    const docNumberValue = this.docNumber.value; // Получаем номер документа
+    const docNumberValue = this.docNumber.value;
 
-    // Проверка валидности номера документа
     if (!docNumberValue || docNumberValue <= 0) {
-      alert('Пожалуйста, введите номер документа больше нуля');
-      return;
+        alert('Пожалуйста, введите номер документа больше нуля');
+        return;
     }
 
-    const formData = new FormData(); // Создаем FormData для отправки на сервер
-
-    // Добавляем файлы в FormData
+    const formData = new FormData();
     this.files.forEach((fileData) => {
-      formData.append('file', fileData.file);
+        formData.append('file', fileData.file);
     });
 
-    formData.append('document_number', docNumberValue); // Добавляем номер документа
+    formData.append('document_number', docNumberValue);
 
-    try {
-      const csrftoken = getCookie('csrftoken'); // Получаем CSRF-токен
+    const csrftoken = getCookie('csrftoken');
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', uploadUrl, true);
 
-      const response = await fetch(uploadUrl, { // Укажите правильный URL для вашего API
-        method: 'POST',
-        body: formData,
-        headers: {
-          'X-CSRFToken': csrftoken // Устанавливаем CSRF-токен в заголовок
-        },
-      });
+    // Отображаем прогресс-бар
+    document.getElementById('uploadProgress').style.display = 'block';
 
-      const data = await response.json();
-
-      if (response.ok) {
-        uploadBtn.disabled = true; // Деактивируем кнопку загрузки после успешной загрузки
-        fileInput.disabled=true;
-        this.updateFileSelector(data.new_files); // Обновляем выпадающий список новых файлов
-
-        data.new_files.forEach((fileName, index) => {
-          const content = data.content[index] || ''; // Получаем содержимое файла
-          this.files.set(fileName, {
-            file: fileName,
-            convertedText: content, // Содержимое файла
-            docNumber: docNumberValue
-          });
-
-          // Обновляем textContents с содержимым из ответа сервера
-          this.textContents.set(fileName, content);
-        });
-
-        if (data.new_files.length > 0) {
-          this.fileSelector.value = data.new_files[0]; // Выбираем первый файл по умолчанию
-          this.showFilePreview(); // Отображаем содержимое первого файла
+    xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+            const percentComplete = (event.loaded / event.total) * 97; // Устанавливаем 97% при загрузке
+            document.getElementById('uploadProgressBar').style.width = percentComplete + '%';
+            document.getElementById('uploadProgressText').innerText = `Загрузка: ${Math.round(percentComplete)}%`;
         }
-      } else {
-        alert(data.message || 'Произошла ошибка при загрузке файлов');
-      }
+    };
 
-    } catch (error) {
-      alert('Произошла ошибка при загрузке файлов');
-      console.error(error);
-    }
+    xhr.onload = async () => {
+        // Имитация обработки на сервере
+//        await new Promise(resolve => setTimeout(resolve, 2000)); // Задержка в 2 секунды
+
+        if (xhr.status === 200) {
+            const data = JSON.parse(xhr.responseText);
+            uploadBtn.disabled = true;
+            fileInput.disabled=true;
+            this.updateFileSelector(data.new_files);
+
+            data.new_files.forEach((fileName, index) => {
+                const content = data.content[index] || '';
+                this.files.set(fileName, { file: fileName, convertedText: content, docNumber: docNumberValue });
+                this.textContents.set(fileName, content);
+            });
+            if (data.new_files.length > 0) {
+                  this.fileSelector.value = data.new_files[0]; // Выбираем первый файл по умолчанию
+                  this.showFilePreview(); // Отображаем содержимое первого файла
+                }
+            else {
+                alert(data.message || 'Произошла ошибка при загрузке файлов');
+              }
+            // Достигаем 100% после обработки
+            document.getElementById('uploadProgressBar').style.width = '100%';
+            document.getElementById('uploadProgressText').innerText = 'Загрузка завершена: 100%';
+
+            // Скрываем прогресс-бар через некоторое время
+            setTimeout(() => {
+                document.getElementById('uploadProgress').style.display = 'none';
+                document.getElementById('uploadProgressBar').style.width = '0%'; // Сбрасываем ширину
+                document.getElementById('uploadProgressText').innerText = ''; // Очищаем текст
+            }, 2000); // Скрыть через 2 секунды
+        } else {
+            alert(data.message || 'Произошла ошибка при загрузке файлов');
+        }
+    };
+
+    xhr.onerror = () => {
+        alert('Произошла ошибка при загрузке файлов');
+        document.getElementById('uploadProgress').style.display = 'none';
+    };
+
+    xhr.setRequestHeader('X-CSRFToken', csrftoken);
+    xhr.send(formData);
   }
+
+
+
+
+
 
   /**
    * Отображает предварительный просмотр выбранного файла.
