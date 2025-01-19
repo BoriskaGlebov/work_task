@@ -198,20 +198,6 @@ select, input[type="text"] {
   min-width: 200px;
 }
 
-.number-input {
-    padding: 0.5rem; /* Внутренние отступы */
-    border: 1px solid var(--border-color); /* Цвет рамки */
-    border-radius: 4px; /* Закругленные углы */
-    font-size: 0.9rem; /* Размер шрифта */
-    min-width: 150px; /* Минимальная ширина, можно увеличить при необходимости */
-    height: 50px; /* Высота, чтобы соответствовать кнопкам */
-}
-
-
-.number-input::placeholder {
-    color: rgba(0, 0, 0, 0.5); /* Цвет плейсхолдера */
-}
-
 select {
   flex: 1;
   min-width: 250px;
@@ -226,6 +212,21 @@ textarea {
   resize: vertical;
   font-family: 'Consolas', monospace;
   font-size: 0.9rem;
+}
+
+
+.number-input {
+    padding: 0.5rem; /* Внутренние отступы */
+    border: 1px solid var(--border-color); /* Цвет рамки */
+    border-radius: 4px; /* Закругленные углы */
+    font-size: 0.9rem; /* Размер шрифта */
+    min-width: 150px; /* Минимальная ширина, можно увеличить при необходимости */
+    height: 50px; /* Высота, чтобы соответствовать кнопкам */
+}
+
+
+.number-input::placeholder {
+    color: rgba(0, 0, 0, 0.5); /* Цвет плейсхолдера */
 }
 
 .action-buttons {
@@ -292,6 +293,8 @@ textarea {
     width: 100%;
   }
 }
+
+
 /* Стили для контейнера прогресс-бара */
 .progress-container {
   width: 100%;
@@ -334,4 +337,230 @@ textarea {
   font-size: 0.9rem; /* Размер шрифта текста прогресса */
   margin-top: 0.5rem; /* Отступ сверху */
   color: var(--primary-color); /* Цвет текста */
+}
+
+.nav-bar {
+  background-color: var(--primary-color);
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.nav-container {
+  width: 95%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: flex-start;
+  gap: 1rem;
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link.active {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.search-container {
+  margin-top: 2rem;
+}
+
+.search-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.suggestions-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.suggestion-item {
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.suggestion-item:hover {
+  background-color: var(--bg-color);
+}
+
+.search-input {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  margin-bottom: 0;
+}
+
+.cities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.city-card {
+  background-color: var(--card-bg);
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-top: 2rem;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.city-card h3 {
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 0.5rem;
+}
+
+.city-info p {
+  margin-bottom: 0.8rem;
+  line-height: 1.6;
+}
+
+.city-info strong {
+  color: var(--primary-color);
+}
+
+.stats-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.stat-card {
+  background-color: var(--card-bg);
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: var(--primary-color);
+  margin: 1rem 0;
+  transition: opacity 0.5s ease;
+}
+
+.stat-value.text-stat {
+  font-size: 2rem;
+  opacity: 0;
+}
+
+.stat-label {
+  color: var(--text-color);
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.stat-subtext {
+  color: var(--text-color);
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+  .container {
+    width: 100%;
+    padding: 0.5rem;
+  }
+
+  .preview-controls {
+    flex-direction: column;
+  }
+
+  .doc-number {
+    width: 100%;
+  }
+
+  input[type="text"] {
+    width: 100%;
+  }
+
+  .upload-section {
+    flex-direction: column;
+  }
+
+  .upload-btn, .primary-btn, .secondary-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  textarea {
+    height: 200px;
+  }
+
+  .nav-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .nav-link {
+    text-align: center;
+  }
+
+  .stats-container {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    padding: 1.5rem;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+  }
+
+  .stat-value.text-stat {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .file-item {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .delete-btn {
+    width: 100%;
+  }
 }

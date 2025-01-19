@@ -1,0 +1,28 @@
+{% extends "work_for_ilia/base.html" %}
+
+{% load static %}
+
+{% block title %}
+Поиск городов
+{% endblock %}
+
+{% block body %}
+<div class="container search-container">
+    <h1>Поиск городов России</h1>
+    <div class="search-wrapper">
+        <input type="text" class="search-input" id="citySearch" placeholder="Введите название города...">
+        <div class="suggestions-list" id="suggestionsList"></div>
+    </div>
+    <div class="cities-grid" id="citiesGrid"></div>
+</div>
+
+{% block extra_js %}
+<script src="{% static 'js/cities.js' %}"></script>
+<!--<script>-->
+<!--    const uploadUrl = "{% url 'work_for_ilia:index' %}"; // Получаем URL из Django-->
+<!--    const updateUrl = "{% url 'work_for_ilia:update' %}"; // Получаем URL из Django-->
+<!--</script>-->
+{% endblock %}
+
+{% endblock %}
+
