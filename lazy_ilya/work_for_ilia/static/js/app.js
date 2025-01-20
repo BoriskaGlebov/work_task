@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const handleFileInputChange = () => {
     const hasFiles = fileInput.files.length > 0;
     uploadBtn.disabled = !hasFiles; // Включаем/выключаем кнопку загрузки
-    saveBtn.disabled = !hasFiles; // Включаем/выключаем кнопку сохранения
+    saveBtn.disabled = true; // Включаем/выключаем кнопку сохранения
     clearBtn.disabled = !hasFiles; // Включаем/выключаем кнопку очистки
     fileInput.disabled = false; // Убедимся, что поле ввода файлов остается активным
   };
@@ -234,7 +234,8 @@ class DocumentConverter {
             // Достигаем 100% после обработки
             document.getElementById('uploadProgressBar').style.width = '100%';
             document.getElementById('uploadProgressText').innerText = 'Загрузка завершена: 100%';
-
+            // Активируем кнопку сохранения
+            saveBtn.disabled = false; // Активируем кнопку сохранения
             // Скрываем прогресс-бар через некоторое время
             setTimeout(() => {
                 document.getElementById('uploadProgress').style.display = 'none';
