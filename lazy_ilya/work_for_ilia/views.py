@@ -7,7 +7,7 @@ from django.db.models.functions import TruncDate
 from django.http import HttpRequest, JsonResponse
 from django.shortcuts import render
 from django.views import View
-from plyer import notification
+# from plyer import notification
 
 from work_for_ilia.models import Counter
 from work_for_ilia.utils.custom_converter.converter_to_docx import Converter
@@ -111,13 +111,13 @@ class Greater(View):
                 # Сохраняем новое содержимое в файл
                 with open(file_path, 'w', encoding='utf-8') as file:
                     file.write(new_content)
-                notification.notify(
-                    title="Файл сохранен",  # Заголовок
-                    message=f"{new_file_name}",  # Сообщение
-                    app_icon=r"D:\SkillBox\work_task\lazy_ilya\work_for_ilia\static\img\banana.ico",
-                    # Путь к иконке (необязательно)
-                    timeout=3,
-                )
+                # notification.notify(
+                #     title="Файл сохранен",  # Заголовок
+                #     message=f"{new_file_name}",  # Сообщение
+                #     app_icon=r"D:\SkillBox\work_task\lazy_ilya\work_for_ilia\static\img\banana.ico",
+                #     Путь к иконке (необязательно)
+                    # timeout=3,
+                # )
                 counter += 1
                 logger.info(f'Сохранил файл {new_file_name}')
             res = Counter.objects.create(num_files=counter)

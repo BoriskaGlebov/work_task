@@ -1,79 +1,93 @@
-{% extends "work_for_ilia/base.html" %}
-{% load static %}
+{% extends "work_for_ilia/base.html" %}  <!-- Наследуем базовый шаблон для использования общей структуры -->
+{% load static %}  <!-- Загружаем тег для работы со статическими файлами Django -->
+
 {% block title %}
-Конвертер документов в TXT
+    Конвертер документов в TXT  <!-- Заголовок страницы, который будет отображаться в браузере -->
 {% endblock %}
 
 {% block body %}
-<div id="splash-screen">
-    <h1 class="splash-title">Lazy Ilia</h1>
-</div>
-
-<div id="main-content" class="container" style="display: none;">
-    <h1>Конвертер документов в TXT</h1>
-
-    <div class="upload-section">
-        <label for="fileInput" class="upload-btn">
-            <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align: middle; margin-right: 8px;">
-                <path fill="currentColor" d="M8 0L3 5h3v8h4V5h3L8 0z"/>
-                <path fill="currentColor" d="M15 11v3H1v-3H0v4h16v-4h-1z"/>
-            </svg>
-            Выберите файлы
-            <input type="file" id="fileInput" multiple accept=".doc,.docx,.rtf">
-        </label>
-        <div class="doc-number">
-            <label for="docNumber">Номер документа:</label>
-            <input type="number" id="docNumber" placeholder="Введите номер документа" min="1" class="number-input">
-        </div>
-        {% csrf_token %}
-        <button id="uploadBtn" class="primary-btn" disabled>
-            <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align: middle; margin-right: 8px;">
-                <path fill="currentColor" d="M8 0L3 5h3v8h4V5h3L8 0z"/>
-            </svg>
-            Загрузить
-        </button>
-        <div id="uploadProgress" class="progress-container" style="display: none;">
-            <div id="uploadProgressBar" class="progress-bar"></div>
-            <div id="uploadProgressText" class="progress-text">Загрузка...</div>
-        </div>
+    <div id="splash-screen">  <!-- Экран приветствия, который может отображаться при загрузке страницы -->
+        <h1 class="splash-title">Lazy Ilia</h1>  <!-- Заголовок на экране приветствия -->
     </div>
 
-    <div class="files-list">
-        <h3>Загруженные файлы:</h3>
-        <div id="filesList"></div>
-    </div>
+    <div id="main-content" class="container" style="display: none;">  <!-- Основной контент, скрытый по умолчанию -->
+        <h1>Конвертер документов в TXT</h1>  <!-- Заголовок основного контента -->
 
-    <div class="preview-section">
-        <div class="preview-controls">
-            <select id="fileSelector">
-                <option value="">Выберите файл для просмотра</option>
-            </select>
+        <div class="upload-section">  <!-- Секция для загрузки файлов -->
+            <label for="fileInput" class="upload-btn">  <!-- Метка для кнопки выбора файла -->
+                <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align: middle; margin-right: 8px;">
+                    <!-- SVG-иконка для кнопки -->
+                    <path fill="currentColor" d="M8 0L3 5h3v8h4V5h3L8 0z"/>
+                    <path fill="currentColor" d="M15 11v3H1v-3H0v4h16v-4h-1z"/>
+                </svg>
+                Выберите файлы
+                <input type="file" id="fileInput" multiple accept=".doc,.docx,.rtf">
+                <!-- Поле для выбора файлов с поддержкой нескольких файлов и ограничением по типу -->
+            </label>
+
+            <div class="doc-number">  <!-- Секция для ввода номера документа -->
+                <label for="docNumber">Номер документа:</label>  <!-- Метка для поля ввода номера документа -->
+                <input type="number" id="docNumber" placeholder="Введите номер документа" min="1" class="number-input">
+                <!-- Поле ввода числа с ограничением на минимальное значение -->
+            </div>
+
+            {% csrf_token %}  <!-- Токен CSRF для защиты от подделки запросов -->
+
+            <button id="uploadBtn" class="primary-btn" disabled>  <!-- Кнопка загрузки файлов, изначально отключена -->
+                <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align: middle; margin-right: 8px;">
+                    <!-- SVG-иконка для кнопки загрузки -->
+                    <path fill="currentColor" d="M8 0L3 5h3v8h4V5h3L8 0z"/>
+                </svg>
+                Загрузить
+            </button>
+
+            <div id="uploadProgress" class="progress-container" style="display: none;">
+                <!-- Контейнер для отображения прогресса загрузки, скрыт по умолчанию -->
+                <div id="uploadProgressBar" class="progress-bar"></div>  <!-- Полоса прогресса загрузки -->
+                <div id="uploadProgressText" class="progress-text">Загрузка...</div>
+                <!-- Текст, отображающий состояние загрузки -->
+            </div>
         </div>
 
-        <textarea id="textPreview"></textarea>
+        <div class="files-list">  <!-- Секция для отображения загруженных файлов -->
+            <h3>Загруженные файлы:</h3>
+            <div id="filesList"></div>  <!-- Контейнер для списка загруженных файлов -->
+        </div>
+
+        <div class="preview-section">  <!-- Секция предварительного просмотра загруженных файлов -->
+            <div class="preview-controls">
+                <select id="fileSelector">  <!-- Выпадающий список для выбора файла для просмотра -->
+                    <option value="">Выберите файл для просмотра</option>
+                </select>
+            </div>
+
+            <textarea id="textPreview"></textarea>  <!-- Текстовое поле для отображения содержимого выбранного файла -->
+        </div>
+
+        <div class="action-buttons">  <!-- Секция с кнопками действий -->
+            <button id="saveBtn" class="primary-btn" disabled>  <!-- Кнопка сохранения, изначально отключена -->
+                <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align: middle; margin-right: 8px;">
+                    <path fill="currentColor" d="M13 0H0v16h16V3l-3-3zM8 1h4v4H8V1zM2 1h5v4h7v9H2V1z"/>
+                </svg>
+                Сохранить
+            </button>
+
+            <button id="clearBtn" class="secondary-btn" disabled>  <!-- Кнопка очистки, изначально отключена -->
+                <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align: middle; margin-right: 8px;">
+                    <path fill="currentColor"
+                          d="M2 4v10c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V4H2zm3 9H4V7h1v6zm3 0H7V7h1v6zm3 0H7V7h1v6zm1-11l-1-1H5L4 2H0v2h16V2h-4z"/>
+                </svg>
+                Очистить всё
+            </button>
+        </div>
     </div>
 
-    <div class="action-buttons">
-        <button id="saveBtn" class="primary-btn" disabled>
-            <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align: middle; margin-right: 8px;">
-                <path fill="currentColor" d="M13 0H0v16h16V3l-3-3zM8 1h4v4H8V1zM2 1h5v4h7v9H2V1z"/>
-            </svg>
-            Сохранить
-        </button>
-        <button id="clearBtn" class="secondary-btn" disabled>
-            <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align: middle; margin-right: 8px;">
-                <path fill="currentColor"
-                      d="M2 4v10c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V4H2zm3 9H4V7h1v6zm3 0H7V7h1v6zm3 0H7V7h1v6zm1-11l-1-1H5L4 2H0v2h16V2h-4z"/>
-            </svg>
-            Очистить всё
-        </button>
-    </div>
-</div>
-{% block extra_js %}
-<script src="{% static 'js/app.js' %}"></script>
-<script>
-    const uploadUrl = "{% url 'work_for_ilia:index' %}"; // Получаем URL из Django
-    const updateUrl = "{% url 'work_for_ilia:update' %}"; // Получаем URL из Django
-</script>
-{% endblock %}
+    {% block extra_js %}
+        <script src="{% static 'js/app.js' %}"></script>   <!-- Подключение JavaScript-файла с логикой приложения -->
+
+        <script>
+            const uploadUrl = "{% url 'work_for_ilia:index' %}"; // Получаем URL из Django для загрузки
+            const updateUrl = "{% url 'work_for_ilia:update' %}"; // Получаем URL из Django для обновления
+        </script>
+    {% endblock %}
 {% endblock %}
