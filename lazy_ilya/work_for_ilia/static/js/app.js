@@ -241,6 +241,13 @@ class DocumentConverter {
                 document.getElementById('uploadProgressBar').style.width = '0%'; // Сбрасываем ширину
                 document.getElementById('uploadProgressText').innerText = ''; // Очищаем текст
             }, 2000); // Скрыть через 2 секунды
+           const filesListContainer = document.querySelector('.files-list');
+           filesListContainer.classList.add('hidden'); // Добавляем класс для скрытия
+           setTimeout(() => {
+                filesListContainer.style.display = 'none'; // Убираем элемент из потока после анимации
+            }, 1500); // Задержка должна быть равна или больше времени анимации
+
+            // Убедитесь, что класс удаляется перед следующим показом
         } else {
             alert(data.message || 'Произошла ошибка при загрузке файлов');
         }
@@ -253,6 +260,12 @@ class DocumentConverter {
 
     xhr.setRequestHeader('X-CSRFToken', csrftoken);
     xhr.send(formData);
+  }
+
+  // Функция для динамического изменения высоты text area
+  adjustTextAreaHeight() {
+    this.textPreview.style.height = 'auto'; // Сбрасываем высоту
+    this.textPreview.style.height = this.textPreview.scrollHeight + 'px'; // Устанавливаем высоту в зависимости от содержимого
   }
 
 
@@ -274,6 +287,7 @@ class DocumentConverter {
         this.textContents.get(selectedFile) || fileData.convertedText;
 
       this.docNumber.value = fileData.docNumber;
+      this.adjustTextAreaHeight();
 
     } else {
       // Очищаем текстовое поле и номер документа, если файл не выбран
@@ -332,6 +346,11 @@ class DocumentConverter {
 
 //            alert('Файлы успешно сохранены');
             this.clearAll();
+            const filesListContainer = document.querySelector('.files-list');
+            filesListContainer.classList.remove('hidden'); // Убираем класс скрытия
+            filesListContainer.style.display = 'block'; // Устанавливаем стиль обратно на block или flex
+            this.textPreview.value = ''; // Очищаем текстовое поле
+            this.adjustTextAreaHeight(); // Корректируем высоту text area
         } else {
             alert(responseData.message || 'Произошла ошибка при сохранении файлов');
         }
