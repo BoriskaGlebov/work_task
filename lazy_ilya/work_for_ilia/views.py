@@ -160,7 +160,6 @@ class Statistic(View):
             formatted_date = max_date.strftime('%d - %m - %Y')
         else:
             formatted_date = "Нет данных"
-        logger.info(max_total_files)
         context = {
             'converted_files': str(total_files),
             'hard_day': {
@@ -172,5 +171,5 @@ class Statistic(View):
                 'note': '(1 кружка на 2 файла)'
             }
         }
-        print(context)
+        logger.info(f'Контектс для статистики {context}')
         return render(request=request, template_name='work_for_ilia/statistics.html', context=context)
