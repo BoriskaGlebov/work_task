@@ -1,28 +1,37 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
+{% load static %}  <!-- Загружаем тег для работы со статическими файлами Django -->
+
+<!DOCTYPE html>  <!-- Определяет тип документа как HTML5 -->
+<html lang="en">  <!-- Начало HTML-документа с указанием языка (английский) -->
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'css/styles.css'%}">
-    <title>{% block title %}
-        Base title
-        {% endblock %}
-    </title>
+    <meta charset="UTF-8">  <!-- Устанавливает кодировку документа на UTF-8 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  <!-- Настройки для адаптивного дизайна -->
+
+    <!-- Подключение CSS-стилей из статических файлов -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+
+    <title>{% block title %}Base title{% endblock %}</title>
+    <!-- Заголовок страницы, который можно переопределить в дочерних шаблонах -->
 </head>
 <body>
-<nav class="nav-bar">
-    <div class="nav-container">
-        <a href="{%url 'work_for_ilia:index' %}" class="nav-link active">Главная</a>
-        <a href="{%url 'work_for_ilia:cities' %}" class="nav-link">Поиск городов</a>
-        <a href="{%url 'work_for_ilia:statistics' %}" class="nav-link">Статистика</a>
+<nav class="nav-bar">  <!-- Навигационная панель -->
+    <div class="nav-container">  <!-- Контейнер для навигационных ссылок -->
+        <!-- Ссылки на разные страницы с использованием URL-шаблонов Django -->
+        <a href="{% url 'work_for_ilia:index' %}" class="nav-link active">Главная</a>
+        <!-- Активная ссылка на главную страницу -->
+        <a href="{% url 'work_for_ilia:cities' %}" class="nav-link">Поиск городов</a>
+        <!-- Ссылка на страницу поиска городов -->
+        <a href="{% url 'work_for_ilia:statistics' %}" class="nav-link">Статистика</a>
+        <!-- Ссылка на страницу статистики -->
+        
     </div>
 </nav>
-{% block body %}
-Base Body
+
+{% block body %}  <!-- Блок для основного содержимого страницы, который можно переопределить в дочерних шаблонах -->
+    Base Body
 {% endblock %}
 
 {% block extra_js %}
+    <!-- Блок для подключения дополнительных JavaScript-файлов, который можно переопределить в дочерних шаблонах -->
 {% endblock %}
 </body>
 </html>
