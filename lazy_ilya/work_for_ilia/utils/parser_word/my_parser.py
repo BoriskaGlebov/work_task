@@ -135,6 +135,40 @@ class Parser:
         return content_files
 
 
+def replace_unsupported_characters(text, replacement='?'):
+    """
+    Заменяет неподдерживаемые символы на указанный символ замены.
+
+    Args:
+        text (str): Исходный текст.
+        replacement (str): Символ, на который будут заменены неподдерживаемые символы.
+
+    Returns:
+        str: Текст с замененными неподдерживаемыми символами.
+    """
+    # Создаем новый текст с заменами
+    filtered_text = ''.join(char if can_encode(char) else replacement for char in text)
+
+    return filtered_text
+
+
+def can_encode(char):
+    """
+    Проверяет, может ли символ быть закодирован в cp866.
+
+    Args:
+        char (str): Символ для проверки.
+
+    Returns:
+        bool: True, если символ может быть закодирован в cp866, иначе False.
+    """
+    try:
+        char.encode('cp866')
+        return True
+    except UnicodeEncodeError:
+        return False
+
+
 if __name__ == '__main__':
     start_numm = 123
     s = Parser(ProjectSettings.tlg_dir, start_numm)

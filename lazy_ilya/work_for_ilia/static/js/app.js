@@ -163,6 +163,22 @@ class DocumentConverter {
             });
 
             filesListContainer.appendChild(fileItem);
+                // Создание кнопки удаления
+            const deleteButton = document.createElement('button');
+            deleteButton.innerText = 'Удалить';
+            deleteButton.className = 'delete-btn';  // Применение класса стиля
+
+            // Добавление обработчика клика для кнопки удаления
+            deleteButton.addEventListener('click', (event) => {
+                event.stopPropagation(); // Остановка всплытия события, чтобы не активировать элемент файла
+                this.removeFile(fileName);
+            });
+
+            // Добавление кнопки удаления к элементу файла
+            fileItem.appendChild(deleteButton);
+
+            // Добавление элемента файла в контейнер
+            filesListContainer.appendChild(fileItem);
         });
     }
 
@@ -178,10 +194,19 @@ class DocumentConverter {
         this.updateFilesList();
 
         // Очистка текстового поля и номера документа, если удалённый файл был выбран
-        if (document.querySelector('.file-preview-item.active')) {
-            document.querySelector('.file-preview-item.active').classList.remove('active');
+        if (this.currentFileName === fileName) {
+//            document.querySelector('.file-preview-item.active').classList.remove('active');
             this.textPreview.value = '';
             this.docNumber.value = '';
+            this.currentFileName = null; // Сбрасываем текущее имя файла
+            // Возвращаем размер textarea к исходному значению
+            this.resetTextAreaHeight();
+             // Проверяем количество файлов и отключаем кнопку "Сохранить", если нет файлов
+        if (this.files.size === 0) {
+            this.saveBtn.disabled = true; // Отключаем кнопку "Сохранить"
+            this.fileInput.disabled = false;   // активируем поле выбора файла
+            this.docNumber.readOnly = false;
+            }
         }
     }
 
@@ -247,8 +272,7 @@ class DocumentConverter {
                 document.getElementById('uploadProgressBar').style.width = '100%';
                 document.getElementById('uploadProgressText').innerText = 'Загрузка завершена: 100%';
 
-                this.saveBtn.disabled = false; // Активируем кнопку сохранения
-                this.docNumber.readOnly = true;
+
 
                 // Скрываем прогресс-бар через некоторое время
                 setTimeout(() => {
@@ -259,11 +283,13 @@ class DocumentConverter {
                     if (this.files.size > 0) {
                         const fileName = Array.from(this.files.keys())[0];
                         this.showFilePreview(fileName); // Показываем предварительный просмотр первого файла
+                        this.saveBtn.disabled = false; // Активируем кнопку сохранения
+                        this.docNumber.readOnly = true;
+                        this.uploadBtn.disabled = true; // Деактивируем кнопку загрузки
+                        this.fileInput.disabled = true;   // Деактивируем поле выбора файла
                     }
                 }, 2000); // Скрыть через 2 секунды
 
-                this.uploadBtn.disabled = true; // Деактивируем кнопку загрузки
-                this.fileInput.disabled = true;   // Деактивируем поле выбора файла
 
             } else {
                 alert(data.message || 'Произошла ошибка при загрузке файлов');
