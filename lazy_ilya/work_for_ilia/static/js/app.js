@@ -195,18 +195,19 @@ class DocumentConverter {
 
         // Очистка текстового поля и номера документа, если удалённый файл был выбран
         if (this.currentFileName === fileName) {
-//            document.querySelector('.file-preview-item.active').classList.remove('active');
             this.textPreview.value = '';
             this.docNumber.value = '';
             this.currentFileName = null; // Сбрасываем текущее имя файла
-            // Возвращаем размер textarea к исходному значению
-            this.resetTextAreaHeight();
-             // Проверяем количество файлов и отключаем кнопку "Сохранить", если нет файлов
+            this.resetTextAreaHeight(); // Возвращаем размер textarea к исходному значению
+        }
+
+        // Проверяем количество файлов и отключаем кнопку "Сохранить", если нет файлов
         if (this.files.size === 0) {
+            this.fileInput.value = ''; // Очистка значения
             this.saveBtn.disabled = true; // Отключаем кнопку "Сохранить"
-            this.fileInput.disabled = false;   // активируем поле выбора файла
-            this.docNumber.readOnly = false;
-            }
+            this.uploadBtn.disabled = true; // Отключаем кнопку "Загрузить"
+            this.fileInput.disabled = false; // Активируем поле выбора файла
+            this.docNumber.readOnly = false; // Разрешаем редактирование номера документа
         }
     }
 

@@ -81,8 +81,25 @@ class Greater(View):
             logger.debug(f'{new_files} - отправил названние новых файлов')
             return JsonResponse({'content': content, 'new_files': new_files})
 
+
+        except ValueError as ve:
+
+            logger.error(f'ValueError: {str(ve)}')
+
+            return JsonResponse({'error': 'Неверный номер документа.'}, status=400)
+
+
+        except FileNotFoundError as fnfe:
+
+            logger.error(f'FileNotFoundError: {str(fnfe)}')
+
+            return JsonResponse({'error': 'Файл не найден.'}, status=404)
+
+
         except Exception as e:
+
             logger.error(str(e))
+
             return JsonResponse({'error': str(e)}, status=500)
 
     def put(self, request: HttpRequest) -> JsonResponse:
