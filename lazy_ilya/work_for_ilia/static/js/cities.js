@@ -32,12 +32,20 @@ class CitySearch {
     this.init();
   }
 
+  /**
+   * Инициализация обработчиков событий.
+   * Устанавливает обработчики для ввода в поле поиска и кликов вне списка предложений.
+   */
   init() {
     this.searchInput.addEventListener('input', () => this.handleSearch());
     this.searchInput.addEventListener('focus', () => this.showSuggestions());
     document.addEventListener('click', (e) => this.handleClickOutside(e));
   }
 
+  /**
+   * Обрабатывает ввод в поле поиска.
+   * Фильтрует список городов на основе введенного текста и отображает предложения.
+   */
   handleSearch() {
     const searchTerm = this.searchInput.value.toLowerCase();
     if (searchTerm.length < 1) {
@@ -46,13 +54,17 @@ class CitySearch {
       return;
     }
 
-    const filteredCities = this.cities.filter(city => 
+    const filteredCities = this.cities.filter(city =>
       city.name.toLowerCase().includes(searchTerm)
     );
 
     this.renderSuggestions(filteredCities);
   }
 
+  /**
+   * Отображает список предложений на основе отфильтрованных городов.
+   * @param {Array} cities - Массив отфильтрованных городов.
+   */
   renderSuggestions(cities) {
     this.suggestionsList.innerHTML = cities.map(city => `
       <div class="suggestion-item" data-city="${city.name}">
@@ -66,6 +78,11 @@ class CitySearch {
     });
   }
 
+  /**
+   * Обрабатывает выбор города из списка предложений.
+   * Заполняет поле поиска выбранным городом и отображает информацию о городе.
+   * @param {string} cityName - Название выбранного города.
+   */
   selectCity(cityName) {
     const city = this.cities.find(c => c.name === cityName);
     this.searchInput.value = cityName;
@@ -73,6 +90,10 @@ class CitySearch {
     this.renderCityCard(city);
   }
 
+  /**
+   * Отображает карточку с информацией о городе.
+   * @param {Object} city - Объект города с его данными.
+   */
   renderCityCard(city) {
     this.citiesGrid.innerHTML = `
       <div class="city-card">
@@ -88,12 +109,20 @@ class CitySearch {
     `;
   }
 
+  /**
+   * Обрабатывает клик вне поля поиска и списка предложений.
+   * Скрывает список предложений при клике вне этих элементов.
+   * @param {Event} event - Событие клика.
+   */
   handleClickOutside(event) {
     if (!this.searchInput.contains(event.target) && !this.suggestionsList.contains(event.target)) {
       this.suggestionsList.innerHTML = '';
     }
   }
 
+  /**
+   * Показывает предложения при фокусе на поле поиска.
+   */
   showSuggestions() {
     if (this.searchInput.value.length > 0) {
       this.handleSearch();
@@ -101,4 +130,5 @@ class CitySearch {
   }
 }
 
+// Инициализация класса CitySearch при загрузке страницы
 const citySearch = new CitySearch();

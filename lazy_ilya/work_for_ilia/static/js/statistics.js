@@ -21,11 +21,19 @@ class Statistics {
         this.init();
     }
 
+    /**
+     * Инициализация статистики.
+     * Вызывает методы для рендеринга статистики и запуска анимации счетчика.
+     */
     init() {
         this.renderStats();
         this.startCountAnimation();
     }
 
+    /**
+     * Отображает статистику на странице.
+     * Генерирует HTML-код для каждой карточки статистики и добавляет его в контейнер.
+     */
     renderStats() {
         this.statsContainer.innerHTML = this.stats.map(stat => {
             // Проверяем, является ли stat.value строкой и не равен ли он null или undefined
@@ -45,6 +53,10 @@ class Statistics {
         }).join('');
     }
 
+    /**
+     * Запускает анимацию счетчика для отображения значений статистики.
+     * Постепенно увеличивает значения от 0 до конечного значения в течение заданного времени.
+     */
     startCountAnimation() {
         const statValues = document.querySelectorAll('.stat-value');
 
@@ -60,9 +72,9 @@ class Statistics {
 
             const finalValue = parseInt(element.dataset.value.replace(/,/g, ''));
             let currentValue = 0;
-            const duration = 2000;
-            const steps = 60;
-            const increment = finalValue / steps;
+            const duration = 2000;  // Длительность анимации в миллисекундах
+            const steps = 60;       // Количество шагов анимации
+            const increment = finalValue / steps; // Увеличение на каждом шаге
 
             const timer = setInterval(() => {
                 currentValue += increment;
@@ -70,8 +82,9 @@ class Statistics {
                     currentValue = finalValue;
                     clearInterval(timer);
                 }
-                element.textContent = Math.floor(currentValue).toLocaleString();
+                element.textContent = Math.floor(currentValue).toLocaleString(); // Форматируем число с разделением по тысячам
             }, duration / steps);
         });
     }
 }
+
