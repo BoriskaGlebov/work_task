@@ -21,7 +21,7 @@
 
 ## Установка whl пакетов
 
-`python -m pip install --no-index --find-links dist -r .\requirements.txt`
+`python -m pip install --no-index --find-links dist -r requirements.txt`
 
 [репка с образами](https://disk.yandex.ru/d/mwNyjrgPqyo8oA)<br>
 [grafana](https://disk.yandex.ru/d/FeRgvtyFiNpXFw)
