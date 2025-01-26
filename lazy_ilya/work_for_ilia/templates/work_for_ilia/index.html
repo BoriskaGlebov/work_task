@@ -68,12 +68,12 @@
 
         <div class="preview-section"> <!-- Секция предварительного просмотра загруженных файлов -->
             <div class="files-preview-list">
-                <h3>Загруженные файлы:</h3>
-                <div id="filesList"></div> <!-- Контейнер для списка загруженных файлов -->
+                <h3 class="sticky-header">Загруженные файлы:</h3>
+                <div id="filesList" class="sticky-list"></div> <!-- Контейнер для списка загруженных файлов -->
             </div>
 
             <div class="preview-content">
-                <textarea id="textPreview" readonly
+                <textarea id="textPreview" class="sticky-textarea" readonly
                           placeholder="Здесь будет отображаться текст обработанного документа"></textarea>
                 <!-- Поле для отображения содержимого файла -->
             </div>
