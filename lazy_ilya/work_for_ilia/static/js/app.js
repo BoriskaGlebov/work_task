@@ -163,7 +163,7 @@ class DocumentConverter {
             });
 
             filesListContainer.appendChild(fileItem);
-                // Создание кнопки удаления
+            // Создание кнопки удаления
             const deleteButton = document.createElement('button');
             deleteButton.innerText = 'Удалить';
             deleteButton.className = 'delete-btn';  // Применение класса стиля
@@ -256,8 +256,9 @@ class DocumentConverter {
 
         // Обработчик завершения загрузки
         xhr.onload = async () => {
+            const data = JSON.parse(xhr.responseText);
             if (xhr.status === 200) {
-                const data = JSON.parse(xhr.responseText);
+
                 this.files.clear(); // Очищаем старые данные
 
                 // Обновляем данные о загруженных файлах
@@ -272,7 +273,6 @@ class DocumentConverter {
                 // Достигаем 100% после обработки
                 document.getElementById('uploadProgressBar').style.width = '100%';
                 document.getElementById('uploadProgressText').innerText = 'Загрузка завершена: 100%';
-
 
 
                 // Скрываем прогресс-бар через некоторое время
@@ -293,7 +293,8 @@ class DocumentConverter {
 
 
             } else {
-                alert(data.message || 'Произошла ошибка при загрузке файлов');
+                alert(data.error || 'Произошла ошибка при загрузке файлов');
+                document.getElementById('uploadProgress').style.display = 'none';
             }
         };
 
@@ -387,6 +388,7 @@ class DocumentConverter {
 
         // Обработчик завершения сохранения
         xhr.onload = async () => {
+            const responseData = JSON.parse(xhr.responseText);
             if (xhr.status === 200) {
                 const responseData = JSON.parse(xhr.responseText);
 
@@ -404,7 +406,8 @@ class DocumentConverter {
                 }, 2000); // Скрыть через 2 секунды
 
             } else {
-                alert(responseData.message || 'Произошла ошибка при сохранении файлов');
+                alert(responseData.error() || 'Произошла ошибка при сохранении файлов');
+                document.getElementById('uploadProgress').style.display = 'none';
             }
         };
 
