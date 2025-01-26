@@ -132,7 +132,7 @@ class Greater(View):
                 # notification.notify(
                 #     title="Файл сохранен",  # Заголовок
                 #     message=f"{new_file_name}",  # Сообщение
-                #     app_icon=r"D:\SkillBox\work_task\lazy_ilya\work_for_ilia\static\img\banana.ico",
+                #     app_icon=r"D:\SkillBox\work_task\lazy_ilya\work_for_ilia\static\img\favicon.ico",
                 #     Путь к иконке (необязательно)
                 # timeout=3,
                 # )

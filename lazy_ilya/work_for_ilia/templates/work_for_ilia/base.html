@@ -8,7 +8,7 @@
 
     <!-- Подключение CSS-стилей из статических файлов -->
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-
+    <link rel="icon" href="{% static 'favicon.ico'%}" type="image/x-icon">
     <title>{% block title %}Base title{% endblock %}</title>
     <!-- Заголовок страницы, который можно переопределить в дочерних шаблонах -->
 </head>
@@ -22,7 +22,7 @@
         <!-- Ссылка на страницу поиска городов -->
         <a href="{% url 'work_for_ilia:statistics' %}" class="nav-link">Статистика</a>
         <!-- Ссылка на страницу статистики -->
-        
+
     </div>
 </nav>
 

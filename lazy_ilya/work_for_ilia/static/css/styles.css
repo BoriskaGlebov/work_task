@@ -172,7 +172,7 @@ input[type="file"] {
 .preview-section {
     display: flex;
     gap: 2rem;
-    margin-bottom: 2rem;
+    margin: 2rem 0;
 }
 
 .files-preview-list {

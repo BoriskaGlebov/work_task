@@ -47,19 +47,6 @@
             </div>
         </div>
 
-        <div class="preview-section"> <!-- Секция предварительного просмотра загруженных файлов -->
-            <div class="files-preview-list">
-                <h3>Загруженные файлы:</h3>
-                <div id="filesList"></div> <!-- Контейнер для списка загруженных файлов -->
-            </div>
-
-            <div class="preview-content">
-                <textarea id="textPreview" readonly
-                          placeholder="Здесь будет отображаться текст обработанного документа"></textarea>
-                <!-- Поле для отображения содержимого файла -->
-            </div>
-        </div>
-
         <div class="action-buttons">  <!-- Секция с кнопками действий -->
             <button id="saveBtn" class="primary-btn" disabled>  <!-- Кнопка сохранения, изначально отключена -->
                 <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align: middle; margin-right: 8px;">
@@ -78,6 +65,21 @@
                 Очистить всё
             </button>
         </div>
+
+        <div class="preview-section"> <!-- Секция предварительного просмотра загруженных файлов -->
+            <div class="files-preview-list">
+                <h3>Загруженные файлы:</h3>
+                <div id="filesList"></div> <!-- Контейнер для списка загруженных файлов -->
+            </div>
+
+            <div class="preview-content">
+                <textarea id="textPreview" readonly
+                          placeholder="Здесь будет отображаться текст обработанного документа"></textarea>
+                <!-- Поле для отображения содержимого файла -->
+            </div>
+        </div>
+
+
     </div>
 
     {% block extra_js %}
