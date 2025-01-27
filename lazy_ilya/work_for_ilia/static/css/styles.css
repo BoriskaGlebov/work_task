@@ -273,7 +273,8 @@ textarea {
     padding: 1rem;
     border: 1px solid var(--border-color);
     border-radius: 4px;
-    resize: vertical;
+    overflow: hidden;
+    resize: none;
     font-family: 'Consolas', monospace;
     font-size: 0.9rem;
 }
