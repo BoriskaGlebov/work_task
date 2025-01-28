@@ -16,8 +16,8 @@
         <div class="upload-section">  <!-- Секция для загрузки файлов -->
             <label for="fileInput" class="upload-btn">  <!-- Метка для кнопки выбора файла -->
                 <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align: middle; margin-right: 8px;">
-                    <path fill="currentColor" d="M8 0L3 5h3v8h4V5h3L8 0z"/> <!-- Иконка загрузки -->
-                    <path fill="currentColor" d="M15 11v3H1v-3H0v4h16v-4h-1z"/>
+                    <path fill="currentColor" d="M8 0L3 5h3v8h4V5h3L8 0z"></path> <!-- Иконка загрузки -->
+                    <path fill="currentColor" d="M15 11v3H1v-3H0v4h16v-4h-1z"></path>
                 </svg>
                 Выберите файлы
                 <input type="file" id="fileInput" multiple accept=".doc,.docx,.rtf">
@@ -34,7 +34,7 @@
 
             <button id="uploadBtn" class="primary-btn" disabled>  <!-- Кнопка загрузки файлов, изначально отключена -->
                 <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align: middle; margin-right: 8px;">
-                    <path fill="currentColor" d="M8 0L3 5h3v8h4V5h3L8 0z"/> <!-- Иконка загрузки -->
+                    <path fill="currentColor" d="M8 0L3 5h3v8h4V5h3L8 0z"></path> <!-- Иконка загрузки -->
                 </svg>
                 Загрузить
             </button>
@@ -50,7 +50,7 @@
         <div class="action-buttons">  <!-- Секция с кнопками действий -->
             <button id="saveBtn" class="primary-btn" disabled>  <!-- Кнопка сохранения, изначально отключена -->
                 <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align: middle; margin-right: 8px;">
-                    <path fill="currentColor" d="M13 0H0v16h16V3l-3-3zM8 1h4v4H8V1zM2 1h5v4h7v9H2V1z"/>
+                    <path fill="currentColor" d="M13 0H0v16h16V3l-3-3zM8 1h4v4H8V1zM2 1h5v4h7v9H2V1z"></path>
                     <!-- Иконка сохранения -->
                 </svg>
                 Сохранить
@@ -59,7 +59,7 @@
             <button id="clearBtn" class="secondary-btn" disabled> <!-- Кнопка очистки, изначально отключена -->
                 <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align: middle; margin-right: 8px;">
                     <path fill="currentColor"
-                          d="M2 4v10c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V4H2zm3 9H4V7h1v6zm3 0H7V7h1v6zm3 0H7V7h1v6zm1-11l-1-1H5L4 2H0v2h16V2h-4z"/>
+                          d="M2 4v10c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V4H2zm3 9H4V7h1v6zm3 0H7V7h1v6zm3 0H7V7h1v6zm1-11l-1-1H5L4 2H0v2h16V2h-4z"></path>
                     <!-- Иконка очистки -->
                 </svg>
                 Очистить всё
@@ -73,8 +73,8 @@
             </div>
 
             <div class="preview-content">
-                <textarea id="textPreview" class="sticky-textarea" readonly
-                          placeholder="Здесь будет отображаться текст обработанного документа"></textarea>
+                <label for="textPreview"></label><textarea id="textPreview" class="sticky-textarea" readonly
+                                                           placeholder="Здесь будет отображаться текст обработанного документа"></textarea>
                 <!-- Поле для отображения содержимого файла -->
             </div>
         </div>

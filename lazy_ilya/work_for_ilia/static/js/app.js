@@ -57,18 +57,19 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
 });
 
-
+/**
+ * Класс DocumentConverter отвечает за управление документами,
+ * их загрузку, отображение и взаимодействие с пользователем.
+ */
 class DocumentConverter {
     /**
-     * Конструктор класса FileUploader.
+     * Конструктор класса DocumentConverter.
      * Инициализирует коллекции для хранения файлов и текстового содержимого,
      * а также вызывает методы для настройки интерфейса и событий.
      */
     constructor() {
-        // this.currentIndex = -1; // Индекс текущего выделенного документа
-        this.files = new Map(); // Хранит загруженные файлы
-        this.textContents = new Map(); // Хранит содержимое текстовых полей
-        this.isNavigating = false; // Переменная для отслеживания состояния навигации
+        this.files = new Map(); // Хранит загруженные файлы в виде пар "имя файла - данные файла"
+        this.textContents = new Map(); // Хранит содержимое текстовых полей по именам файлов
         this.initializeElements(); // Инициализация элементов интерфейса
         this.setupEventListeners(); // Настройка обработчиков событий
     }
@@ -78,54 +79,51 @@ class DocumentConverter {
      * Находит элементы DOM по их идентификаторам и сохраняет ссылки на них.
      */
     initializeElements() {
-        this.fileInput = document.getElementById('fileInput');
-        this.uploadBtn = document.getElementById('uploadBtn');
-        this.filesList = document.getElementById('filesList');
-        this.docNumber = document.getElementById('docNumber');
-        this.textPreview = document.getElementById('textPreview');
-        this.saveBtn = document.getElementById('saveBtn');
-        this.clearBtn = document.getElementById('clearBtn');
-        this.uploadProgress = document.getElementById('uploadProgress');
-        this.uploadProgressBar = document.getElementById('uploadProgressBar');
-        this.uploadProgressText = document.getElementById('uploadProgressText');
-        this.saveProgress = document.getElementById('saveProgress');
-        this.saveProgressBar = document.getElementById('saveProgressBar');
-        this.saveProgressText = document.getElementById('saveProgressText');
+        this.fileInput = document.getElementById('fileInput'); // Элемент для выбора файлов
+        this.uploadBtn = document.getElementById('uploadBtn'); // Кнопка загрузки файлов
+        this.filesList = document.getElementById('filesList'); // Список загруженных файлов
+        this.docNumber = document.getElementById('docNumber'); // Поле для ввода номера документа
+        this.textPreview = document.getElementById('textPreview'); // Поле для предварительного просмотра текста файла
+        this.saveBtn = document.getElementById('saveBtn'); // Кнопка сохранения изменений
+        this.clearBtn = document.getElementById('clearBtn'); // Кнопка очистки выбора файлов
     }
 
     /**
      * Настраивает обработчики событий для элементов интерфейса.
      */
     setupEventListeners() {
-        // Обработчик выбора файлов
+        // Обработчик выбора файлов: при изменении состояния элемента input вызывается метод handleFileSelection
         this.fileInput.addEventListener('change', () => this.handleFileSelection());
 
-        // Обработчики кнопок
+        // Обработчики кнопок: при нажатии на соответствующие кнопки вызываются методы загрузки, сохранения и очистки
         this.uploadBtn.addEventListener('click', () => this.uploadFiles());
         this.saveBtn.addEventListener('click', () => this.saveFiles());
         this.clearBtn.addEventListener('click', () => this.clearAll());
 
-        // Обработчик изменения текста в текстовом поле
+        // Обработчик изменения текста в текстовом поле: обновляет содержимое файла в коллекции при вводе текста
         this.textPreview.addEventListener('input', () => {
             if (this.currentFileName && this.files.has(this.currentFileName)) {
                 const fileData = this.files.get(this.currentFileName);
                 fileData.convertedText = this.textPreview.value; // Обновление содержимого файла
-                this.files.set(this.currentFileName, fileData); // Сохранение изменений
+                this.files.set(this.currentFileName, fileData); // Сохранение изменений в коллекции
             }
         });
+
+        // Обработчик клавиши Tab: позволяет перемещаться по списку файлов с помощью клавиши Tab
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Tab') {
-                event.preventDefault(); // Предотвращаем стандартное поведение Tab
-                this.navigateFiles(1); // Перемещение к следующему файлу
+                event.preventDefault(); // Предотвращаем стандартное поведение Tab (перемещение фокуса)
+                this.navigateFiles(1); // Перемещение к следующему файлу в списке
             }
         });
+
+        // Обработчик клика по элементу списка файлов (должен быть перемещен в updateFilesList)
         fileItem.addEventListener('click', () => {
             document.querySelectorAll('.file-preview-item').forEach(item => item.classList.remove('active'));
             fileItem.classList.add('active');
-            this.showFilePreview(fileName);
+            this.showFilePreview(fileName); // Отображение предварительного просмотра выбранного файла
             this.isNavigating = true; // Устанавливаем состояние навигации в true
         });
-
     }
 
     /**
@@ -133,18 +131,19 @@ class DocumentConverter {
      * Добавляет выбранные файлы в коллекцию, если они имеют допустимый формат.
      */
     handleFileSelection() {
-        const files = Array.from(this.fileInput.files);
+        const files = Array.from(this.fileInput.files); // Преобразуем список файлов из input в массив
         files.forEach(file => {
-            if (this.isValidFileType(file)) {
-                // Добавление файла в коллекцию
+            if (this.isValidFileType(file)) { // Проверяем, является ли файл допустимым типом
+                // Добавление файла в коллекцию с его данными
                 this.files.set(file.name, {
                     file,
-                    docNumber: '',
-                    convertedText: ''
+                    docNumber: '', // Изначально номер документа пустой
+                    convertedText: '' // Изначально содержимое текста пустое
                 });
             }
         });
-        this.updateFilesList(); // Обновление списка файлов в интерфейсе
+
+        this.updateFilesList(); // Обновление списка файлов в интерфейсе после выбора новых файлов
     }
 
     /**
@@ -153,8 +152,8 @@ class DocumentConverter {
      * @returns {boolean} - true, если файл допустимого типа, иначе false.
      */
     isValidFileType(file) {
-        const validTypes = ['.doc', '.docx', '.rtf'];
-        return validTypes.some(type => file.name.toLowerCase().endsWith(type));
+        const validTypes = ['.doc', '.docx', '.rtf']; // Допустимые типы файлов
+        return validTypes.some(type => file.name.toLowerCase().endsWith(type)); // Проверяем расширение файла
     }
 
     /**
@@ -523,6 +522,7 @@ function getCookie(name) {
 
     return cookieValue; // Возвращаем найденное значение или null
 }
+
 
 const converter = new DocumentConverter();
 
