@@ -1,10 +1,9 @@
 import json
 import os.path
-from http.client import HTTPResponse
 
 from django.db.models import Sum
 from django.db.models.functions import TruncDate
-from django.http import HttpRequest, JsonResponse
+from django.http import HttpRequest, JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.views import View
 
@@ -27,7 +26,7 @@ class Greater(View):
     их конвертации в нужный формат и парсинга содержимого.
     """
 
-    def get(self, request: HttpRequest) -> HTTPResponse:
+    def get(self, request: HttpRequest) ->HttpResponse :
         """
         Отображает форму для загрузки документов.
 
@@ -152,12 +151,12 @@ class Greater(View):
 
 
 class Cities(View):
-    def get(self, request: HttpRequest) -> HTTPResponse:
+    def get(self, request: HttpRequest) -> HttpResponse:
         return render(request=request, template_name='work_for_ilia/cities.html')
 
 
 class Statistic(View):
-    def get(self, request: HttpRequest) -> HTTPResponse:
+    def get(self, request: HttpRequest) -> HttpResponse:
         total_files = Counter.objects.aggregate(total=Sum('num_files'))['total'] or 0
         coffee = (total_files // 2) or 0
         # Группируем записи по дате и подсчитываем сумму обработанных файлов за каждый день
