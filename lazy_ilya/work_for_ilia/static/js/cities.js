@@ -43,7 +43,7 @@ class CitySearch {
         }
 
         const filteredCities = this.cities.filter(city =>
-            city.name.toLowerCase().includes(searchTerm)
+            city.location.toLowerCase().includes(searchTerm)
         );
 
         this.renderSuggestions(filteredCities);
@@ -55,8 +55,8 @@ class CitySearch {
         this.selectedIndex = -1;
 
         this.suggestionsList.innerHTML = cities.map((city, index) => `
-            <div class="suggestion-item ${this.selectedIndex === index ? 'selected' : ''}" data-city="${city.name}">
-                ${city.name}
+            <div class="suggestion-item ${this.selectedIndex === index ? 'selected' : ''}" data-city="${city.location}">
+                ${city.location}
             </div>
         `).join('');
 
@@ -69,7 +69,7 @@ class CitySearch {
     }
 
     selectCity(cityName) {
-        const city = this.cities.find(c => c.name === cityName);
+        const city = this.cities.find(c => c.location === cityName);
         if (city) {
             this.searchInput.value = cityName;
             this.suggestionsList.innerHTML = '';
@@ -81,13 +81,13 @@ class CitySearch {
     renderCityCard(city) {
         this.citiesGrid.innerHTML += `
             <div class="city-card">
-                <h3>${city.name}</h3>
+                <h3>${city.location}</h3>
                 <div class="city-info">
-                    <p><strong>Население:</strong> ${parseInt(city.population).toLocaleString()} человек</p>
-                    <p><strong>Регион:</strong> ${city.region}</p>
-                    <p><strong>Год основания:</strong> ${city.founded}</p>
+                    <p><strong>Псевдоним:</strong> ${city.pseudonim}</p>
+                    <p><strong>Адрес в глобусе:</strong> ${city.ip_address}</p>
+                    <p><strong>НАзвание организации</strong> ${city.name_organ}</p>
                     <p><strong>Описание:</strong></p>
-                    <p>${city.description}</p>
+                    <p>${city.work_time}</p>
                 </div>
             </div>
         `;
@@ -111,7 +111,7 @@ class CitySearch {
 
         // Фильтруем города по текущему вводу
         const filteredCities = this.cities.filter(city =>
-            city.name.toLowerCase().includes(searchTerm)
+            city.location.toLowerCase().includes(searchTerm)
         );
 
         // Очищаем предыдущие карточки

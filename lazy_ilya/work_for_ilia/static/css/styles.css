@@ -481,10 +481,13 @@ textarea {
     padding: 1.5rem;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    margin-top: 2rem;
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
+    overflow: hidden; /* Скрывает текст, выходящий за пределы карточки */
+    text-overflow: ellipsis; /* Добавляет многоточие, если текст обрезан */
+    max-width: 100%; /* Убедитесь, что карточка не шире контейнера */
+    /*margin-top: 2rem;*/
+    /*max-width: 800px;*/
+    /*margin-left: auto;*/
+    /*margin-right: auto;*/
 }
 
 .city-card h3 {
@@ -493,11 +496,15 @@ textarea {
     font-size: 1.5rem;
     border-bottom: 2px solid var(--primary-color);
     padding-bottom: 0.5rem;
+    overflow-wrap: break-word; /* Переносит длинные слова на новую строку */
+    white-space: normal; /* Позволяет переносить текст на новую строку */
 }
 
 .city-info p {
     margin-bottom: 0.8rem;
     line-height: 1.6;
+    overflow-wrap: break-word; /* Переносит длинные слова на новую строку */
+    white-space: normal; /* Позволяет переносить текст на новую строку */
 }
 
 .city-info strong {
