@@ -81,6 +81,7 @@ h1 {
     flex-wrap: wrap;
     gap: 1rem;
     margin-bottom: 2rem;
+    /*justify-content: center;*/
 }
 
 button:disabled {
@@ -186,11 +187,13 @@ input[type="file"] {
     position: sticky; /* Делаем контейнер списка липким */
     top: 40px; /* Расстояние от верхней части окна браузера (учитываем высоту заголовка) */
 }
+
 .sticky-textarea {
     position: sticky; /* Делаем текстовое поле липким */
     top: 60px; /* Расстояние от верхней части окна браузера (учитываем высоту заголовка и контейнера списка) */
 
 }
+
 .files-preview-list {
     flex: 1;
     background-color: var(--card-bg);

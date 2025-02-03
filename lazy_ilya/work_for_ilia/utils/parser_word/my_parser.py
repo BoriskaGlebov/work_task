@@ -186,6 +186,7 @@ class Parser:
                 SomeDataFromSomeTables.objects.update_or_create(**res)
         all_rows = SomeDataFromSomeTables.objects.select_related('table_id').all()
         pprint([el.to_dict() for el in all_rows])
+        return [el.to_dict() for el in all_rows]
 
 
 #

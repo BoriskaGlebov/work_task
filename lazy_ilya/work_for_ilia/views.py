@@ -6,6 +6,7 @@ from django.db.models.functions import TruncDate
 from django.http import HttpRequest, JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.views import View
+from docx import Document
 
 from work_for_ilia.models import Counter, SomeDataFromSomeTables
 from work_for_ilia.utils.custom_converter.converter_to_docx import Converter
@@ -153,182 +154,46 @@ class Greater(View):
 class Cities(View):
     def get(self, request: HttpRequest) -> HttpResponse:
         all_rows = SomeDataFromSomeTables.objects.select_related('table_id').all()
-        # cities = [
-        #     {'ip_address': 's=slovo/cd=slovo/cd=gorod/c=f16/s=gorodr/omto=step/l=ai 1',
-        #      'letters': True,
-        #      'location': 'ГОРОД1',
-        #      'name_organ': 'Название организации 1',
-        #      'pseudonim': 'СЛОВО1\n(SLOVO1)1',
-        #      'some_number': '1',
-        #      'table_id': 1,
-        #      'work_time': '8:00-18:00\nТЛФ  123-001',
-        #      'writing': True},
-        #     {'ip_address': 's=slovo/cd=slovo/cd=gorod/c=f16/s=gorodr/omto=step/l=ai 2',
-        #      'letters': True,
-        #      'location': 'ГОРОД2',
-        #      'name_organ': 'Название организации 2',
-        #      'pseudonim': 'СЛОВО1\n(SLOVO1)2',
-        #      'some_number': '2',
-        #      'table_id': 1,
-        #      'work_time': '8:00-18:00\nТЛФ  123-002',
-        #      'writing': True},
-        #     {'ip_address': 's=slovo/cd=slovo/cd=gorod/c=f16/s=gorodr/omto=step/l=ai 3',
-        #      'letters': True,
-        #      'location': 'ГОРОД3',
-        #      'name_organ': 'Название организации 3',
-        #      'pseudonim': 'СЛОВО1\n(SLOVO1)3',
-        #      'some_number': '3',
-        #      'table_id': 1,
-        #      'work_time': '8:00-18:00\nТЛФ  123-003',
-        #      'writing': True},
-        #     {'ip_address': 's=slovo/cd=slovo/cd=gorod/c=f16/s=gorodr/omto=step/l=ai 4',
-        #      'letters': True,
-        #      'location': 'ГОРОД4',
-        #      'name_organ': 'Название организации 4',
-        #      'pseudonim': 'СЛОВО1\n(SLOVO1)4',
-        #      'some_number': '4',
-        #      'table_id': 1,
-        #      'work_time': '8:00-18:00\nТЛФ  123-004',
-        #      'writing': True},
-        #     {'ip_address': 's=slovo/cd=slovo/cd=gorod/c=f16/s=gorodr/omto=step/l=ai 5',
-        #      'letters': True,
-        #      'location': 'ГОРОД5',
-        #      'name_organ': 'Название организации 5',
-        #      'pseudonim': 'СЛОВО1\n(SLOVO1)5',
-        #      'some_number': '5',
-        #      'table_id': 1,
-        #      'work_time': '8:00-18:00\nТЛФ  123-005',
-        #      'writing': True},
-        #     {'ip_address': 's=slovo/cd=slovo/cd=gorod/c=f16/s=gorodr/omto=step/l=ai 6',
-        #      'letters': True,
-        #      'location': 'ГОРОД6',
-        #      'name_organ': 'Название организации 6',
-        #      'pseudonim': 'СЛОВО1\n(SLOVO1)6',
-        #      'some_number': '6',
-        #      'table_id': 1,
-        #      'work_time': '8:00-18:00\nТЛФ  123-006',
-        #      'writing': True},
-        #     {'ip_address': 's=slovo/cd=slovo/cd=gorod/c=f16/s=gorodr/omto=step/l=ai 7',
-        #      'letters': True,
-        #      'location': 'ГОРОД7',
-        #      'name_organ': 'Название организации 7',
-        #      'pseudonim': 'СЛОВО1\n(SLOVO1)7',
-        #      'some_number': '7',
-        #      'table_id': 1,
-        #      'work_time': '8:00-18:00\nТЛФ  123-007',
-        #      'writing': True},
-        #     {'ip_address': 's=slovo/cd=slovo/cd=gorod/c=f16/s=gorodr/omto=step/l=ai 8',
-        #      'letters': True,
-        #      'location': 'ГОРОД8',
-        #      'name_organ': 'Название организации 8',
-        #      'pseudonim': 'СЛОВО1\n(SLOVO1)8',
-        #      'some_number': '8',
-        #      'table_id': 1,
-        #      'work_time': '8:00-18:00\nТЛФ  123-008',
-        #      'writing': True},
-        #     # {
-        #     #     'name': 'Москва',
-        #     #     'population': '12506468',
-        #     #     'region': 'Московская область',
-        #     #     'description': 'Столица России, крупнейший город страны, политический, экономический и культурный центр. Расположен на реке Москве в центре Восточно-Европейской равнины.',
-        #     #     'founded': '1147'
-        #     # },
-        #     # {
-        #     #     'name': 'Москва Одинцево',
-        #     #     'population': '12506468',
-        #     #     'region': 'Московская область',
-        #     #     'description': 'Столица России, крупнейший город страны, политический, экономический и культурный центр. Расположен на реке Москве в центре Восточно-Европейской равнины.',
-        #     #     'founded': '1147'
-        #     # },
-        #     # {
-        #     #     'name': 'Санкт-Петербург',
-        #     #     'population': '5351935',
-        #     #     'region': 'Ленинградская область',
-        #     #     'description': 'Второй по численности населения город России. Город федерального значения. Важнейший экономический, научный и культурный центр страны.',
-        #     #     'founded': '1703'
-        #     # },
-        #     # {
-        #     #     'name': 'Новосибирск',
-        #     #     'population': '1620162',
-        #     #     'region': 'Новосибирская область',
-        #     #     'description': 'Третий по численности населения город России. Крупнейший торговый, деловой, культурный, транспортный, образовательный и научный центр Сибири.',
-        #     #     'founded': '1893'
-        #     # },
-        #     # {
-        #     #     'name': 'Екатеринбург',
-        #     #     'population': '1495066',
-        #     #     'region': 'Свердловская область',
-        #     #     'description': 'Крупный промышленный и культурный центр Урала. Известен своими музеями и театрами.',
-        #     #     'founded': '1723'
-        #     # },
-        #     # {
-        #     #     'name': 'Казань',
-        #     #     'population': '1257341',
-        #     #     'region': 'Татарстан',
-        #     #     'description': 'Столица Татарстана, известная своей богатой историей и культурным наследием.',
-        #     #     'founded': '1005'
-        #     # },
-        #     # {
-        #     #     'name': 'Нижний Новгород',
-        #     #     'population': '1244251',
-        #     #     'region': 'Нижегородская область',
-        #     #     'description': 'Крупный экономический и культурный центр России с уникальной архитектурой.',
-        #     #     'founded': '1221'
-        #     # },
-        #     # {
-        #     #     'name': 'Челябинск',
-        #     #     'population': '1187960',
-        #     #     'region': 'Челябинская область',
-        #     #     'description': 'Промышленный центр Южного Урала с развитой инфраструктурой.',
-        #     #     'founded': '1736'
-        #     # },
-        #     # {
-        #     #     'name': 'Самара',
-        #     #     'population': '1144759',
-        #     #     'region': 'Самарская область',
-        #     #     'description': 'Город на Волге, известный своими историческими памятниками и природными красотами.',
-        #     #     'founded': '1586'
-        #     # },
-        #     # {
-        #     #     'name': 'Омск',
-        #     #     'population': '1139897',
-        #     #     'region': 'Омская область',
-        #     #     'description': 'Крупный административный и культурный центр Сибири с разнообразными музеями.',
-        #     #     'founded': '1716'
-        #     # },
-        #     # {
-        #     #     'name': 'Ростов-на-Дону',
-        #     #     'population': '1137704',
-        #     #     'region': 'Ростовская область',
-        #     #     'description': 'Главный порт на Дону и важный транспортный узел юга России.',
-        #     #     'founded': '1749'
-        #     # },
-        #     # {
-        #     #     'name': 'Уфа',
-        #     #     'population': '1100000',
-        #     #     'region': 'Башкортостан',
-        #     #     'description': 'Столица Башкортостана, известная своей многонациональной культурой и природными красотами.',
-        #     #     'founded': '1574'
-        #     # },
-        #     # {
-        #     #     'name': 'Владивосток',
-        #     #     'population': '605000',
-        #     #     'region': 'Приморский край',
-        #     #     'description': 'Главный порт Дальнего Востока России, известен своими красивыми пейзажами.',
-        #     #     'founded': '1860'
-        #     # },
-        #     # {
-        #     #     'name': 'Краснодар',
-        #     #     'population': '900000',
-        #     #     'region': 'Краснодарский край',
-        #     #     'description': 'Известен как "Южная столица" России с мягким климатом и развитым сельским хозяйством.',
-        #     #     'founded': '1793'
-        #     # }
-        #
-        # ]
         cities = [row.to_dict() for row in all_rows]
         cities_json = json.dumps(cities, ensure_ascii=False)
         return render(request=request, template_name='work_for_ilia/cities.html', context={'cities_json': cities_json})
+
+    def post(self, request: HttpRequest) -> HttpResponse:
+        uploaded_file = request.FILES.get('cityFile')
+        # fs = FileSystemStorage(location=ProjectSettings.tlg_dir,allow_overwrite=True )
+        fs = OverwritingFileSystemStorage(location=ProjectSettings.tlg_dir, allow_overwrite=True)
+        if uploaded_file:
+            # Здесь вы можете обработать файл и извлечь данные о городах
+            cities = self.process_file(uploaded_file)
+            file_path = fs.save(uploaded_file.name, uploaded_file)
+            parser = Parser(ProjectSettings.tlg_dir, 0)
+            doc = Document(os.path.join(fs.base_location, file_path))
+            cities = parser.globus_parser(doc)
+            # Преобразуйте данные о городах в формат JSON для ответа
+            cities_json = json.dumps(cities, ensure_ascii=False)
+            return HttpResponse(cities_json, content_type='application/json')
+        else:
+            return HttpResponse(status=400)
+
+    def process_file(self, file):
+        # Реализуйте вашу логику для чтения и обработки файла.
+        # Верните список словарей, представляющих города.
+        return [
+            {
+                'name': 'Казань',
+                'population': '1257391',
+                'region': 'Республика Татарстан',
+                'description': 'Город в России.',
+                'founded': '1005'
+            },
+            {
+                'name': 'Екатеринбург',
+                'population': '1495066',
+                'region': 'Свердловская область',
+                'description': 'Город в России.',
+                'founded': '1723'
+            }
+        ]
 
 
 class Statistic(View):

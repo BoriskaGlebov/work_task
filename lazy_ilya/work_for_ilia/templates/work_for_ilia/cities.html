@@ -7,14 +7,42 @@
 {% endblock %}
 
 {% block body %}
-    <div class="container search-container">
+
+    <div class="container">
         <h1>Поиск городов России</h1>
-        <div class="search-wrapper">
-            <label for="citySearch"></label><input type="text" class="search-input" id="citySearch"
-                                                   placeholder="Введите название города...">
-            <div class="suggestions-list" id="suggestionsList"></div>
+
+        <!-- Upload section -->
+        <div class="upload-section" style="justify-content: center">
+            <label for="cityFileInput" class="upload-btn">
+                <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align: middle; margin-right: 8px;">
+                    <path fill="currentColor" d="M8 0L3 5h3v8h4V5h3L8 0z"></path>
+                    <path fill="currentColor" d="M15 11v3H1v-3H0v4h16v-4h-1z"></path>
+                </svg>
+                Добавить список городов
+                <input type="file" id="cityFileInput" accept=".doc,.docx">
+            </label>
+
+            <button id="uploadCityFileBtn" class="primary-btn">
+                <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align: middle; margin-right: 8px;">
+                    <path fill="currentColor" d="M8 0L3 5h3v8h4V5h3L8 0z"></path>
+                </svg>
+                Загрузить
+            </button>
+
+            <div id="cityUploadProgress" class="progress-container">
+                <div id="cityUploadProgressBar" class="progress-bar"></div>
+                <div id="cityUploadProgressText" class="progress-text">Загрузка...</div>
+            </div>
         </div>
-        <div class="cities-grid" id="citiesGrid"></div>
+
+        <div class="search-container">
+            <div class="search-wrapper">
+                <label for="citySearch"></label><input type="text" class="search-input" id="citySearch"
+                                                       placeholder="Введите название города...">
+                <div class="suggestions-list" id="suggestionsList"></div>
+            </div>
+            <div class="cities-grid" id="citiesGrid"></div>
+        </div>
     </div>
 
     {% block extra_js %}
@@ -22,6 +50,10 @@
             // Создаем глобальную переменную для хранения данных
             console.log('Cities JSON:', '{{ cities_json|escapejs }}');
             window.citiesData = JSON.parse('{{ cities_json|escapejs }}');
+        </script>
+        <script>
+            const uploadUrl = "{% url 'work_for_ilia:cities' %}";
+            const csrfToken = '{{ csrf_token }}';
         </script>
         <script src="{% static 'js/cities.js' %}"></script>
         <!-- Передача данных из Django в JavaScript -->

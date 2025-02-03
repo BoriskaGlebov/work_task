@@ -1,15 +1,15 @@
 class CitySearch {
     constructor() {
-        this.cities = window.citiesData || []; // Используем данные из глобальной переменной или пустой массив
+        this.cities = window.citiesData; // Используем данные из глобальной переменной
         this.searchInput = document.getElementById('citySearch');
         this.suggestionsList = document.getElementById('suggestionsList');
         this.citiesGrid = document.getElementById('citiesGrid');
-        this.selectedIndex = -1;
+        this.selectedIndex = -1; // Индекс выделенного элемента
 
         this.fileInput = document.getElementById('cityFileInput');
         this.uploadBtn = document.getElementById('uploadCityFileBtn');
         this.uploadProgress = document.getElementById('cityUploadProgress');
-        this.uploadProgressBar = document.getElementById('cityUploadProgressBar');
+        thAis.uploadProgressBar = document.getElementById('cityUploadProgressBar');
         this.uploadProgressText = document.getElementById('cityUploadProgressText');
 
         this.init();
@@ -43,52 +43,36 @@ class CitySearch {
             return;
         }
 
-        // Проверка имени файла
-        if (file.name !== 'globus.docx') {
-            alert('Ошибка: файл должен называться "globus.docx"');
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('cityFile', file);
-
         try {
-            // Отображаем прогресс-бар
             this.uploadProgress.style.display = 'block';
             this.uploadProgressBar.style.width = '0%';
             this.uploadProgressText.textContent = 'Начало загрузки...';
 
-            // Функция для обновления прогресса
-            const updateProgress = (percentage) => {
-                this.uploadProgressBar.style.width = `${percentage}%`;
-                this.uploadProgressText.textContent = `Загрузка ${percentage}%...`;
-            };
+            // Simulate file processing
+            await this.simulateFileProcessing();
 
-            // Устанавливаем прогресс на 75% перед отправкой файла
-            updateProgress(75);
-
-            // Отправляем файл на сервер
-            const response = await fetch(uploadUrl, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': csrfToken // Добавляем CSRF-токен в заголовки
+            // Add some mock cities from the "processed" file
+            const newCities = [
+                {
+                    name: 'Казань',
+                    population: '1257391',
+                    region: 'Республика Татарстан',
+                    description: 'Город в России, столица Республики Татарстан. Крупный порт на левом берегу реки Волги.',
+                    founded: '1005'
+                },
+                {
+                    name: 'Екатеринбург',
+                    population: '1495066',
+                    region: 'Свердловская область',
+                    description: 'Город в России, административный центр Уральского федерального округа и Свердловской области.',
+                    founded: '1723'
                 }
-            });
+            ];
 
-            if (!response.ok) {
-                throw new Error('Ошибка при загрузке файла');
-            }
+            this.cities = [...this.cities, ...newCities];
 
-            // Устанавливаем прогресс на 97% после отправки файла
-            updateProgress(97);
-
-            // Получаем данные от сервера
-            const newCities = await response.json();
-            this.cities = newCities; // Обновляем список городов
-
-            // Устанавливаем прогресс на 100% после получения ответа
-            updateProgress(100);
+            this.uploadProgressBar.style.width = '100%';
+            this.uploadProgressText.textContent = 'Загрузка завершена!';
 
             setTimeout(() => {
                 this.uploadProgress.style.display = 'none';
@@ -104,11 +88,27 @@ class CitySearch {
         }
     }
 
+    simulateFileProcessing() {
+        return new Promise((resolve) => {
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 20;
+                this.uploadProgressBar.style.width = `${progress}%`;
+                this.uploadProgressText.textContent = `Обработка файла... ${progress}%`;
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    resolve();
+                }
+            }, 500);
+        });
+    }
 
     handleSearch() {
         const searchTerm = this.searchInput.value.toLowerCase();
         if (searchTerm.length < 1) {
             this.suggestionsList.innerHTML = '';
+            this.citiesGrid.innerHTML = '';
             return;
         }
 
@@ -117,10 +117,8 @@ class CitySearch {
             return;
         }
 
-        // Фильтруем города по location и name_organ
         const filteredCities = this.cities.filter(city =>
-            city.location.toLowerCase().includes(searchTerm) ||
-            city.name_organ.toLowerCase().includes(searchTerm) // Условие для name_organ
+            city.location.toLowerCase().includes(searchTerm)
         );
 
         this.renderSuggestions(filteredCities);
@@ -128,57 +126,46 @@ class CitySearch {
 
 
     renderSuggestions(cities) {
-    // Обнуляем индекс выделенного элемента при новом поиске
-    this.selectedIndex = -1;
+        // Обнуляем индекс выделенного элемента при новом поиске
+        this.selectedIndex = -1;
 
-    if (cities.length === 0) {
-        this.suggestionsList.innerHTML = '<div class="no-suggestions">Нет подходящих городов</div>';
-        return;
+        this.suggestionsList.innerHTML = cities.map((city, index) => `
+            <div class="suggestion-item ${this.selectedIndex === index ? 'selected' : ''}" data-city="${city.location}">
+                ${city.location}
+            </div>
+        `).join('');
+
+        const suggestionItems = this.suggestionsList.querySelectorAll('.suggestion-item');
+
+        // Добавляем обработчик клика для каждого элемента
+        suggestionItems.forEach(item => {
+            item.addEventListener('click', () => this.selectCity(item.dataset.city));
+        });
     }
-
-    this.suggestionsList.innerHTML = cities.map((city, index) => `
-        <div class="suggestion-item ${this.selectedIndex === index ? 'selected' : ''}" data-city="${city.location}">
-            ${city.location} (${city.name_organ}) <!-- Показываем оба поля -->
-        </div>
-    `).join('');
-
-    const suggestionItems = this.suggestionsList.querySelectorAll('.suggestion-item');
-
-    suggestionItems.forEach(item => {
-        item.addEventListener('click', () => this.selectCity(item.dataset.city));
-    });
-}
-
 
     selectCity(cityName) {
-    const city = this.cities.find(c => c.location === cityName || c.name_organ === cityName);
-    if (city) {
-        this.searchInput.value = cityName; // Устанавливаем название города в поле ввода
-        this.suggestionsList.innerHTML = ''; // Очищаем список предложений
-        this.renderCityCard(city); // Отображаем карточку выбранного города
+        const city = this.cities.find(c => c.location === cityName);
+        if (city) {
+            this.searchInput.value = cityName;
+            this.suggestionsList.innerHTML = '';
+            this.citiesGrid.innerHTML = ''; // Очищаем предыдущие карточки
+            this.renderCityCard(city);
+        }
     }
-}
-
 
     renderCityCard(city) {
-        // Проверяем, существует ли элемент перед добавлением карточек
-        const existingCard = document.querySelector(`.city-card[data-city="${city.location}"]`);
-        if (!existingCard) {
-            const cityCardHTML = `
-               <div class="city-card" data-city="${city.location}">
-                   <h3>${city.location}</h3>
-                   <div class="city-info">
-                       <p><strong>Псевдоним:</strong> ${city.pseudonim}</p>
-                       <p><strong>Адрес в глобусе:</strong> ${city.ip_address}</p>
-                       <p><strong>Название организации:</strong> ${city.name_organ}</p>
-                       <p><strong>Описание:</strong></p>
-                       <p>${city.work_time}</p>
-                   </div>
-               </div>
-           `;
-            // Добавляем новую карточку города на страницу
-            this.citiesGrid.innerHTML += cityCardHTML;
-        }
+        this.citiesGrid.innerHTML += `
+            <div class="city-card">
+                <h3>${city.location}</h3>
+                <div class="city-info">
+                    <p><strong>Псевдоним:</strong> ${city.pseudonim}</p>
+                    <p><strong>Адрес в глобусе:</strong> ${city.ip_address}</p>
+                    <p><strong>НАзвание организации</strong> ${city.name_organ}</p>
+                    <p><strong>Описание:</strong></p>
+                    <p>${city.work_time}</p>
+                </div>
+            </div>
+        `;
     }
 
     handleClickOutside(event) {
@@ -197,10 +184,9 @@ class CitySearch {
     handleEnter() {
         const searchTerm = this.searchInput.value.toLowerCase();
 
-        // Фильтруем города по location и name_organ
+        // Фильтруем города по текущему вводу
         const filteredCities = this.cities.filter(city =>
-            city.location.toLowerCase().includes(searchTerm) ||
-            city.name_organ.toLowerCase().includes(searchTerm) // Добавляем условие для поиска по name_organ
+            city.location.toLowerCase().includes(searchTerm)
         );
 
         // Очищаем предыдущие карточки
@@ -214,7 +200,6 @@ class CitySearch {
         // Очищаем список предложений
         this.suggestionsList.innerHTML = '';
     }
-
 
     moveSelection(direction) {
         const suggestions = Array.from(this.suggestionsList.querySelectorAll('.suggestion-item'));
