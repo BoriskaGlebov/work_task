@@ -487,10 +487,17 @@ textarea {
     overflow: hidden; /* Скрывает текст, выходящий за пределы карточки */
     text-overflow: ellipsis; /* Добавляет многоточие, если текст обрезан */
     max-width: 100%; /* Убедитесь, что карточка не шире контейнера */
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
     /*margin-top: 2rem;*/
     /*max-width: 800px;*/
     /*margin-left: auto;*/
     /*margin-right: auto;*/
+}
+.city-card.show {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .city-card h3 {

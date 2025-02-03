@@ -44,4 +44,8 @@ REM Start the Django application
 echo Starting the Django application...
 
 python manage.py migrate
+REM Create a superuser if it doesn't exist
+echo Creating superuser...
+python -c "from django.contrib.auth import get_user_model;^
+ User = get_user_model(); User.objects.create_superuser('admin', 'admin@example.com', 'password')"
 python manage.py runserver

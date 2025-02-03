@@ -1,5 +1,3 @@
-from tkinter.constants import CASCADE
-
 from django.db import models
 
 
@@ -17,34 +15,84 @@ class Counter(models.Model):
                     показывающее дату обработки и количество файлов.
     """
 
-    processed_at = models.DateTimeField(auto_now_add=True)
-    num_files = models.IntegerField()
+    processed_at: models.DateTimeField = models.DateTimeField(auto_now_add=True,
+                                                              verbose_name="Дата создания/обновления")
+    num_files: models.IntegerField = models.IntegerField(verbose_name="Количество обработанных файлов")
 
-    def __str__(self):
-        return f"Processed on {self.processed_at} = {self.num_files}"
+    class Meta:
+        ordering = ['pk']
+        verbose_name = 'Счетчик сообщений'
+        verbose_name_plural = "Счетчики сообщений"
+
+    def __str__(self) -> str:
+        return f"Processed on {self.processed_at.strftime('%d.%m.%Y %H:%M')} = {self.num_files}"
 
 
 class SomeTables(models.Model):
-    processed_at = models.DateTimeField(auto_now_add=True)
-    table_name = models.CharField(max_length=30, null=False, unique=True)
+    """
+    Модель, которая хранит названия таблиц с адресами.
 
-    def __str__(self):
-        return f"Processed on {self.processed_at} = {self.table_name}"
+    Атрибуты:
+        processed_at (DateTimeField): Дата и время создания записи.
+        table_name (CharField): Название таблицы, уникальное значение.
+
+    Методы:
+        __str__(): Возвращает строковое представление объекта,
+                    показывающее дату создания и название таблицы.
+    """
+
+    processed_at: models.DateTimeField = models.DateTimeField(auto_now_add=True,
+                                                              verbose_name="Дата создания/обновления")
+    table_name: models.CharField = models.CharField(max_length=30, null=False, unique=True,
+                                                    verbose_name="Название таблицы")
+
+    class Meta:
+        ordering = ['pk']
+        verbose_name = 'Название для таблиц'
+        verbose_name_plural = "Названия для таблиц"
+
+    def __str__(self) -> str:
+        return f"Processed on {self.processed_at.strftime('%d.%m.%Y %H:%M')} = {self.table_name}"
 
 
 class SomeDataFromSomeTables(models.Model):
-    processed_at = models.DateTimeField(auto_now_add=True)
-    table_id = models.ForeignKey(SomeTables, on_delete=models.CASCADE)
-    location = models.CharField(max_length=255)
-    name_organ = models.CharField(max_length=255)
-    pseudonim = models.CharField(max_length=255)
-    letters = models.BooleanField(default=False)
-    writing = models.BooleanField(default=False)
-    ip_address = models.CharField(max_length=255)
-    some_number = models.CharField(max_length=255)
-    work_timme = models.CharField(max_length=255)
+    """
+    Модель с адресами.
 
-    def to_dict(self):
+    Атрибуты:
+        processed_at (DateTimeField): Дата и время создания записи.
+        table_id (ForeignKey): Внешний ключ на модель SomeTables.
+        location (CharField): Название города.
+        name_organ (CharField): Название органа.
+        pseudonim (CharField): Псевдоним.
+        letters (BooleanField): Флаг наличия писем.
+        writing (BooleanField): Флаг наличия записей.
+        ip_address (CharField): Адрес IP.
+        some_number (CharField): Специальный номер.
+        work_time (CharField): Рабочее время.
+
+    Методы:
+        to_dict(): Преобразует объект в словарь для удобства работы с данными.
+    """
+
+    processed_at: models.DateTimeField = models.DateTimeField(auto_now_add=True,
+                                                              verbose_name='Дата создания/обновления')
+    table_id: models.ForeignKey = models.ForeignKey(SomeTables, on_delete=models.CASCADE, verbose_name='Таблица')
+    location: models.CharField = models.CharField(max_length=255, verbose_name='Город')
+    name_organ: models.CharField = models.CharField(max_length=255, verbose_name='Название органа')
+    pseudonim: models.CharField = models.CharField(max_length=255, verbose_name='Псевдоним')
+    letters: models.BooleanField = models.BooleanField(default=False, verbose_name='Письма')
+    writing: models.BooleanField = models.BooleanField(default=False, verbose_name='Записи')
+    ip_address: models.CharField = models.CharField(max_length=255, verbose_name='Адрес IP')
+    some_number: models.CharField = models.CharField(max_length=255, verbose_name='Спец номер')
+    work_timme: models.CharField = models.CharField(max_length=255, verbose_name='Рабочее время')
+
+    class Meta:
+        ordering = ['pk']
+        verbose_name = 'Таблица городов'
+        verbose_name_plural = "Таблицы городов"
+
+    def to_dict(self) -> dict:
         """Преобразует объект в словарь."""
         return {
             'table_id': self.table_id.id,

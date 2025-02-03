@@ -161,25 +161,35 @@ class CitySearch {
 
 
     renderCityCard(city) {
-        // Проверяем, существует ли элемент перед добавлением карточек
-        const existingCard = document.querySelector(`.city-card[data-city="${city.location}"]`);
-        if (!existingCard) {
-            const cityCardHTML = `
-               <div class="city-card" data-city="${city.location}">
-                   <h3>${city.location}</h3>
-                   <div class="city-info">
-                       <p><strong>Псевдоним:</strong> ${city.pseudonim}</p>
-                       <p><strong>Адрес в глобусе:</strong> ${city.ip_address}</p>
-                       <p><strong>Название организации:</strong> ${city.name_organ}</p>
-                       <p><strong>Описание:</strong></p>
-                       <p>${city.work_time}</p>
-                   </div>
-               </div>
-           `;
-            // Добавляем новую карточку города на страницу
-            this.citiesGrid.innerHTML += cityCardHTML;
-        }
+    // Проверяем, существует ли элемент перед добавлением карточек
+    const existingCard = document.querySelector(`.city-card[data-city="${city.location}"]`);
+    if (!existingCard) {
+        const cityCardHTML = `
+            <div class="city-card" data-city="${city.location}">
+                <h3>${city.location}</h3>
+                <div class="city-info">
+                    <p><strong>Псевдоним:</strong> ${city.pseudonim}</p>
+                    <p><strong>Адрес в глобусе:</strong> ${city.ip_address}</p>
+                    <p><strong>Название организации:</strong> ${city.name_organ}</p>
+                    <p><strong>Описание:</strong></p>
+                    <p>${city.work_time}</p>
+                </div>
+            </div>
+        `;
+
+        // Добавляем новую карточку города на страницу
+        this.citiesGrid.innerHTML += cityCardHTML;
+
+        // Получаем ссылку на только что добавленную карточку
+        const newCard = this.citiesGrid.lastElementChild;
+
+        // Используем requestAnimationFrame для плавного появления
+        requestAnimationFrame(() => {
+            newCard.classList.add('show');
+        });
     }
+}
+
 
     handleClickOutside(event) {
         if (!this.searchInput.contains(event.target) && !this.suggestionsList.contains(event.target)) {
@@ -195,25 +205,27 @@ class CitySearch {
     }
 
     handleEnter() {
-        const searchTerm = this.searchInput.value.toLowerCase();
+    const searchTerm = this.searchInput.value.toLowerCase();
 
-        // Фильтруем города по location и name_organ
-        const filteredCities = this.cities.filter(city =>
-            city.location.toLowerCase().includes(searchTerm) ||
-            city.name_organ.toLowerCase().includes(searchTerm) // Добавляем условие для поиска по name_organ
-        );
+    // Фильтруем города по location и name_organ
+    const filteredCities = this.cities.filter(city =>
+        city.location.toLowerCase().includes(searchTerm) ||
+        city.name_organ.toLowerCase().includes(searchTerm) // Условие для name_organ
+    );
 
-        // Очищаем предыдущие карточки
-        this.citiesGrid.innerHTML = '';
+    // Очищаем предыдущие карточки
+    this.citiesGrid.innerHTML = '';
 
-        // Отображаем карточки для всех подходящих городов
-        filteredCities.forEach(city => {
+    // Отображаем карточки для всех подходящих городов с задержкой
+    filteredCities.forEach((city, index) => {
+        setTimeout(() => {
             this.renderCityCard(city);
-        });
+        }, index * 100); // Задержка в 100 мс между карточками
+    });
 
-        // Очищаем список предложений
-        this.suggestionsList.innerHTML = '';
-    }
+    // Очищаем список предложений
+    this.suggestionsList.innerHTML = '';
+}
 
 
     moveSelection(direction) {

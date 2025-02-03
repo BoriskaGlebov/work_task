@@ -1,10 +1,12 @@
 import json
 import os.path
 
+from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Sum
 from django.db.models.functions import TruncDate
 from django.http import HttpRequest, JsonResponse, HttpResponse
 from django.shortcuts import render
+from django.utils.decorators import method_decorator
 from django.views import View
 from docx import Document
 
@@ -35,7 +37,7 @@ class Greater(View):
             request (HttpRequest): Объект запроса.
 
         Returns:
-            HTTPResponse: Ответ с загруженной формой.
+            HttpResponse: Ответ с загруженной формой.
         """
         logger.debug("Загрузил страницу")
         return render(request=request, template_name='work_for_ilia/index.html')
@@ -52,7 +54,6 @@ class Greater(View):
         """
         uploaded_files = request.FILES.getlist('file')
         document_number = int(request.POST.get('document_number', 0))
-        # fs = FileSystemStorage(location=ProjectSettings.tlg_dir,allow_overwrite=True )
         fs = OverwritingFileSystemStorage(location=ProjectSettings.tlg_dir, allow_overwrite=True)
 
         if not uploaded_files:
@@ -81,25 +82,16 @@ class Greater(View):
             logger.debug(f'{new_files} - отправил названние новых файлов')
             return JsonResponse({'content': content, 'new_files': new_files})
 
-
         except ValueError as ve:
-
             logger.error(f'ValueError: {str(ve)}')
-
             return JsonResponse({'error': 'Неверный номер документа.'}, status=400)
 
-
         except FileNotFoundError as fnfe:
-
             logger.error(f'FileNotFoundError: {str(fnfe)}')
-
             return JsonResponse({'error': 'Файл не найден.'}, status=404)
 
-
         except Exception as e:
-
             logger.error(str(e))
-
             return JsonResponse({'error': str(e)}, status=500)
 
     def put(self, request: HttpRequest) -> JsonResponse:
@@ -112,7 +104,7 @@ class Greater(View):
         Returns:
             JsonResponse: Ответ с информацией о статусе операции.
         """
-        counter = 0
+        counter: int = 0  # Счетчик сохраненных файлов
         try:
             data = json.loads(request.body)
 
@@ -120,6 +112,7 @@ class Greater(View):
                 document_number = file_data.get('document_number')
                 new_content = replace_unsupported_characters(file_data.get('content'))
                 new_file_name: str = file_data.get('new_file_name')  # Получаем новое имя файла
+
                 if not new_file_name.endswith('.txt'):
                     continue
 
@@ -129,15 +122,10 @@ class Greater(View):
                 # Сохраняем новое содержимое в файл
                 with open(file_path, 'w', encoding='cp866') as file:
                     file.write(new_content)
-                # notification.notify(
-                #     title="Файл сохранен",  # Заголовок
-                #     message=f"{new_file_name}",  # Сообщение
-                #     app_icon=r"D:\SkillBox\work_task\lazy_ilya\work_for_ilia\static\img\favicon.ico",
-                #     Путь к иконке (необязательно)
-                # timeout=3,
-                # )
+
                 counter += 1
                 logger.info(f'Сохранил файл {new_file_name}')
+
             res = Counter.objects.create(num_files=counter)
             res.save()
             return JsonResponse({'status': 'success', 'message': 'Все файлы успешно сохранены.'})
@@ -152,54 +140,78 @@ class Greater(View):
 
 
 class Cities(View):
-    def get(self, request: HttpRequest) -> HttpResponse:
-        all_rows = SomeDataFromSomeTables.objects.select_related('table_id').all()
-        cities = [row.to_dict() for row in all_rows]
-        cities_json = json.dumps(cities, ensure_ascii=False)
-        return render(request=request, template_name='work_for_ilia/cities.html', context={'cities_json': cities_json})
+    """
+    Класс для обработки запросов, связанных с городами.
 
+    Этот класс обрабатывает HTTP-запросы для получения списка городов и загрузки файлов с данными о городах.
+    """
+
+    @method_decorator(user_passes_test(lambda u: u.is_superuser))
     def post(self, request: HttpRequest) -> HttpResponse:
+        """
+        Обрабатывает загрузку файла с данными о городах.
+
+        Args:
+            request (HttpRequest): Объект запроса.
+
+        Returns:
+            HttpResponse: Ответ с данными о городах в формате JSON или статус ошибки.
+        """
         uploaded_file = request.FILES.get('cityFile')
-        # fs = FileSystemStorage(location=ProjectSettings.tlg_dir,allow_overwrite=True )
         fs = OverwritingFileSystemStorage(location=ProjectSettings.tlg_dir, allow_overwrite=True)
+
         if uploaded_file:
-            # Здесь вы можете обработать файл и извлечь данные о городах
-            cities = self.process_file(uploaded_file)
+            # Сохранение загруженного файла
             file_path = fs.save(uploaded_file.name, uploaded_file)
             parser = Parser(ProjectSettings.tlg_dir, 0)
             doc = Document(os.path.join(fs.base_location, file_path))
             cities = parser.globus_parser(doc)
-            # Преобразуйте данные о городах в формат JSON для ответа
+            # Преобразование данных о городах в формат JSON для ответа
             cities_json = json.dumps(cities, ensure_ascii=False)
             return HttpResponse(cities_json, content_type='application/json')
         else:
             return HttpResponse(status=400)
 
-    def process_file(self, file):
-        # Реализуйте вашу логику для чтения и обработки файла.
-        # Верните список словарей, представляющих города.
-        return [
-            {
-                'name': 'Казань',
-                'population': '1257391',
-                'region': 'Республика Татарстан',
-                'description': 'Город в России.',
-                'founded': '1005'
-            },
-            {
-                'name': 'Екатеринбург',
-                'population': '1495066',
-                'region': 'Свердловская область',
-                'description': 'Город в России.',
-                'founded': '1723'
-            }
-        ]
+    def get(self, request: HttpRequest) -> HttpResponse:
+        """
+        Получает список всех городов.
+
+        Args:
+            request (HttpRequest): Объект запроса.
+
+        Returns:
+            HttpResponse: Ответ с HTML-шаблоном и данными о городах в формате JSON.
+        """
+        is_admin = request.user.is_superuser
+        all_rows = SomeDataFromSomeTables.objects.select_related('table_id').all()
+        cities = [row.to_dict() for row in all_rows]
+        cities_json = json.dumps(cities, ensure_ascii=False)
+        return render(request=request, template_name='work_for_ilia/cities.html', context={'cities_json': cities_json,
+                                                                                           'is_admin': is_admin})
 
 
 class Statistic(View):
+    """
+    Класс для обработки запросов статистики.
+
+    Этот класс обрабатывает HTTP-запросы для получения статистики по обработанным файлам,
+    включая общее количество файлов, количество кофе, выпитого на основе статистики,
+    и день с максимальным количеством обработанных файлов.
+    """
+
     def get(self, request: HttpRequest) -> HttpResponse:
-        total_files = Counter.objects.aggregate(total=Sum('num_files'))['total'] or 0
-        coffee = (total_files // 2) or 0
+        """
+        Получает статистику по обработанным файлам.
+
+        Args:
+            request (HttpRequest): Объект запроса.
+
+        Returns:
+            HttpResponse: Ответ с HTML-шаблоном и статистикой.
+        """
+        total_files: int = Counter.objects.aggregate(total=Sum('num_files'))['total'] or 0
+        coffee: int = (total_files // 2) or 0
+
         # Группируем записи по дате и подсчитываем сумму обработанных файлов за каждый день
         daily_totals = Counter.objects.annotate(date=TruncDate('processed_at')).values('date').annotate(
             total=Sum('num_files')).order_by('-total')
@@ -212,11 +224,13 @@ class Statistic(View):
         else:
             max_date = None
             max_total_files = 0
+
         # Форматируем дату
         if max_date:
             formatted_date = max_date.strftime('%d - %m - %Y')
         else:
             formatted_date = "Нет данных"
+
         context = {
             'converted_files': str(total_files),
             'hard_day': {
@@ -228,5 +242,6 @@ class Statistic(View):
                 'note': '(1 кружка на 2 файла)'
             }
         }
-        logger.info(f'Контектс для статистики {context}')
+
+        logger.info(f'Контекст для статистики {context}')
         return render(request=request, template_name='work_for_ilia/statistics.html', context=context)
