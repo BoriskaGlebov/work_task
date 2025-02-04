@@ -1,17 +1,20 @@
 {% extends "work_for_ilia/base.html" %}  <!-- Наследуем базовый шаблон для использования общей структуры -->
 {% load static %}  <!-- Загружаем тег для работы со статическими файлами Django -->
-
+<!-- Заголовок страницы, который будет отображаться в браузере -->
 {% block title %}
-    Конвертер документов в TXT  <!-- Заголовок страницы, который будет отображаться в браузере -->
+    Конвертер документов в TXT
+
 {% endblock %}
 
 {% block body %}
     <div id="splash-screen">  <!-- Экран приветствия, который может отображаться при загрузке страницы -->
-        <h1 class="splash-title">Lazy Ilia</h1>  <!-- Заголовок на экране приветствия -->
+        <h1 class="splash-title">Lazy Ilia</h1>
+        <!-- Заголовок на экране приветствия -->
     </div>
 
     <div id="main-content" class="container" style="display: none;">  <!-- Основной контент, скрытый по умолчанию -->
-        <h1>Конвертер документов в TXT</h1>  <!-- Заголовок основного контента -->
+        <h1>Конвертер документов в TXT</h1>
+        <!-- Заголовок основного контента -->
 
         <div class="upload-section">  <!-- Секция для загрузки файлов -->
             <label for="fileInput" class="upload-btn">  <!-- Метка для кнопки выбора файла -->
@@ -84,7 +87,6 @@
 
     {% block extra_js %}
         <script src="{% static 'js/app.js' %}"></script>   <!-- Подключение JavaScript-файла с логикой приложения -->
-
         <script>
             const uploadUrl = "{% url 'work_for_ilia:index' %}"; // Получаем URL из Django для загрузки
             const updateUrl = "{% url 'work_for_ilia:update' %}"; // Получаем URL из Django для обновления

@@ -22,6 +22,13 @@
         <!-- Ссылка на страницу поиска городов -->
         <a href="{% url 'work_for_ilia:statistics' %}" class="nav-link">Статистика</a>
         <!-- Ссылка на страницу статистики -->
+        {% if user.is_authenticated %}
+            <!-- Если пользователь авторизован -->
+            <a href="{% url 'work_for_ilia:logout' %}" class="nav-link logout-link">LOGOUT</a>
+        {% else %}
+            <!-- Если пользователь не авторизован -->
+            <a href="{% url 'work_for_ilia:login' %}" class="nav-link active admin-link">Админ панель</a>
+        {% endif %}
 
     </div>
 </nav>

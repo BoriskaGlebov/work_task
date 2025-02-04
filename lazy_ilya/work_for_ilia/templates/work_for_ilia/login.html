@@ -1,0 +1,47 @@
+{% extends "work_for_ilia/base.html" %}
+{% load static %}
+
+{% block title %}
+    Lazy Ilia - Вход в админ панель
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <div class="login-card">
+            <h2>Вход в админ панель</h2>
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <form id="loginForm" class="login-form" method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="username">Логин:</label>
+                    {{ form.username }}  <!-- Используем форму Django для автоматической обработки ошибок -->
+                    {% if form.username.errors %}
+                        <div class="alert alert-danger">
+                            {{ form.username.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="password">Пароль:</label>
+                    {{ form.password }}  <!-- Используем форму Django для автоматической обработки ошибок -->
+                    {% if form.password.errors %}
+                        <div class="alert alert-danger">
+                            {{ form.password.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                <button type="submit" class="primary-btn">Войти</button>
+            </form>
+        </div>
+    </div>
+
+    {% block extra_js %}
+    {#        <script src="{% static 'js/login.js' %}"></script>   <!-- Подключение JavaScript-файла с логикой приложения -->#}
+    {% endblock %}
+{% endblock %}

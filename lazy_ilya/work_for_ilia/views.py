@@ -245,3 +245,7 @@ class Statistic(View):
 
         logger.info(f'Контекст для статистики {context}')
         return render(request=request, template_name='work_for_ilia/statistics.html', context=context)
+
+
+class Login(View):
+    pass
