@@ -36,8 +36,10 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'daphne',
     'django.contrib.staticfiles',
     'work_for_ilia.apps.WorkForIliaConfig',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -119,4 +121,10 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-LOGIN_REDIRECT_URL =reverse_lazy("work_for_ilia:index")
+LOGIN_REDIRECT_URL = reverse_lazy("work_for_ilia:index")
+ASGI_APPLICATION = 'lazy_ilya.asgi.application'
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",  # Для разработки
+    },
+}

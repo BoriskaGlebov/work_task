@@ -146,47 +146,47 @@ class Parser:
 
         return content_files
 
-    def globus_parser(self, document: Document):
-        tables = document.tables
-        paragraphs = document.paragraphs
-        tables_name = []
-        existing_names = set(SomeTables.objects.values_list('table_name', flat=True))
-        for paragraph in paragraphs[1:]:
-            if paragraph.text:
-                res = SomeTables(table_name=paragraph.text)
-                if res.table_name not in existing_names:
-                    tables_name.append(res)
-        SomeTables.objects.bulk_create(tables_name)
-        for num, table in enumerate(tables):
-            table_in_bd = SomeTables.objects.get(pk=num + 1)
-            print(table_in_bd.id)
-            for row in table.rows[3:]:
-                res = {'table_id': 0,
-                       'location': '',
-                       'name_organ': '',
-                       'pseudonim': '',
-                       'letters': False,
-                       'writing': False,
-                       'ip_address': '',
-                       'some_number': 0,
-                       'work_timme': ''
-                       }
-                for key, cell in zip(res, row.cells):
-                    if key == 'table_id':
-                        res[key] = table_in_bd
-                    elif key in ['letters', 'writing']:
-                        value_corrector = {'+': True,
-                                           '-': False}
-                        res[key] = value_corrector[cell.text]
-                    # elif key == 'some_number':
-                    #     res[key] = int(cell.text)
-                    else:
-                        res[key] = cell.text
-                # print(res)
-                SomeDataFromSomeTables.objects.update_or_create(**res)
-        all_rows = SomeDataFromSomeTables.objects.select_related('table_id').all()
-        pprint([el.to_dict() for el in all_rows])
-        return [el.to_dict() for el in all_rows]
+    # def globus_parser(self, document: Document):
+    #     tables = document.tables
+    #     paragraphs = document.paragraphs
+    #     tables_name = []
+    #     existing_names = set(SomeTables.objects.values_list('table_name', flat=True))
+    #     for paragraph in paragraphs[1:]:
+    #         if paragraph.text:
+    #             res = SomeTables(table_name=paragraph.text)
+    #             if res.table_name not in existing_names:
+    #                 tables_name.append(res)
+    #     SomeTables.objects.bulk_create(tables_name)
+    #     for num, table in enumerate(tables):
+    #         table_in_bd = SomeTables.objects.get(pk=num + 1)
+    #         print(table_in_bd.id)
+    #         for row in table.rows[3:]:
+    #             res = {'table_id': 0,
+    #                    'location': '',
+    #                    'name_organ': '',
+    #                    'pseudonim': '',
+    #                    'letters': False,
+    #                    'writing': False,
+    #                    'ip_address': '',
+    #                    'some_number': 0,
+    #                    'work_timme': ''
+    #                    }
+    #             for key, cell in zip(res, row.cells):
+    #                 if key == 'table_id':
+    #                     res[key] = table_in_bd
+    #                 elif key in ['letters', 'writing']:
+    #                     value_corrector = {'+': True,
+    #                                        '-': False}
+    #                     res[key] = value_corrector[cell.text]
+    #                 # elif key == 'some_number':
+    #                 #     res[key] = int(cell.text)
+    #                 else:
+    #                     res[key] = cell.text
+    #             # print(res)
+    #             SomeDataFromSomeTables.objects.update_or_create(**res)
+    #     all_rows = SomeDataFromSomeTables.objects.select_related('table_id').all()
+    #     pprint([el.to_dict() for el in all_rows])
+    #     return [el.to_dict() for el in all_rows]
 
 
 #

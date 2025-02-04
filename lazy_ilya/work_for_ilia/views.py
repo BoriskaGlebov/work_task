@@ -1,6 +1,10 @@
 import json
 import os.path
+import threading
+import time
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Sum
 from django.db.models.functions import TruncDate
@@ -10,7 +14,8 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from docx import Document
 
-from work_for_ilia.models import Counter, SomeDataFromSomeTables
+from work_for_ilia.consumers import ProgressConsumer
+from work_for_ilia.models import Counter, SomeDataFromSomeTables, SomeTables
 from work_for_ilia.utils.custom_converter.converter_to_docx import Converter
 from work_for_ilia.utils.my_settings.disrs_for_app import ProjectSettings, logger
 from work_for_ilia.utils.parser_word.my_parser import Parser, replace_unsupported_characters
@@ -142,20 +147,12 @@ class Greater(View):
 class Cities(View):
     """
     Класс для обработки запросов, связанных с городами.
-
-    Этот класс обрабатывает HTTP-запросы для получения списка городов и загрузки файлов с данными о городах.
     """
 
     @method_decorator(user_passes_test(lambda u: u.is_superuser))
     def post(self, request: HttpRequest) -> HttpResponse:
         """
         Обрабатывает загрузку файла с данными о городах.
-
-        Args:
-            request (HttpRequest): Объект запроса.
-
-        Returns:
-            HttpResponse: Ответ с данными о городах в формате JSON или статус ошибки.
         """
         uploaded_file = request.FILES.get('cityFile')
         fs = OverwritingFileSystemStorage(location=ProjectSettings.tlg_dir, allow_overwrite=True)
@@ -163,14 +160,81 @@ class Cities(View):
         if uploaded_file:
             # Сохранение загруженного файла
             file_path = fs.save(uploaded_file.name, uploaded_file)
-            parser = Parser(ProjectSettings.tlg_dir, 0)
-            doc = Document(os.path.join(fs.base_location, file_path))
-            cities = parser.globus_parser(doc)
-            # Преобразование данных о городах в формат JSON для ответа
-            cities_json = json.dumps(cities, ensure_ascii=False)
-            return HttpResponse(cities_json, content_type='application/json')
+            logger.info("Запуск обработки файла в отдельном потоке")
+            # Запуск обработки файла в отдельном потоке
+            threading.Thread(target=self.process_file, args=(file_path,)).start()
+
+            return JsonResponse({'message': 'File uploaded successfully'}, status=200)
         else:
             return HttpResponse(status=400)
+
+    def process_file(self, file_path):
+        doc = Document(os.path.join(ProjectSettings.tlg_dir, file_path))
+        tables = doc.tables
+        paragraphs = doc.paragraphs
+        tables_name = []
+        existing_names = set(SomeTables.objects.values_list('table_name', flat=True))
+
+        for paragraph in paragraphs[1:]:
+            if paragraph.text:
+                res = SomeTables(table_name=paragraph.text)
+                if res.table_name not in existing_names:
+                    tables_name.append(res)
+
+        SomeTables.objects.bulk_create(tables_name)
+        channel_layer = get_channel_layer()
+        tables_id = SomeTables.objects.all()
+        for num, table in enumerate(zip(tables_id, tables)):
+            progress = int((num / len(tables)) * 100)
+            # table_in_bd = SomeTables.objects.get(pk=num)
+            logger.info(f"Отправка прогресса: {progress}%")
+
+            async_to_sync(channel_layer.group_send)(
+                'progress_updates',
+                {
+                    'type': 'send_progress',
+                    'progress': progress,
+                }
+            )
+
+            for row in table[1].rows[3:]:
+                res = {
+                    'table_id': 0,
+                    'location': '',
+                    'name_organ': '',
+                    'pseudonim': '',
+                    'letters': False,
+                    'writing': False,
+                    'ip_address': '',
+                    'some_number': 0,
+                    'work_timme': ''
+                }
+                for key, cell in zip(res, row.cells):
+                    if key == 'table_id':
+                        res[key] = table[0]
+                    elif key in ['letters', 'writing']:
+                        value_corrector = {'+': True, '-': False}
+                        res[key] = value_corrector[cell.text]
+                    else:
+                        res[key] = cell.text
+
+                SomeDataFromSomeTables.objects.update_or_create(**res)
+
+        # Получите обновленный список городов
+        all_rows = SomeDataFromSomeTables.objects.select_related('table_id').all()
+        updated_cities = [el.to_dict() for el in all_rows]  # Предполагается, что у вас есть метод to_dict()
+
+        logger.info("Обработка завершена")
+
+        # Отправьте финальное сообщение с прогрессом и обновленным списком городов
+        async_to_sync(channel_layer.group_send)(
+            'progress_updates',
+            {
+                'type': 'send_progress',
+                'progress': 100,
+                'cities': updated_cities,  # Отправляем обновленный список городов
+            }
+        )
 
     def get(self, request: HttpRequest) -> HttpResponse:
         """
@@ -245,7 +309,3 @@ class Statistic(View):
 
         logger.info(f'Контекст для статистики {context}')
         return render(request=request, template_name='work_for_ilia/statistics.html', context=context)
-
-
-class Login(View):
-    pass

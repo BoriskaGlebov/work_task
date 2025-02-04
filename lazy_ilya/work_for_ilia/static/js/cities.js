@@ -20,7 +20,7 @@ class CitySearch {
         this.searchInput.addEventListener('focus', () => this.showSuggestions());
         document.addEventListener('click', (e) => this.handleClickOutside(e));
 
-       if (this.uploadBtn) {
+        if (this.uploadBtn) {
             this.uploadBtn.addEventListener('click', () => this.handleFileUpload());
         }
         // Обработчик клавиш
@@ -60,16 +60,37 @@ class CitySearch {
             this.uploadProgressBar.style.width = '0%';
             this.uploadProgressText.textContent = 'Начало загрузки...';
 
-            // Функция для обновления прогресса
-            const updateProgress = (percentage) => {
-                this.uploadProgressBar.style.width = `${percentage}%`;
-                this.uploadProgressText.textContent = `Загрузка ${percentage}%...`;
+            // Подключение к WebSocket перед отправкой файла на сервер
+            const socket = new WebSocket('ws://localhost:8000/ws/progress/');
+
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                const progress = data.progress;
+
+                // Обновляем прогресс-бар на основе данных из WebSocket
+                this.uploadProgressBar.style.width = `${progress}%`;
+                this.uploadProgressText.textContent = `Обработка: ${progress}%...`;
+
+                // Если обработка завершена, закрываем соединение и скрываем прогресс-бар
+                if (data.cities) {
+                    this.cities = data.cities;
+                    socket.close();
+                    setTimeout(() => {
+                        this.uploadProgress.style.display = 'none';
+                        this.uploadProgressBar.style.width = '0%';
+                        this.fileInput.value = '';
+                        alert('Список городов успешно загружен и обработан');
+                    }, 1000);
+                }
             };
 
-            // Устанавливаем прогресс на 75% перед отправкой файла
-            updateProgress(75);
+            socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                alert('Произошла ошибка при получении обновлений о прогрессе.');
+                this.uploadProgress.style.display = 'none';
+            };
 
-            // Отправляем файл на сервер
+            // Отправляем файл на сервер после подключения к WebSocket
             const response = await fetch(uploadUrl, {
                 method: 'POST',
                 body: formData,
@@ -81,22 +102,6 @@ class CitySearch {
             if (!response.ok) {
                 throw new Error('Ошибка при загрузке файла');
             }
-
-            // Устанавливаем прогресс на 97% после отправки файла
-            updateProgress(97);
-
-            // Получаем данные от сервера
-            this.cities = await response.json();  // Обновляем список городов
-
-            // Устанавливаем прогресс на 100% после получения ответа
-            updateProgress(100);
-
-            setTimeout(() => {
-                this.uploadProgress.style.display = 'none';
-                this.uploadProgressBar.style.width = '0%';
-                this.fileInput.value = '';
-                alert('Список городов успешно загружен и обработан');
-            }, 1000);
 
         } catch (error) {
             this.uploadProgress.style.display = 'none';
