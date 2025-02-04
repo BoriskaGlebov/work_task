@@ -51,7 +51,7 @@
     {% block extra_js %}
         <script>
             // Создаем глобальную переменную для хранения данных
-            console.log('Cities JSON:', '{{ cities_json|escapejs }}');
+            {#console.log('Cities JSON:', '{{ cities_json|escapejs }}');#}
             window.citiesData = JSON.parse('{{ cities_json|escapejs }}');
         </script>
         <script>
@@ -60,11 +60,7 @@
         </script>
         <script src="{% static 'js/cities.js' %}"></script>
         <!-- Передача данных из Django в JavaScript -->
-
-        <!--<script>-->
-        <!--    const uploadUrl = "{% url 'work_for_ilia:index' %}"; // Получаем URL из Django-->
-        <!--    const updateUrl = "{% url 'work_for_ilia:update' %}"; // Получаем URL из Django-->
-        <!--</script>-->
+        
     {% endblock %}
 
 {% endblock %}

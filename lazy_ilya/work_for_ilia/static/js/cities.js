@@ -20,7 +20,9 @@ class CitySearch {
         this.searchInput.addEventListener('focus', () => this.showSuggestions());
         document.addEventListener('click', (e) => this.handleClickOutside(e));
 
-        this.uploadBtn.addEventListener('click', () => this.handleFileUpload());
+       if (this.uploadBtn) {
+            this.uploadBtn.addEventListener('click', () => this.handleFileUpload());
+        }
         // Обработчик клавиш
         this.searchInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
@@ -84,8 +86,7 @@ class CitySearch {
             updateProgress(97);
 
             // Получаем данные от сервера
-            const newCities = await response.json();
-            this.cities = newCities; // Обновляем список городов
+            this.cities = await response.json();  // Обновляем список городов
 
             // Устанавливаем прогресс на 100% после получения ответа
             updateProgress(100);
@@ -128,43 +129,43 @@ class CitySearch {
 
 
     renderSuggestions(cities) {
-    // Обнуляем индекс выделенного элемента при новом поиске
-    this.selectedIndex = -1;
+        // Обнуляем индекс выделенного элемента при новом поиске
+        this.selectedIndex = -1;
 
-    if (cities.length === 0) {
-        this.suggestionsList.innerHTML = '<div class="no-suggestions">Нет подходящих городов</div>';
-        return;
-    }
+        if (cities.length === 0) {
+            this.suggestionsList.innerHTML = '<div class="no-suggestions">Нет подходящих городов</div>';
+            return;
+        }
 
-    this.suggestionsList.innerHTML = cities.map((city, index) => `
+        this.suggestionsList.innerHTML = cities.map((city, index) => `
         <div class="suggestion-item ${this.selectedIndex === index ? 'selected' : ''}" data-city="${city.location}">
             ${city.location} (${city.name_organ}) <!-- Показываем оба поля -->
         </div>
     `).join('');
 
-    const suggestionItems = this.suggestionsList.querySelectorAll('.suggestion-item');
+        const suggestionItems = this.suggestionsList.querySelectorAll('.suggestion-item');
 
-    suggestionItems.forEach(item => {
-        item.addEventListener('click', () => this.selectCity(item.dataset.city));
-    });
-}
+        suggestionItems.forEach(item => {
+            item.addEventListener('click', () => this.selectCity(item.dataset.city));
+        });
+    }
 
 
     selectCity(cityName) {
-    const city = this.cities.find(c => c.location === cityName || c.name_organ === cityName);
-    if (city) {
-        this.searchInput.value = cityName; // Устанавливаем название города в поле ввода
-        this.suggestionsList.innerHTML = ''; // Очищаем список предложений
-        this.renderCityCard(city); // Отображаем карточку выбранного города
+        const city = this.cities.find(c => c.location === cityName || c.name_organ === cityName);
+        if (city) {
+            this.searchInput.value = cityName; // Устанавливаем название города в поле ввода
+            this.suggestionsList.innerHTML = ''; // Очищаем список предложений
+            this.renderCityCard(city); // Отображаем карточку выбранного города
+        }
     }
-}
 
 
     renderCityCard(city) {
-    // Проверяем, существует ли элемент перед добавлением карточек
-    const existingCard = document.querySelector(`.city-card[data-city="${city.location}"]`);
-    if (!existingCard) {
-        const cityCardHTML = `
+        // Проверяем, существует ли элемент перед добавлением карточек
+        const existingCard = document.querySelector(`.city-card[data-city="${city.location}"]`);
+        if (!existingCard) {
+            const cityCardHTML = `
             <div class="city-card" data-city="${city.location}">
                 <h3>${city.location}</h3>
                 <div class="city-info">
@@ -177,18 +178,18 @@ class CitySearch {
             </div>
         `;
 
-        // Добавляем новую карточку города на страницу
-        this.citiesGrid.innerHTML += cityCardHTML;
+            // Добавляем новую карточку города на страницу
+            this.citiesGrid.innerHTML += cityCardHTML;
 
-        // Получаем ссылку на только что добавленную карточку
-        const newCard = this.citiesGrid.lastElementChild;
+            // Получаем ссылку на только что добавленную карточку
+            const newCard = this.citiesGrid.lastElementChild;
 
-        // Используем requestAnimationFrame для плавного появления
-        requestAnimationFrame(() => {
-            newCard.classList.add('show');
-        });
+            // Используем requestAnimationFrame для плавного появления
+            requestAnimationFrame(() => {
+                newCard.classList.add('show');
+            });
+        }
     }
-}
 
 
     handleClickOutside(event) {
@@ -205,27 +206,27 @@ class CitySearch {
     }
 
     handleEnter() {
-    const searchTerm = this.searchInput.value.toLowerCase();
+        const searchTerm = this.searchInput.value.toLowerCase();
 
-    // Фильтруем города по location и name_organ
-    const filteredCities = this.cities.filter(city =>
-        city.location.toLowerCase().includes(searchTerm) ||
-        city.name_organ.toLowerCase().includes(searchTerm) // Условие для name_organ
-    );
+        // Фильтруем города по location и name_organ
+        const filteredCities = this.cities.filter(city =>
+            city.location.toLowerCase().includes(searchTerm) ||
+            city.name_organ.toLowerCase().includes(searchTerm) // Условие для name_organ
+        );
 
-    // Очищаем предыдущие карточки
-    this.citiesGrid.innerHTML = '';
+        // Очищаем предыдущие карточки
+        this.citiesGrid.innerHTML = '';
 
-    // Отображаем карточки для всех подходящих городов с задержкой
-    filteredCities.forEach((city, index) => {
-        setTimeout(() => {
-            this.renderCityCard(city);
-        }, index * 100); // Задержка в 100 мс между карточками
-    });
+        // Отображаем карточки для всех подходящих городов с задержкой
+        filteredCities.forEach((city, index) => {
+            setTimeout(() => {
+                this.renderCityCard(city);
+            }, index * 100); // Задержка в 100 мс между карточками
+        });
 
-    // Очищаем список предложений
-    this.suggestionsList.innerHTML = '';
-}
+        // Очищаем список предложений
+        this.suggestionsList.innerHTML = '';
+    }
 
 
     moveSelection(direction) {
