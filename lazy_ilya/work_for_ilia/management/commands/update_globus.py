@@ -1,22 +1,38 @@
+import os
 from django.core.management import BaseCommand
-from docx import Document
-
-from work_for_ilia.models import SomeDataFromSomeTables, SomeTables
-from work_for_ilia.utils.my_settings.disrs_for_app import ProjectSettings
-from work_for_ilia.utils.parser_word.my_parser import Parser
+from work_for_ilia.views import Cities
 
 
 class Command(BaseCommand):
     """
-    Команда обновления данных в таблице сгородами
-    """
-    help = 'Обновляет данные таблиц'
+    Команда обновления данных в таблице с городами.
 
-    def handle(self, *args, **options):
+    Эта команда обрабатывает файл, содержащий данные о городах, и обновляет
+    соответствующую таблицу в базе данных.
+
+    Attributes:
+        help (str): Описание команды, которое отображается при вызове помощи.
+    """
+
+    help: str = 'Обновляет данные таблиц'
+
+    def handle(self, *args: str, **options: dict) -> None:
+        """
+        Обрабатывает команду обновления данных.
+
+        Выводит сообщения о начале и завершении процесса обновления базы данных.
+
+        Args:
+            *args (str): Необязательные аргументы командной строки.
+            **options (dict): Необязательные параметры командной строки.
+        """
         self.stdout.write("Начинаю обновление")
-        start_numm = 123
-        s = Parser(ProjectSettings.tlg_dir, start_numm)
-        doc = Document('D:\SkillBox\work_task\lazy_ilya\work_for_ilia\\utils\\test_dir\globus.docx')
-        print(s.globus_parser(doc))
-        # self.stdout.write(f"Созадн продукт {product.name}")
-        self.stdout.write(self.style.SUCCESS("БД ОБновлена"))
+
+        # Путь к файлу с данными о городах
+        file_path: str = os.path.abspath(
+            'D:\\SkillBox\\work_task\\lazy_ilya\\work_for_ilia\\utils\\test_dir\\globus.docx')
+
+        # Обработка файла и обновление базы данных
+        Cities.process_file(file_path)
+
+        self.stdout.write(self.style.SUCCESS("БД обновлена"))

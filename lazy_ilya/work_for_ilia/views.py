@@ -13,6 +13,7 @@ from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views import View
 from docx import Document
+from typing import List, Dict
 
 from work_for_ilia.consumers import ProgressConsumer
 from work_for_ilia.models import Counter, SomeDataFromSomeTables, SomeTables
@@ -67,7 +68,7 @@ class Greater(View):
         if document_number <= 0:
             return JsonResponse({'error': 'Номер документа должен быть больше нуля'}, status=400)
 
-        new_files = []  # Список для хранения имен новых файлов
+        new_files: List[str] = []  # Список для хранения имен новых файлов
 
         try:
             for index, uploaded_file in enumerate(uploaded_files):
@@ -150,9 +151,15 @@ class Cities(View):
     """
 
     @method_decorator(user_passes_test(lambda u: u.is_superuser))
-    def post(self, request: HttpRequest) -> HttpResponse:
+    def post(self, request: HttpRequest) -> JsonResponse:
         """
         Обрабатывает загрузку файла с данными о городах.
+
+        Args:
+            request (HttpRequest): Объект запроса.
+
+        Returns:
+            JsonResponse: Ответ с сообщением об успешной загрузке файла или ошибкой.
         """
         uploaded_file = request.FILES.get('cityFile')
         fs = OverwritingFileSystemStorage(location=ProjectSettings.tlg_dir, allow_overwrite=True)
@@ -166,27 +173,34 @@ class Cities(View):
 
             return JsonResponse({'message': 'File uploaded successfully'}, status=200)
         else:
-            return HttpResponse(status=400)
+            return JsonResponse({'error': 'No file uploaded'}, status=400)
 
-    def process_file(self, file_path):
+    @staticmethod
+    def process_file(file_path: str) -> None:
+        """
+        Обрабатывает загруженный файл с данными о городах.
+
+        Args:
+            file_path (str): Путь к загруженному файлу.
+        """
         doc = Document(os.path.join(ProjectSettings.tlg_dir, file_path))
         tables = doc.tables
         paragraphs = doc.paragraphs
-        tables_name = []
+        tables_name: List[SomeTables] = []
         existing_names = set(SomeTables.objects.values_list('table_name', flat=True))
 
         for paragraph in paragraphs[1:]:
             if paragraph.text:
-                res = SomeTables(table_name=paragraph.text)
+                res:SomeTables = SomeTables(table_name=paragraph.text)
                 if res.table_name not in existing_names:
                     tables_name.append(res)
 
         SomeTables.objects.bulk_create(tables_name)
         channel_layer = get_channel_layer()
         tables_id = SomeTables.objects.all()
+
         for num, table in enumerate(zip(tables_id, tables)):
-            progress = int((num / len(tables)) * 100)
-            # table_in_bd = SomeTables.objects.get(pk=num)
+            progress: int = int((num / len(tables)) * 100)
             logger.info(f"Отправка прогресса: {progress}%")
 
             async_to_sync(channel_layer.group_send)(
@@ -198,7 +212,7 @@ class Cities(View):
             )
 
             for row in table[1].rows[3:]:
-                res = {
+                res: Dict[str, any] = {
                     'table_id': 0,
                     'location': '',
                     'name_organ': '',
@@ -209,14 +223,14 @@ class Cities(View):
                     'some_number': 0,
                     'work_timme': ''
                 }
-                for key, cell in zip(res, row.cells):
+                for key, cell in zip(res.keys(), row.cells):
                     if key == 'table_id':
                         res[key] = table[0]
                     elif key in ['letters', 'writing']:
                         value_corrector = {'+': True, '-': False}
-                        res[key] = value_corrector[cell.text]
+                        res[key] = value_corrector.get(cell.text.strip(), False)  # Default to False if not found
                     else:
-                        res[key] = cell.text
+                        res[key] = cell.text.strip()
 
                 SomeDataFromSomeTables.objects.update_or_create(**res)
 
@@ -246,12 +260,16 @@ class Cities(View):
         Returns:
             HttpResponse: Ответ с HTML-шаблоном и данными о городах в формате JSON.
         """
-        is_admin = request.user.is_superuser
+        is_admin: bool = request.user.is_superuser
         all_rows = SomeDataFromSomeTables.objects.select_related('table_id').all()
-        cities = [row.to_dict() for row in all_rows]
-        cities_json = json.dumps(cities, ensure_ascii=False)
-        return render(request=request, template_name='work_for_ilia/cities.html', context={'cities_json': cities_json,
-                                                                                           'is_admin': is_admin})
+        cities: List[dict] = [row.to_dict() for row in all_rows]
+
+        cities_json: str = json.dumps(cities, ensure_ascii=False)
+
+        return render(request=request, template_name='work_for_ilia/cities.html', context={
+            'cities_json': cities_json,
+            'is_admin': is_admin
+        })
 
 
 class Statistic(View):
@@ -274,7 +292,7 @@ class Statistic(View):
             HttpResponse: Ответ с HTML-шаблоном и статистикой.
         """
         total_files: int = Counter.objects.aggregate(total=Sum('num_files'))['total'] or 0
-        coffee: int = (total_files // 2) or 0
+        coffee: int = total_files // 2  # Количество кофе, выпитого на основе общего числа файлов
 
         # Группируем записи по дате и подсчитываем сумму обработанных файлов за каждый день
         daily_totals = Counter.objects.annotate(date=TruncDate('processed_at')).values('date').annotate(
@@ -290,12 +308,9 @@ class Statistic(View):
             max_total_files = 0
 
         # Форматируем дату
-        if max_date:
-            formatted_date = max_date.strftime('%d - %m - %Y')
-        else:
-            formatted_date = "Нет данных"
+        formatted_date: str = max_date.strftime('%d - %m - %Y') if max_date else "Нет данных"
 
-        context = {
+        context: Dict[str, any] = {
             'converted_files': str(total_files),
             'hard_day': {
                 'max_date': formatted_date,
