@@ -8,7 +8,7 @@ from work_for_ilia.utils.parser_word.my_parser import Parser
 
 class Command(BaseCommand):
     """
-    Команда создания продуктов
+    Команда обновления данных в таблице сгородами
     """
     help = 'Обновляет данные таблиц'
 
