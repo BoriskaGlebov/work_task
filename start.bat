@@ -1,20 +1,20 @@
 @echo off
 
+REM Загружаем переменные окружения из .env файла
+setlocal enabledelayedexpansion
+for /f "usebackq tokens=1,2 delims==" %%a in (`type .env`) do (
+    set %%a=%%b
+)
 
 REM Output the current directory from which the script is run
 echo Current directory:
 cd
 
-REM Path to your Django application directory
-set APP_DIR=D:\SkillBox\work_task\lazy_ilya
-
-REM Check if the directory exists
+REM Check if the application directory exists
 if not exist "%APP_DIR%" (
     echo Directory %APP_DIR% not found!
     exit /b 1
 )
-
-
 
 REM Create a virtual environment if it doesn't exist
 if not exist "venv" (
@@ -35,17 +35,17 @@ if exist "requirements.txt" (
     pause
     exit /b 1
 )
-pause
+
 
 REM Change to the application directory
 cd /d "%APP_DIR%" || exit /b 1
 
+REM Apply migrations
+python manage.py migrate
+
+REM Check and create superuser if it doesn't exist
+echo Checking and creating superuser if necessary...
+python create_superuser.py
 REM Start the Django application
 echo Starting the Django application...
-
-python manage.py migrate
-REM Create a superuser if it doesn't exist
-echo Creating superuser...
-python -c "from django.contrib.auth import get_user_model;^
- User = get_user_model(); User.objects.create_superuser('admin', 'admin@example.com', 'password')"
 python manage.py runserver
