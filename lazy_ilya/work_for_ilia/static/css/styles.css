@@ -463,6 +463,11 @@ textarea {
     background-color: var(--bg-color);
 }
 
+.suggestion-item.selected {
+    background-color: var(--bg-color);
+    font-weight: bold;
+}
+
 .search-input {
     width: 100%;
     padding: 1rem;

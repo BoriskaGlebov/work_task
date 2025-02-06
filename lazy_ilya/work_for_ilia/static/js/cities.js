@@ -1,61 +1,88 @@
 class CitySearch {
     constructor() {
-        this.cities = window.citiesData || []; // Используем данные из глобальной переменной или пустой массив
-        this.searchInput = document.getElementById('citySearch');
-        this.suggestionsList = document.getElementById('suggestionsList');
-        this.citiesGrid = document.getElementById('citiesGrid');
+        // Используем данные из глобальной переменной `window.citiesData` или пустой массив, если она не определена.
+        // Это позволяет предварительно загружать данные о городах, например, из JSON-файла.
+        this.cities = window.citiesData || [];
+
+        // Получаем ссылки на элементы DOM, с которыми будем взаимодействовать.
+        this.searchInput = document.getElementById('citySearch'); // Поле ввода для поиска города.
+        this.suggestionsList = document.getElementById('suggestionsList'); // Список предложений, отображаемый под полем ввода.
+        this.citiesGrid = document.getElementById('citiesGrid'); // Контейнер для отображения карточек городов.
+
+        // Индекс выбранного элемента в списке предложений. Используется для навигации с помощью стрелок.
         this.selectedIndex = -1;
 
-        this.fileInput = document.getElementById('cityFileInput');
-        this.uploadBtn = document.getElementById('uploadCityFileBtn');
-        this.uploadProgress = document.getElementById('cityUploadProgress');
-        this.uploadProgressBar = document.getElementById('cityUploadProgressBar');
-        this.uploadProgressText = document.getElementById('cityUploadProgressText');
+        // Элементы, связанные с загрузкой файла.
+        this.fileInput = document.getElementById('cityFileInput'); // Поле выбора файла.
+        this.uploadBtn = document.getElementById('uploadCityFileBtn'); // Кнопка загрузки файла.
+        this.uploadProgress = document.getElementById('cityUploadProgress'); // Контейнер для отображения прогресса загрузки.
+        this.uploadProgressBar = document.getElementById('cityUploadProgressBar'); // Индикатор прогресса загрузки.
+        this.uploadProgressText = document.getElementById('cityUploadProgressText'); // Текст, отображающий прогресс загрузки.
 
-        this.init();
+        this.init(); // Вызываем метод инициализации, чтобы установить обработчики событий.
     }
 
+    /**
+     * Инициализация обработчиков событий для элементов DOM.
+     */
     init() {
+        // Обработчик события `input` для поля ввода.
+        // Вызывается при каждом изменении значения поля ввода.
         this.searchInput.addEventListener('input', () => this.handleSearch());
+
+        // Обработчик события `focus` для поля ввода.
+        // Вызывается при получении фокуса полем ввода.
         this.searchInput.addEventListener('focus', () => this.showSuggestions());
+
+        // Обработчик события `click` для всего документа.
+        // Используется для скрытия списка предложений при клике за пределами поля ввода и списка.
         document.addEventListener('click', (e) => this.handleClickOutside(e));
 
+        // Если кнопка загрузки файла существует, устанавливаем обработчик события `click`.
         if (this.uploadBtn) {
             this.uploadBtn.addEventListener('click', () => this.handleFileUpload());
         }
-        // Обработчик клавиш
+
+        // Обработчик события `keydown` для поля ввода.
+        // Используется для обработки нажатий клавиш Enter, ArrowDown и ArrowUp.
         this.searchInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                e.preventDefault(); // Предотвращает отправку формы
-                this.handleEnter();
+                e.preventDefault(); // Предотвращает отправку формы.
+                this.handleEnter(); // Вызываем метод обработки нажатия клавиши Enter.
             } else if (e.key === 'ArrowDown') {
-                e.preventDefault(); // Предотвращает прокрутку страницы
-                this.moveSelection(1);
+                e.preventDefault(); // Предотвращает прокрутку страницы.
+                this.moveSelection(1); // Вызываем метод перемещения выделения вниз.
             } else if (e.key === 'ArrowUp') {
-                e.preventDefault(); // Предотвращает прокрутку страницы
-                this.moveSelection(-1);
+                e.preventDefault(); // Предотвращает прокрутку страницы.
+                this.moveSelection(-1); // Вызываем метод перемещения выделения вверх.
             }
         });
     }
 
+    /**
+     * Обрабатывает загрузку файла с данными о городах.
+     * Отправляет файл на сервер и отображает прогресс загрузки.
+     */
     async handleFileUpload() {
-        const file = this.fileInput.files[0];
+        const file = this.fileInput.files[0]; // Получаем файл из поля выбора файла.
+
+        // Проверяем, выбран ли файл.
         if (!file) {
             alert('Пожалуйста, выберите файл для загрузки');
             return;
         }
 
-        // Проверка имени файла
+        // Проверяем имя файла.
         if (file.name !== 'globus.docx') {
             alert('Ошибка: файл должен называться "globus.docx"');
             return;
         }
 
-        const formData = new FormData();
-        formData.append('cityFile', file);
+        const formData = new FormData(); // Создаем объект FormData для отправки файла на сервер.
+        formData.append('cityFile', file); // Добавляем файл в объект FormData.
 
         try {
-            // Отображаем прогресс-бар
+            // Отображаем прогресс-бар.
             this.uploadProgress.style.display = 'block';
             this.uploadProgressBar.style.width = '0%';
             this.uploadProgressText.textContent = 'Начало загрузки...';
@@ -110,160 +137,207 @@ class CitySearch {
         }
     }
 
-
+    /**
+     * Обрабатывает ввод текста в поле поиска.
+     * Фильтрует список городов на основе введенного текста и отображает предложения.
+     */
     handleSearch() {
-        const searchTerm = this.searchInput.value.toLowerCase();
+        const searchTerm = this.searchInput.value.toLowerCase().trim(); // Получаем текст из поля ввода, приводим к нижнему регистру и удаляем пробелы в начале и конце.
+
+        // Если поле поиска пустое
         if (searchTerm.length < 1) {
-            this.suggestionsList.innerHTML = '';
+            this.suggestionsList.innerHTML = ''; // Очищаем список предложений.
+            this.citiesGrid.innerHTML = ''; // Очищаем карточки городов.
             return;
         }
 
+        // Проверяем, что данные о городах загружены и являются массивом.
         if (!this.cities || !Array.isArray(this.cities)) {
             console.error('Cities data is not defined or is not an array.');
             return;
         }
 
-        // Фильтруем города по location и name_organ
-        const filteredCities = this.cities.filter(city =>
-            city.location.toLowerCase().includes(searchTerm) ||
-            city.name_organ.toLowerCase().includes(searchTerm) // Условие для name_organ
-        );
+        // Фильтруем города по location, name_organ или их комбинации.
+        const filteredCities = this.cities.filter(city => {
+            const combinedName = `${city.location.toLowerCase()} (${city.name_organ.toLowerCase()})`; // Создаем строку, содержащую название города и организации.
+            return (
+                city.location.toLowerCase().includes(searchTerm) || // Проверяем, содержит ли название города введенный текст.
+                city.name_organ.toLowerCase().includes(searchTerm) || // Проверяем, содержит ли название организации введенный текст.
+                combinedName.includes(searchTerm) // Проверяем, содержит ли комбинация "ГОРОД (Организация)" введенный текст.
+            );
+        });
 
-        this.renderSuggestions(filteredCities);
+        this.renderSuggestions(filteredCities); // Отображаем отфильтрованные города в списке предложений.
     }
 
-
+    /**
+     * Отображает список предложений городов.
+     * @param {Array} cities - Массив городов для отображения.
+     */
     renderSuggestions(cities) {
-        // Обнуляем индекс выделенного элемента при новом поиске
-        this.selectedIndex = -1;
+        this.selectedIndex = -1; // Сбрасываем индекс выделенного элемента.
 
+        // Если нет подходящих городов, отображаем сообщение.
         if (cities.length === 0) {
             this.suggestionsList.innerHTML = '<div class="no-suggestions">Нет подходящих городов</div>';
             return;
         }
 
+        // Создаем HTML для каждого города в списке предложений.
         this.suggestionsList.innerHTML = cities.map((city, index) => `
-        <div class="suggestion-item ${this.selectedIndex === index ? 'selected' : ''}" data-city="${city.location}">
-            ${city.location} (${city.name_organ}) <!-- Показываем оба поля -->
-        </div>
-    `).join('');
+            <div class="suggestion-item ${this.selectedIndex === index ? 'selected' : ''}" data-city="${city.location} (${city.name_organ})">
+                ${city.location} (${city.name_organ})
+            </div>
+        `).join('');
 
-        const suggestionItems = this.suggestionsList.querySelectorAll('.suggestion-item');
+        const suggestionItems = this.suggestionsList.querySelectorAll('.suggestion-item'); // Получаем все элементы списка предложений.
 
+        // Добавляем обработчик события `click` для каждого элемента списка предложений.
         suggestionItems.forEach(item => {
             item.addEventListener('click', () => this.selectCity(item.dataset.city));
         });
     }
 
-
+    /**
+     * Выбирает город из списка предложений.
+     * @param {string} cityName - Название выбранного города.
+     */
     selectCity(cityName) {
-        const city = this.cities.find(c => c.location === cityName || c.name_organ === cityName);
+        const city = this.cities.find(c =>
+            `${c.location} (${c.name_organ})` === cityName // Сравниваем с форматом "ГОРОД (Организация)".
+        );
         if (city) {
-            this.searchInput.value = cityName; // Устанавливаем название города в поле ввода
-            this.suggestionsList.innerHTML = ''; // Очищаем список предложений
-            this.renderCityCard(city); // Отображаем карточку выбранного города
+            this.searchInput.value = cityName; // Устанавливаем значение в поле ввода.
+            this.suggestionsList.innerHTML = ''; // Очищаем список предложений.
+            this.renderCityCard(city); // Отображаем карточку выбранного города.
         }
     }
 
-
+    /**
+     * Отображает карточку города.
+     * @param {object} city - Объект города для отображения.
+     */
     renderCityCard(city) {
-        // Проверяем, существует ли элемент перед добавлением карточек
-        const existingCard = document.querySelector(`.city-card[data-city="${city.location}"]`);
+        // Экранируем значения для корректного использования в селекторе.
+        const escapedCityLocation = CSS.escape(city.location);
+        const escapedCityNameOrgan = CSS.escape(city.name_organ);
+
+        // Проверяем, существует ли уже карточка для данного города.
+        const existingCard = document.querySelector(`.city-card[data-city="${escapedCityLocation} (${escapedCityNameOrgan})"]`);
+
+        // Если карточка не существует, создаем ее.
         if (!existingCard) {
             const cityCardHTML = `
-            <div class="city-card" data-city="${city.location}">
-                <h3>${city.location}</h3>
-                <div class="city-info">
-                    <p><strong>Псевдоним:</strong> ${city.pseudonim}</p>
-                    <p><strong>Адрес в глобусе:</strong> ${city.ip_address}</p>
-                    <p><strong>Название организации:</strong> ${city.name_organ}</p>
-                    <p><strong>Описание:</strong></p>
-                    <p>${city.work_time}</p>
+                <div class="city-card" data-city="${city.location} (${city.name_organ})">
+                    <h3>${city.location}</h3>
+                    <div class="city-info">
+                        <p><strong>Псевдоним:</strong> ${city.pseudonim}</p>
+                        <p><strong>IP-адрес:</strong> ${city.ip_address}</p>
+                        <p><strong>Организация:</strong> ${city.name_organ}</p>
+                        <p><strong>Рабочее время:</strong> ${city.work_time}</p>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
 
-            // Добавляем новую карточку города на страницу
-            this.citiesGrid.innerHTML += cityCardHTML;
+            this.citiesGrid.innerHTML += cityCardHTML; // Добавляем карточку города в контейнер.
 
-            // Получаем ссылку на только что добавленную карточку
-            const newCard = this.citiesGrid.lastElementChild;
+            const newCard = this.citiesGrid.lastElementChild; // Получаем ссылку на только что добавленную карточку.
 
-            // Используем requestAnimationFrame для плавного появления
+            // Добавляем класс `show` к карточке, чтобы анимировать ее появление.
             requestAnimationFrame(() => {
                 newCard.classList.add('show');
             });
         }
     }
 
-
+    /**
+     * Обрабатывает клик за пределами поля ввода и списка предложений.
+     * Скрывает список предложений.
+     * @param {object} event - Объект события `click`.
+     */
     handleClickOutside(event) {
+        // Если клик был не по полю ввода и не по списку предложений, скрываем список.
         if (!this.searchInput.contains(event.target) && !this.suggestionsList.contains(event.target)) {
-            this.suggestionsList.innerHTML = '';
-            this.selectedIndex = -1; // Сброс выделения
+            this.suggestionsList.innerHTML = ''; // Очищаем список предложений.
+            this.selectedIndex = -1; // Сброс выделения.
         }
     }
 
+    /**
+     * Отображает список предложений, если поле ввода не пустое.
+     */
     showSuggestions() {
+        // Если в поле ввода есть текст, отображаем список предложений.
         if (this.searchInput.value.length > 0) {
             this.handleSearch();
         }
     }
 
+    /**
+     * Обрабатывает нажатие клавиши Enter в поле ввода.
+     * Отображает карточки для всех подходящих городов.
+     */
     handleEnter() {
-        const searchTerm = this.searchInput.value.toLowerCase();
+        const searchTerm = this.searchInput.value.toLowerCase().trim(); // Получаем текст из поля ввода, приводим к нижнему регистру и удаляем пробелы.
 
-        // Фильтруем города по location и name_organ
-        const filteredCities = this.cities.filter(city =>
-            city.location.toLowerCase().includes(searchTerm) ||
-            city.name_organ.toLowerCase().includes(searchTerm) // Условие для name_organ
-        );
+        // Фильтруем города по location, name_organ или их комбинации.
+        const filteredCities = this.cities.filter(city => {
+            const combinedName = `${city.location.toLowerCase()} (${city.name_organ.toLowerCase()})`;
+            return (
+                city.location.toLowerCase().includes(searchTerm) ||
+                city.name_organ.toLowerCase().includes(searchTerm) ||
+                combinedName.includes(searchTerm)
+            );
+        });
 
-        // Очищаем предыдущие карточки
+        // Очищаем предыдущие карточки.
         this.citiesGrid.innerHTML = '';
 
-        // Отображаем карточки для всех подходящих городов с задержкой
+        // Создаём карточки для всех подходящих городов с задержкой.
         filteredCities.forEach((city, index) => {
             setTimeout(() => {
                 this.renderCityCard(city);
-            }, index * 100); // Задержка в 100 мс между карточками
+            }, index * 100); // Задержка в 100 мс между созданием карточек.
         });
 
-        // Очищаем список предложений
+        // Очищаем список предложений.
         this.suggestionsList.innerHTML = '';
     }
 
-
+    /**
+     * Перемещает выделение в списке предложений.
+     * @param {number} direction - Направление перемещения (1 - вниз, -1 - вверх).
+     */
     moveSelection(direction) {
-        const suggestions = Array.from(this.suggestionsList.querySelectorAll('.suggestion-item'));
+        const suggestions = Array.from(this.suggestionsList.querySelectorAll('.suggestion-item')); // Получаем массив элементов списка предложений.
 
-        if (suggestions.length === 0) return;
+        if (suggestions.length === 0) return; // Если список предложений пуст, выходим из функции.
 
-        // Убираем выделение с текущего элемента
+        // Убираем выделение с текущего элемента.
         if (this.selectedIndex >= 0) {
             suggestions[this.selectedIndex].classList.remove('selected');
         }
 
-        // Обновляем индекс выделенного элемента
+        // Обновляем индекс выделенного элемента.
         this.selectedIndex += direction;
 
-        // Ограничиваем индекс в пределах массива
+        // Ограничиваем индекс в пределах массива.
         if (this.selectedIndex < 0) {
-            this.selectedIndex = suggestions.length - 1; // Перемещение к последнему элементу
+            this.selectedIndex = suggestions.length - 1; // Перемещение к последнему элементу.
         } else if (this.selectedIndex >= suggestions.length) {
-            this.selectedIndex = 0; // Перемещение к первому элементу
+            this.selectedIndex = 0; // Перемещение к первому элементу.
         }
 
-        // Добавляем выделение к новому элементу
+        // Добавляем выделение к новому элементу.
         suggestions[this.selectedIndex].classList.add('selected');
 
-        // Прокручиваем выделенный элемент в видимую область, если необходимо
+        // Прокручиваем выделенный элемент в видимую область, если необходимо.
         suggestions[this.selectedIndex].scrollIntoView({block: "nearest"});
 
-        // Обновляем значение в поле ввода
+        // Обновляем значение в поле ввода.
         this.searchInput.value = suggestions[this.selectedIndex].dataset.city;
     }
 }
 
-// Инициализация класса CitySearch при загрузке страницы
+// Инициализация класса CitySearch при загрузке страницы.
 const citySearch = new CitySearch();

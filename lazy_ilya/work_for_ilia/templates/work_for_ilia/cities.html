@@ -48,20 +48,21 @@
         </div>
     </div>
 
-    {% block extra_js %}
-        <script>
-            // Создаем глобальную переменную для хранения данных
-            {#console.log('Cities JSON:', '{{ cities_json|escapejs }}');#}
-            window.citiesData = JSON.parse('{{ cities_json|escapejs }}');
-        </script>
-        <script>
-            const uploadUrl = "{% url 'work_for_ilia:cities' %}";
-            const csrfToken = '{{ csrf_token }}';
-        </script>
-        <script src="{% static 'js/cities.js' %}"></script>
-        <!-- Передача данных из Django в JavaScript -->
-        
-    {% endblock %}
 
+
+
+{% endblock %}
+{% block extra_js %}
+    <script>
+        // Создаем глобальную переменную для хранения данных
+        {#console.log('Cities JSON:', '{{ cities_json|escapejs }}');#}
+        window.citiesData = JSON.parse('{{ cities_json|escapejs }}');
+    </script>
+    <script>
+        const uploadUrl = "{% url 'work_for_ilia:cities' %}";
+        const csrfToken = '{{ csrf_token }}';
+    </script>
+    <script src="{% static 'js/cities.js' %}"></script>
+    <!-- Передача данных из Django в JavaScript -->
 {% endblock %}
 

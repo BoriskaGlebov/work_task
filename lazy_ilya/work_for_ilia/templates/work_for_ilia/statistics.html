@@ -27,18 +27,20 @@
     }' style="display: none;"></div>
 
 
-    {% block extra_js %}
-        <script src="{% static 'js/statistics.js' %}"></script>
-        <script>
-            // Здесь можно вызвать класс Statistics, если нужно
-            const statisticsData = JSON.parse(document.getElementById('data-container').getAttribute('data-json'));
-            const statistics = new Statistics(statisticsData);
-        </script>
-        <!--<script>-->
-        <!--    const uploadUrl = "{% url 'work_for_ilia:index' %}"; // Получаем URL из Django-->
-        <!--    const updateUrl = "{% url 'work_for_ilia:update' %}"; // Получаем URL из Django-->
-        <!--</script>-->
-    {% endblock %}
 
+
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/statistics.js' %}"></script>
+    <script>
+        // Здесь можно вызвать класс Statistics, если нужно
+        const statisticsData = JSON.parse(document.getElementById('data-container').getAttribute('data-json'));
+        const statistics = new Statistics(statisticsData);
+    </script>
+    <!--<script>-->
+    <!--    const uploadUrl = "{% url 'work_for_ilia:index' %}"; // Получаем URL из Django-->
+    <!--    const updateUrl = "{% url 'work_for_ilia:update' %}"; // Получаем URL из Django-->
+    <!--</script>-->
 {% endblock %}
 
