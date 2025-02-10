@@ -67,6 +67,7 @@ class SomeDataFromSomeTables(models.Model):
     Атрибуты:
         processed_at (DateTimeField): Дата и время создания записи.
         table_id (ForeignKey): Внешний ключ на модель SomeTables.
+        dock_num (IntegerField): Порядковый номер в таблицe word
         location (CharField): Название города.
         name_organ (CharField): Название органа.
         pseudonim (CharField): Псевдоним.
@@ -86,38 +87,41 @@ class SomeDataFromSomeTables(models.Model):
     table_id: models.ForeignKey = models.ForeignKey(
         SomeTables, on_delete=models.CASCADE, verbose_name="Таблица"
     )
-    location: models.CharField = models.CharField(max_length=255, verbose_name="Город")
+    dock_num: models.IntegerField = models.IntegerField(verbose_name='№ п/п', null=False, default=9999)
+    location: models.CharField = models.CharField(max_length=255, verbose_name="Город", null=True)
     name_organ: models.CharField = models.CharField(
-        max_length=255, verbose_name="Название органа"
+        max_length=255, verbose_name="Название органа", null=True
     )
     pseudonim: models.CharField = models.CharField(
-        max_length=255, verbose_name="Псевдоним"
+        max_length=255, verbose_name="Псевдоним", null=True, unique=True
     )
     letters: models.BooleanField = models.BooleanField(
-        default=False, verbose_name="Письма"
+        default=False, verbose_name="Письма", null=True
     )
     writing: models.BooleanField = models.BooleanField(
-        default=False, verbose_name="Записи"
+        default=False, verbose_name="Записи", null=True
     )
     ip_address: models.CharField = models.CharField(
-        max_length=255, verbose_name="Адрес IP"
+        max_length=255, verbose_name="Адрес IP", null=True
     )
     some_number: models.CharField = models.CharField(
-        max_length=255, verbose_name="Спец номер"
+        max_length=255, verbose_name="Спец номер", null=True
     )
     work_timme: models.CharField = models.CharField(
-        max_length=255, verbose_name="Рабочее время"
+        max_length=255, verbose_name="Рабочее время", null=True
     )
 
     class Meta:
-        ordering = ["pk"]
+        ordering = ["pk", "table_id", "dock_num"]
         verbose_name = "Таблица городов"
         verbose_name_plural = "Таблицы городов"
+        unique_together = (("table_id", "dock_num"),)
 
     def to_dict(self) -> dict:
         """Преобразует объект в словарь."""
         return {
             "table_id": self.table_id.id,
+            "dock_num": self.dock_num,
             "location": self.location,
             "name_organ": self.name_organ,
             "pseudonim": self.pseudonim,
@@ -127,3 +131,6 @@ class SomeDataFromSomeTables(models.Model):
             "some_number": self.some_number,
             "work_time": self.work_timme,
         }
+
+    def __str__(self):
+        return f"Раздел - {self.table_id.table_name} - № - {self.dock_num} - {self.location}"

@@ -213,7 +213,7 @@ class CitySearch {
 
         // Фильтруем города по location, name_organ или их комбинации.
         const filteredCities = this.cities.filter(city => {
-            const combinedName = `${city.location.toLowerCase()} (${city.name_organ.toLowerCase()})`; // Создаем строку, содержащую название города и организации.
+            const combinedName = `${city.location.toLowerCase()} [${city.name_organ.toLowerCase()}]`; // Создаем строку, содержащую название города и организации.
             return (
                 city.location.toLowerCase().includes(searchTerm) || // Проверяем, содержит ли название города введенный текст.
                 city.name_organ.toLowerCase().includes(searchTerm) || // Проверяем, содержит ли название организации введенный текст.
@@ -239,8 +239,8 @@ class CitySearch {
 
         // Создаем HTML для каждого города в списке предложений.
         this.suggestionsList.innerHTML = cities.map((city, index) => `
-            <div class="suggestion-item ${this.selectedIndex === index ? 'selected' : ''}" data-city="${city.location} (${city.name_organ})">
-                ${city.location} (${city.name_organ})
+            <div class="suggestion-item ${this.selectedIndex === index ? 'selected' : ''}" data-city="${city.location} [${city.name_organ}]">
+                ${city.location} [${city.name_organ}]
             </div>
         `).join('');
 
@@ -258,7 +258,7 @@ class CitySearch {
      */
     selectCity(cityName) {
         const city = this.cities.find(c =>
-            `${c.location} (${c.name_organ})` === cityName // Сравниваем с форматом "ГОРОД (Организация)".
+            `${c.location} [${c.name_organ}]` === cityName // Сравниваем с форматом "ГОРОД (Организация)".
         );
         if (city) {
             this.searchInput.value = cityName; // Устанавливаем значение в поле ввода.
@@ -277,12 +277,12 @@ class CitySearch {
         const escapedCityNameOrgan = CSS.escape(city.name_organ);
 
         // Проверяем, существует ли уже карточка для данного города.
-        const existingCard = document.querySelector(`.city-card[data-city="${escapedCityLocation} (${escapedCityNameOrgan})"]`);
+        const existingCard = document.querySelector(`.city-card[data-city="${escapedCityLocation} [${escapedCityNameOrgan}]"]`);
 
         // Если карточка не существует, создаем ее.
         if (!existingCard) {
             const cityCardHTML = `
-                <div class="city-card" data-city="${city.location} (${city.name_organ})">
+                <div class="city-card" data-city="${city.location} [${city.name_organ}]">
                     <h3>${city.location}</h3>
                     <div class="city-info">
                         <p><strong>Псевдоним:</strong> ${city.pseudonim}</p>
@@ -336,7 +336,7 @@ class CitySearch {
 
         // Фильтруем города по location, name_organ или их комбинации.
         const filteredCities = this.cities.filter(city => {
-            const combinedName = `${city.location.toLowerCase()} (${city.name_organ.toLowerCase()})`;
+            const combinedName = `${city.location.toLowerCase()} [${city.name_organ.toLowerCase()}]`;
             return (
                 city.location.toLowerCase().includes(searchTerm) ||
                 city.name_organ.toLowerCase().includes(searchTerm) ||

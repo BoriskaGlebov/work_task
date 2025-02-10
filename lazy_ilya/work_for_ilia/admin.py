@@ -67,7 +67,8 @@ class SomeDataFromSomeTablesAdmin(admin.ModelAdmin):
         list_filter: Фильтры для боковой панели.
     """
 
-    list_display = ("id", "location", "name_organ", "pseudonim", "ip_address")
+    list_display = ("id","dock_num", "location", "name_organ", "pseudonim", "ip_address")
     search_fields = ("location", "name_organ", "pseudonim")
     list_display_links = "id", "location"
     list_filter = ("processed_at", "table_id")
+
