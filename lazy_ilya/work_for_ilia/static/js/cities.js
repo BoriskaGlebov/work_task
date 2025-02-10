@@ -64,78 +64,132 @@ class CitySearch {
      * Отправляет файл на сервер и отображает прогресс загрузки.
      */
     async handleFileUpload() {
-        const file = this.fileInput.files[0]; // Получаем файл из поля выбора файла.
+        const file = this.fileInput.files[0]; // Получаем первый файл из поля выбора файла.
 
-        // Проверяем, выбран ли файл.
+        // Проверяем, был ли выбран файл.
         if (!file) {
             alert('Пожалуйста, выберите файл для загрузки');
-            return;
+            return; // Прерываем выполнение функции, если файл не выбран.
         }
 
         // Проверяем имя файла.
         if (file.name !== 'globus.docx') {
             alert('Ошибка: файл должен называться "globus.docx"');
-            return;
+            return; // Прерываем выполнение функции, если имя файла не соответствует ожидаемому.
         }
 
         const formData = new FormData(); // Создаем объект FormData для отправки файла на сервер.
-        formData.append('cityFile', file); // Добавляем файл в объект FormData.
+        formData.append('cityFile', file); // Добавляем файл в объект FormData под ключом 'cityFile'.
 
         try {
-            // Отображаем прогресс-бар.
+            // Отображаем индикатор прогресса загрузки.
             this.uploadProgress.style.display = 'block';
-            this.uploadProgressBar.style.width = '0%';
-            this.uploadProgressText.textContent = 'Начало загрузки...';
+            this.uploadProgressBar.style.width = '0%'; // Устанавливаем начальную ширину прогресс-бара.
+            this.uploadProgressText.textContent = 'Начало загрузки...'; // Устанавливаем текст сообщения о начале загрузки.
 
-            // Подключение к WebSocket перед отправкой файла на сервер
-            const socket = new WebSocket('ws://localhost:8000/ws/progress/');
+            const socket = new WebSocket('ws://localhost:8000/ws/progress/'); // Создаем WebSocket соединение с сервером.
+            let timeoutId; // Объявляем переменную для хранения ID таймаута.
 
+            /**
+             * Функция для установки таймаута ожидания ответа от сервера.
+             * Если в течение заданного времени от сервера не приходит сообщение,
+             * соединение закрывается и пользователю выводится сообщение об ошибке.
+             */
+            const setupTimeout = () => {
+                timeoutId = setTimeout(() => {
+                    console.error('WebSocket: No response from server. Closing connection.');
+                    socket.close(); // Закрываем WebSocket соединение.
+                    this.uploadProgress.style.display = 'none'; // Скрываем индикатор прогресса.
+                    alert('Превышено время ожидания ответа от сервера.'); // Выводим сообщение об ошибке.
+                }, 10000); // Устанавливаем таймаут в 10 секунд (10000 миллисекунд).
+            };
+
+            /**
+             * Функция для сброса таймаута.
+             * Используется для предотвращения срабатывания таймаута, когда сообщение от сервера получено вовремя.
+             */
+            const resetTimeout = () => {
+                clearTimeout(timeoutId); // Очищаем предыдущий таймаут.
+                setupTimeout(); // Устанавливаем новый таймаут.
+            };
+
+            /**
+             * Обработчик события открытия WebSocket соединения.
+             * Вызывается, когда соединение с сервером успешно установлено.
+             */
+            socket.onopen = () => {
+                setupTimeout(); // Устанавливаем таймаут после открытия соединения.
+            };
+
+            /**
+             * Обработчик события получения сообщения через WebSocket.
+             * Вызывается при получении данных от сервера.
+             */
             socket.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                const progress = data.progress;
+                resetTimeout(); // Сбрасываем таймаут при получении сообщения.
 
-                // Обновляем прогресс-бар на основе данных из WebSocket
-                this.uploadProgressBar.style.width = `${progress}%`;
-                this.uploadProgressText.textContent = `Обработка: ${progress}%...`;
+                const data = JSON.parse(event.data); // Преобразуем полученные данные из JSON-строки в объект.
+                const progress = data.progress; // Извлекаем значение прогресса из данных.
 
-                // Если обработка завершена, закрываем соединение и скрываем прогресс-бар
+                this.uploadProgressBar.style.width = `${progress}%`; // Обновляем ширину прогресс-бара.
+                this.uploadProgressText.textContent = `Обработка: ${progress}%...`; // Обновляем текст сообщения о прогрессе.
+
                 if (data.cities) {
-                    this.cities = data.cities;
-                    socket.close();
+                    // Если в данных есть список городов (обработка завершена).
+                    clearTimeout(timeoutId); // Очищаем таймаут, так как процесс завершен.
+                    this.cities = data.cities; // Сохраняем список городов в свойстве компонента.
+                    socket.close(); // Закрываем WebSocket соединение.
                     setTimeout(() => {
-                        this.uploadProgress.style.display = 'none';
-                        this.uploadProgressBar.style.width = '0%';
-                        this.fileInput.value = '';
-                        alert('Список городов успешно загружен и обработан');
-                    }, 1000);
+                        // Задержка перед скрытием индикатора прогресса и выводом сообщения об успехе.
+                        this.uploadProgress.style.display = 'none'; // Скрываем индикатор прогресса.
+                        this.uploadProgressBar.style.width = '0%'; // Сбрасываем ширину прогресс-бара.
+                        this.fileInput.value = ''; // Очищаем поле выбора файла.
+                        alert('Список городов успешно загружен и обработан'); // Выводим сообщение об успехе.
+                    }, 1000); // Задержка в 1 секунду.
                 }
             };
 
-            socket.onerror = (error) => {
-                console.error('WebSocket error:', error);
-                alert('Произошла ошибка при получении обновлений о прогрессе.');
-                this.uploadProgress.style.display = 'none';
+            /**
+             * Обработчик события закрытия WebSocket соединения.
+             * Вызывается, когда соединение с сервером закрыто.
+             */
+            socket.onclose = () => {
+                clearTimeout(timeoutId); // Очищаем таймаут при закрытии соединения.
             };
 
-            // Отправляем файл на сервер после подключения к WebSocket
+            /**
+             * Обработчик события ошибки WebSocket соединения.
+             * Вызывается, когда происходит ошибка при обмене данными с сервером.
+             */
+            socket.onerror = (error) => {
+                clearTimeout(timeoutId); // Очищаем таймаут в случае ошибки.
+                console.error('WebSocket error:', error); // Выводим сообщение об ошибке в консоль.
+                alert('Произошла ошибка при получении обновлений о прогрессе.'); // Выводим сообщение об ошибке пользователю.
+                this.uploadProgress.style.display = 'none'; // Скрываем индикатор прогресса.
+            };
+
+            // Отправляем файл на сервер с использованием HTTP POST запроса.
             const response = await fetch(uploadUrl, {
-                method: 'POST',
-                body: formData,
+                method: 'POST', // Указываем метод запроса POST.
+                body: formData, // Передаем данные файла в теле запроса.
                 headers: {
-                    'X-CSRFToken': csrfToken // Добавляем CSRF-токен в заголовки
+                    'X-CSRFToken': csrfToken // Добавляем CSRF-токен в заголовки для защиты от CSRF атак.
                 }
             });
 
+            // Проверяем статус ответа от сервера.
             if (!response.ok) {
-                throw new Error('Ошибка при загрузке файла');
+                throw new Error('Ошибка при загрузке файла'); // Выбрасываем исключение в случае ошибки.
             }
 
         } catch (error) {
-            this.uploadProgress.style.display = 'none';
-            alert('Произошла ошибка при загрузке файла');
-            console.error(error);
+            // Обрабатываем ошибки, возникшие в процессе загрузки файла.
+            this.uploadProgress.style.display = 'none'; // Скрываем индикатор прогресса.
+            alert('Произошла ошибка при загрузке файла'); // Выводим сообщение об ошибке пользователю.
+            console.error(error); // Выводим сообщение об ошибке в консоль.
         }
     }
+
 
     /**
      * Обрабатывает ввод текста в поле поиска.
