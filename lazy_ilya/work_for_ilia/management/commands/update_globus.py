@@ -1,6 +1,8 @@
 import os
+
 from django.core.management import BaseCommand
 from work_for_ilia.views import Cities
+from work_for_ilia.utils.my_settings.settings_for_app import logger
 
 
 class Command(BaseCommand):
@@ -14,8 +16,9 @@ class Command(BaseCommand):
         help (str): Описание команды, которое отображается при вызове помощи.
     """
 
-    help: str = 'Обновляет данные таблиц'
+    help: str = "Обновляет данные таблиц"
 
+    @logger.catch(message="Непредвиденное исключение")
     def handle(self, *args: str, **options: dict) -> None:
         """
         Обрабатывает команду обновления данных.
@@ -27,12 +30,16 @@ class Command(BaseCommand):
             **options (dict): Необязательные параметры командной строки.
         """
         self.stdout.write("Начинаю обновление")
+        try:
+            # Путь к файлу с данными о городах
+            file_path: str = os.path.abspath(
+                "D:\\SkillBox\\work_task\\lazy_ilya\\work_for_ilia\\utils\\test_dir\\globus.docx"
+            )
 
-        # Путь к файлу с данными о городах
-        file_path: str = os.path.abspath(
-            'D:\\SkillBox\\work_task\\lazy_ilya\\work_for_ilia\\utils\\test_dir\\globus.docx')
+            # Обработка файла и обновление базы данных
+            Cities.process_file(file_path)
 
-        # Обработка файла и обновление базы данных
-        Cities.process_file(file_path)
-
-        self.stdout.write(self.style.SUCCESS("БД обновлена"))
+            self.stdout.write(self.style.SUCCESS("БД обновлена"))
+        except Exception as e:
+            logger.error('sdf')
+            self.stdout.write(self.style.ERROR(f"БД не обновлена, непрдвиденная ошибка - {e}"))

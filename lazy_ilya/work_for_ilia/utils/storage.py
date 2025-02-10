@@ -1,5 +1,7 @@
-from django.core.files.storage import FileSystemStorage
 from typing import Optional
+
+from django.core.files.storage import FileSystemStorage
+
 
 class OverwritingFileSystemStorage(FileSystemStorage):
     """
@@ -9,7 +11,9 @@ class OverwritingFileSystemStorage(FileSystemStorage):
         allow_overwrite (bool): Если True, разрешает перезапись существующих файлов.
     """
 
-    def __init__(self, *args: str, allow_overwrite: bool = False, **kwargs: Optional[dict]):
+    def __init__(
+        self, *args: str, allow_overwrite: bool = False, **kwargs: Optional[dict]
+    ):
         """
         Инициализация OverwritingFileSystemStorage.
 

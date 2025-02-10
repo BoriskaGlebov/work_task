@@ -1,5 +1,5 @@
 from django.contrib import admin
-from work_for_ilia.models import Counter, SomeTables, SomeDataFromSomeTables
+from work_for_ilia.models import Counter, SomeDataFromSomeTables, SomeTables
 
 
 @admin.register(Counter)
@@ -13,16 +13,23 @@ class CounterAdmin(admin.ModelAdmin):
         search_fields: Поля для поиска.
     """
 
-    list_display = ('processed_at', 'num_files')
-    list_filter = ('processed_at',)
-    search_fields = ('num_files',)
+    list_display = ("processed_at", "num_files")
+    list_filter = ("processed_at",)
+    search_fields = ("num_files",)
 
     def processed_at(self, obj):
         """Форматирует дату обработки."""
         return obj.processed_at.strftime("%d.%m.%Y %H:%M")
 
-    processed_at.admin_order_field = 'processed_at'
-    processed_at.short_description = 'Дата обработки'
+    processed_at.admin_order_field = "processed_at"
+    processed_at.short_description = "Дата обработки"
+
+
+class SomeDataFromSomeTablesInline(admin.TabularInline):
+    model = SomeDataFromSomeTables
+    extra = 0
+    readonly_fields = (
+        'location', 'name_organ', 'pseudonim', 'letters', 'writing', 'ip_address', 'some_number', 'work_timme')
 
 
 @admin.register(SomeTables)
@@ -36,17 +43,17 @@ class SomeTablesAdmin(admin.ModelAdmin):
         search_fields: Поля для поиска.
         list_filter: Фильтры для боковой панели.
     """
-
-    list_display = ('id', 'table_name', 'related_data_count')
-    list_display_links = 'id', 'table_name'
-    search_fields = ('table_name',)
-    list_filter = ('processed_at',)
+    inlines = [SomeDataFromSomeTablesInline]
+    list_display = ("id", "table_name", "related_data_count")
+    list_display_links = "id", "table_name"
+    search_fields = ("table_name",)
+    list_filter = ("processed_at",)
 
     def related_data_count(self, obj):
         """Возвращает количество связанных записей в SomeDataFromSomeTables."""
         return SomeDataFromSomeTables.objects.filter(table_id=obj).count()
 
-    related_data_count.short_description = 'Количество записей'
+    related_data_count.short_description = "Количество записей"
 
 
 @admin.register(SomeDataFromSomeTables)
@@ -60,6 +67,7 @@ class SomeDataFromSomeTablesAdmin(admin.ModelAdmin):
         list_filter: Фильтры для боковой панели.
     """
 
-    list_display = ('id', 'location', 'name_organ', 'pseudonim', 'ip_address')
-    search_fields = ('location', 'name_organ', 'pseudonim')
-    list_filter = ('processed_at', 'table_id')
+    list_display = ("id", "location", "name_organ", "pseudonim", "ip_address")
+    search_fields = ("location", "name_organ", "pseudonim")
+    list_display_links = "id", "location"
+    list_filter = ("processed_at", "table_id")

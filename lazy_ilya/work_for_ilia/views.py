@@ -1,29 +1,25 @@
 import json
 import os.path
 import threading
-import time
+from typing import Dict, List
 
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
 from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Sum
 from django.db.models.functions import TruncDate
-from django.http import HttpRequest, JsonResponse, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views import View
-from docx import Document
-from typing import List, Dict
 
-from work_for_ilia.consumers import ProgressConsumer
 from work_for_ilia.models import Counter, SomeDataFromSomeTables, SomeTables
 from work_for_ilia.utils.custom_converter.converter_to_docx import Converter
-from work_for_ilia.utils.my_settings.disrs_for_app import ProjectSettings, logger
-from work_for_ilia.utils.parser_word.my_parser import Parser, replace_unsupported_characters
+from work_for_ilia.utils.my_settings.settings_for_app import ProjectSettings, logger
+from work_for_ilia.utils.parser_word.globus_parser import GlobusParser
+from work_for_ilia.utils.parser_word.my_parser import (
+    Parser,
+    replace_unsupported_characters,
+)
 from work_for_ilia.utils.storage import OverwritingFileSystemStorage
-
-
-# from plyer import notification
 
 
 # Create your views here.
@@ -46,7 +42,7 @@ class Greater(View):
             HttpResponse: Ответ с загруженной формой.
         """
         logger.debug("Загрузил страницу")
-        return render(request=request, template_name='work_for_ilia/index.html')
+        return render(request=request, template_name="work_for_ilia/index.html")
 
     def post(self, request: HttpRequest) -> JsonResponse:
         """
@@ -58,15 +54,19 @@ class Greater(View):
         Returns:
             JsonResponse: Ответ с информацией о загруженных файлах и их содержимом.
         """
-        uploaded_files = request.FILES.getlist('file')
-        document_number = int(request.POST.get('document_number', 0))
-        fs = OverwritingFileSystemStorage(location=ProjectSettings.tlg_dir, allow_overwrite=True)
+        uploaded_files = request.FILES.getlist("file")
+        document_number = int(request.POST.get("document_number", 0))
+        fs = OverwritingFileSystemStorage(
+            location=ProjectSettings.tlg_dir, allow_overwrite=True
+        )
 
         if not uploaded_files:
-            return JsonResponse({'error': 'Нет загруженных файлов'}, status=400)
+            return JsonResponse({"error": "Нет загруженных файлов"}, status=400)
 
         if document_number <= 0:
-            return JsonResponse({'error': 'Номер документа должен быть больше нуля'}, status=400)
+            return JsonResponse(
+                {"error": "Номер документа должен быть больше нуля"}, status=400
+            )
 
         new_files: List[str] = []  # Список для хранения имен новых файлов
 
@@ -74,31 +74,35 @@ class Greater(View):
             for index, uploaded_file in enumerate(uploaded_files):
                 # Сохраните файл и получите его имя
                 filename = fs.save(f"{index + 1}{uploaded_file.name}", uploaded_file)
-                new_files.append(f"{index + document_number}_{str(os.path.splitext(filename)[0])[1:]}.txt")
+                new_files.append(
+                    f"{index + document_number}_{str(os.path.splitext(filename)[0])[1:]}.txt"
+                )
 
             # Конвертация файлов в .docx и парсинг содержимого
             Converter(ProjectSettings.tlg_dir).convert_files()
-            content = Parser(ProjectSettings.tlg_dir, document_number).create_file_parsed()
+            content = Parser(
+                ProjectSettings.tlg_dir, document_number
+            ).create_file_parsed()
 
             # Удаляем все файлы, кроме .txt
             for file in os.listdir(ProjectSettings.tlg_dir):
                 file_path = os.path.join(ProjectSettings.tlg_dir, file)
-                if os.path.isfile(file_path) and not file_path.endswith('.txt'):
+                if os.path.isfile(file_path) and not file_path.endswith(".txt"):
                     os.remove(file_path)
-            logger.debug(f'{new_files} - отправил названние новых файлов')
-            return JsonResponse({'content': content, 'new_files': new_files})
+            logger.debug(f"{new_files} - отправил названние новых файлов")
+            return JsonResponse({"content": content, "new_files": new_files})
 
         except ValueError as ve:
-            logger.error(f'ValueError: {str(ve)}')
-            return JsonResponse({'error': 'Неверный номер документа.'}, status=400)
+            logger.error(f"ValueError: {str(ve)}")
+            return JsonResponse({"error": "Неверный номер документа."}, status=400)
 
         except FileNotFoundError as fnfe:
-            logger.error(f'FileNotFoundError: {str(fnfe)}')
-            return JsonResponse({'error': 'Файл не найден.'}, status=404)
+            logger.error(f"FileNotFoundError: {str(fnfe)}")
+            return JsonResponse({"error": "Файл не найден."}, status=404)
 
         except Exception as e:
             logger.error(str(e))
-            return JsonResponse({'error': str(e)}, status=500)
+            return JsonResponse({"error": str(e)}, status=500)
 
     def put(self, request: HttpRequest) -> JsonResponse:
         """
@@ -115,34 +119,40 @@ class Greater(View):
             data = json.loads(request.body)
 
             for file_data in data:
-                document_number = file_data.get('document_number')
-                new_content = replace_unsupported_characters(file_data.get('content'))
-                new_file_name: str = file_data.get('new_file_name')  # Получаем новое имя файла
+                document_number = file_data.get("document_number")
+                new_content = replace_unsupported_characters(file_data.get("content"))
+                new_file_name: str = file_data.get(
+                    "new_file_name"
+                )  # Получаем новое имя файла
 
-                if not new_file_name.endswith('.txt'):
+                if not new_file_name.endswith(".txt"):
                     continue
 
                 # Определяем путь к файлу для сохранения
                 file_path = os.path.join(ProjectSettings.tlg_dir, new_file_name)
 
                 # Сохраняем новое содержимое в файл
-                with open(file_path, 'w', encoding='cp866') as file:
+                with open(file_path, "w", encoding="cp866") as file:
                     file.write(new_content)
 
                 counter += 1
-                logger.info(f'Сохранил файл {new_file_name}')
+                logger.info(f"Сохранил файл {new_file_name}")
 
             res = Counter.objects.create(num_files=counter)
             res.save()
-            return JsonResponse({'status': 'success', 'message': 'Все файлы успешно сохранены.'})
+            return JsonResponse(
+                {"status": "success", "message": "Все файлы успешно сохранены."}
+            )
 
         except json.JSONDecodeError:
-            logger.error(str('error') + 'Неверный формат данных')
-            return JsonResponse({'status': 'error', 'message': 'Неверный формат данных.'}, status=400)
+            logger.error(str("error") + "Неверный формат данных")
+            return JsonResponse(
+                {"status": "error", "message": "Неверный формат данных."}, status=400
+            )
 
         except Exception as e:
             logger.error(str(e))
-            return JsonResponse({'error': str(e)}, status=500)
+            return JsonResponse({"error": str(e)}, status=500)
 
 
 class Cities(View):
@@ -161,94 +171,21 @@ class Cities(View):
         Returns:
             JsonResponse: Ответ с сообщением об успешной загрузке файла или ошибкой.
         """
-        uploaded_file = request.FILES.get('cityFile')
-        fs = OverwritingFileSystemStorage(location=ProjectSettings.tlg_dir, allow_overwrite=True)
+        uploaded_file = request.FILES.get("cityFile")
+        fs = OverwritingFileSystemStorage(
+            location=ProjectSettings.tlg_dir, allow_overwrite=True
+        )
 
         if uploaded_file:
             # Сохранение загруженного файла
             file_path = fs.save(uploaded_file.name, uploaded_file)
             logger.info("Запуск обработки файла в отдельном потоке")
             # Запуск обработки файла в отдельном потоке
-            threading.Thread(target=self.process_file, args=(file_path,)).start()
+            threading.Thread(target=GlobusParser.process_file, args=(file_path,)).start()
 
-            return JsonResponse({'message': 'File uploaded successfully'}, status=200)
+            return JsonResponse({"message": "File uploaded successfully"}, status=200)
         else:
-            return JsonResponse({'error': 'No file uploaded'}, status=400)
-
-    @staticmethod
-    def process_file(file_path: str) -> None:
-        """
-        Обрабатывает загруженный файл с данными о городах.
-
-        Args:
-            file_path (str): Путь к загруженному файлу.
-        """
-        doc = Document(os.path.join(ProjectSettings.tlg_dir, file_path))
-        tables = doc.tables
-        paragraphs = doc.paragraphs
-        tables_name: List[SomeTables] = []
-        existing_names = set(SomeTables.objects.values_list('table_name', flat=True))
-
-        for paragraph in paragraphs[1:]:
-            if paragraph.text:
-                res:SomeTables = SomeTables(table_name=paragraph.text)
-                if res.table_name not in existing_names:
-                    tables_name.append(res)
-
-        SomeTables.objects.bulk_create(tables_name)
-        channel_layer = get_channel_layer()
-        tables_id = SomeTables.objects.all()
-
-        for num, table in enumerate(zip(tables_id, tables)):
-            progress: int = int((num / len(tables)) * 100)
-            logger.info(f"Отправка прогресса: {progress}%")
-
-            async_to_sync(channel_layer.group_send)(
-                'progress_updates',
-                {
-                    'type': 'send_progress',
-                    'progress': progress,
-                }
-            )
-
-            for row in table[1].rows[3:]:
-                res: Dict[str, any] = {
-                    'table_id': 0,
-                    'location': '',
-                    'name_organ': '',
-                    'pseudonim': '',
-                    'letters': False,
-                    'writing': False,
-                    'ip_address': '',
-                    'some_number': 0,
-                    'work_timme': ''
-                }
-                for key, cell in zip(res.keys(), row.cells):
-                    if key == 'table_id':
-                        res[key] = table[0]
-                    elif key in ['letters', 'writing']:
-                        value_corrector = {'+': True, '-': False}
-                        res[key] = value_corrector.get(cell.text.strip(), False)  # Default to False if not found
-                    else:
-                        res[key] = cell.text.strip()
-
-                SomeDataFromSomeTables.objects.update_or_create(**res)
-
-        # Получите обновленный список городов
-        all_rows = SomeDataFromSomeTables.objects.select_related('table_id').all()
-        updated_cities = [el.to_dict() for el in all_rows]  # Предполагается, что у вас есть метод to_dict()
-
-        logger.info("Обработка завершена")
-
-        # Отправьте финальное сообщение с прогрессом и обновленным списком городов
-        async_to_sync(channel_layer.group_send)(
-            'progress_updates',
-            {
-                'type': 'send_progress',
-                'progress': 100,
-                'cities': updated_cities,  # Отправляем обновленный список городов
-            }
-        )
+            return JsonResponse({"error": "No file uploaded"}, status=400)
 
     def get(self, request: HttpRequest) -> HttpResponse:
         """
@@ -261,15 +198,16 @@ class Cities(View):
             HttpResponse: Ответ с HTML-шаблоном и данными о городах в формате JSON.
         """
         is_admin: bool = request.user.is_superuser
-        all_rows = SomeDataFromSomeTables.objects.select_related('table_id').all()
+        all_rows = SomeDataFromSomeTables.objects.select_related("table_id").all()
         cities: List[dict] = [row.to_dict() for row in all_rows]
 
         cities_json: str = json.dumps(cities, ensure_ascii=False)
 
-        return render(request=request, template_name='work_for_ilia/cities.html', context={
-            'cities_json': cities_json,
-            'is_admin': is_admin
-        })
+        return render(
+            request=request,
+            template_name="work_for_ilia/cities.html",
+            context={"cities_json": cities_json, "is_admin": is_admin},
+        )
 
 
 class Statistic(View):
@@ -291,36 +229,47 @@ class Statistic(View):
         Returns:
             HttpResponse: Ответ с HTML-шаблоном и статистикой.
         """
-        total_files: int = Counter.objects.aggregate(total=Sum('num_files'))['total'] or 0
-        coffee: int = total_files // 2  # Количество кофе, выпитого на основе общего числа файлов
+        total_files: int = (
+                Counter.objects.aggregate(total=Sum("num_files"))["total"] or 0
+        )
+        coffee: int = (
+                total_files // 2
+        )  # Количество кофе, выпитого на основе общего числа файлов
 
         # Группируем записи по дате и подсчитываем сумму обработанных файлов за каждый день
-        daily_totals = Counter.objects.annotate(date=TruncDate('processed_at')).values('date').annotate(
-            total=Sum('num_files')).order_by('-total')
+        daily_totals = (
+            Counter.objects.annotate(date=TruncDate("processed_at"))
+            .values("date")
+            .annotate(total=Sum("num_files"))
+            .order_by("-total")
+        )
 
         # Получаем день с максимальным количеством обработанных файлов
         if daily_totals:
             max_day = daily_totals[0]  # Первый элемент будет с максимальным значением
-            max_date = max_day['date']
-            max_total_files = max_day['total']
+            max_date = max_day["date"]
+            max_total_files = max_day["total"]
         else:
             max_date = None
             max_total_files = 0
 
         # Форматируем дату
-        formatted_date: str = max_date.strftime('%d - %m - %Y') if max_date else "Нет данных"
+        formatted_date: str = (
+            max_date.strftime("%d - %m - %Y") if max_date else "Нет данных"
+        )
 
         context: Dict[str, any] = {
-            'converted_files': str(total_files),
-            'hard_day': {
-                'max_date': formatted_date,
-                'max_day_files': str(max_total_files)
+            "converted_files": str(total_files),
+            "hard_day": {
+                "max_date": formatted_date,
+                "max_day_files": str(max_total_files),
             },
-            'coffee_drunk': {
-                'amount': str(coffee),
-                'note': '(1 кружка на 2 файла)'
-            }
+            "coffee_drunk": {"amount": str(coffee), "note": "(1 кружка на 2 файла)"},
         }
 
-        logger.info(f'Контекст для статистики {context}')
-        return render(request=request, template_name='work_for_ilia/statistics.html', context=context)
+        logger.info(f"Контекст для статистики {context}")
+        return render(
+            request=request,
+            template_name="work_for_ilia/statistics.html",
+            context=context,
+        )
