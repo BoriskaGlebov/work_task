@@ -134,3 +134,4 @@ class SomeDataFromSomeTables(models.Model):
 
     def __str__(self):
         return f"Раздел - {self.table_id.table_name} - № - {self.dock_num} - {self.location}"
+# TODO я поменял тут кое что  про пустые записи но здесь не сделал

@@ -108,7 +108,7 @@ class GlobusParser:
                     "progress": progress,
                 },
             )
-            for row in table_zip[1].rows[3:]:
+            for row_num, row in enumerate(table_zip[1].rows[3:]):
                 cells = [cell.text.strip().replace('\n', '<br>') for cell in row.cells]
                 try:
 
@@ -117,7 +117,7 @@ class GlobusParser:
                     value_corrector = {"+": True, "-": False}
                     cls.model_inf: Dict[str, any] = {
                         "table_id": table_zip[0],
-                        "dock_num": cells[0],
+                        "dock_num": row_num+1,
                         "location": cells[1],
                         "name_organ": cells[2],
                         "pseudonim": cells[3],

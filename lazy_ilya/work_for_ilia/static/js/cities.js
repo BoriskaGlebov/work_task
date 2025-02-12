@@ -196,6 +196,7 @@ class CitySearch {
      * Фильтрует список городов на основе введенного текста и отображает предложения.
      */
     handleSearch() {
+        this.citiesGrid.innerHTML = '';
         const searchTerm = this.searchInput.value.toLowerCase().trim(); // Получаем текст из поля ввода, приводим к нижнему регистру и удаляем пробелы в начале и конце.
 
         // Если поле поиска пустое

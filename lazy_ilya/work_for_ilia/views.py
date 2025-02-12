@@ -273,3 +273,4 @@ class Statistic(View):
             template_name="work_for_ilia/statistics.html",
             context=context,
         )
+# TODO тут нужно вывести прогресс бар что б видно было весь процесс так как файл долго парсится либо сделать это в другом процессе? так же вопрос блокировки БД
