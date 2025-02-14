@@ -1,6 +1,7 @@
 import json
 import os.path
 import threading
+import traceback
 from typing import Dict, List
 
 from django.contrib.auth.decorators import user_passes_test
@@ -170,23 +171,27 @@ class Cities(View):
         Returns:
             JsonResponse: Ответ с сообщением об успешной загрузке файла или ошибкой.
         """
-        uploaded_file = request.FILES.get("cityFile")
-        fs = OverwritingFileSystemStorage(
-            location=ProjectSettings.tlg_dir, allow_overwrite=True
-        )
-
-        if uploaded_file:
-            # Сохранение загруженного файла
+        try:
+            uploaded_file = request.FILES.get("cityFile")
+            if not uploaded_file:
+                return JsonResponse({"error": "No file uploaded"}, status=400)
+            fs = OverwritingFileSystemStorage(location=ProjectSettings.tlg_dir, allow_overwrite=True)
             file_path = fs.save(uploaded_file.name, uploaded_file)
+
             logger.info("Запуск обработки файла в отдельном потоке")
-            # Запуск обработки файла в отдельном потоке
+
+            #  Здесь вызываем process_file в отдельном потоке
             threading.Thread(
                 target=GlobusParser.process_file, args=(file_path,)
             ).start()
 
             return JsonResponse({"message": "File uploaded successfully"}, status=200)
-        else:
-            return JsonResponse({"error": "No file uploaded"}, status=400)
+
+        except Exception as e:
+            # Если возникает исключение, логируем его и возвращаем сообщение об ошибке
+            traceback_str = traceback.format_exc()  # Получаем полный traceback
+            logger.error(f"Ошибка при загрузке или обработке файла: {e}\n{traceback_str}")
+            return JsonResponse({"error": str(e), "traceback": traceback_str}, status=500)
 
     def get(self, request: HttpRequest) -> HttpResponse:
         """
