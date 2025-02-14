@@ -1,8 +1,8 @@
 import os
 
 from django.core.management import BaseCommand
-from work_for_ilia.views import Cities
 from work_for_ilia.utils.my_settings.settings_for_app import logger
+from work_for_ilia.views import Cities
 
 
 class Command(BaseCommand):
@@ -41,5 +41,7 @@ class Command(BaseCommand):
 
             self.stdout.write(self.style.SUCCESS("БД обновлена"))
         except Exception as e:
-            logger.error('sdf')
-            self.stdout.write(self.style.ERROR(f"БД не обновлена, непрдвиденная ошибка - {e}"))
+            logger.error("sdf")
+            self.stdout.write(
+                self.style.ERROR(f"БД не обновлена, непрдвиденная ошибка - {e}")
+            )

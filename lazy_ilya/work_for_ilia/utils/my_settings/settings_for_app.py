@@ -59,14 +59,14 @@ logger.add(
     sys.stdout,
     level="DEBUG",
     format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> - "
-           "<level>{level:^8}</level> - "
-           "<cyan>{name}</cyan>:<magenta>{line}</magenta> - "
-           "<yellow>{function}</yellow> - "
-           "<white>{message}</white> <magenta>{extra[filename]:^10}</magenta>",
+    "<level>{level:^8}</level> - "
+    "<cyan>{name}</cyan>:<magenta>{line}</magenta> - "
+    "<yellow>{function}</yellow> - "
+    "<white>{message}</white> <magenta>{extra[filename]:^10}</magenta>",
     filter=filename_filter,
     catch=True,
     diagnose=True,
-    enqueue=True # Добавлено для асинхронной обработки
+    enqueue=True,  # Добавлено для асинхронной обработки
 )
 
 # Конфигурация логгера с дополнительными полями
@@ -74,7 +74,7 @@ logger.configure(extra={"ip": "", "user": "", "filename": ""})
 
 # Настройка логирования в файл
 settings = ProjectSettings()
-log_file_path = os.path.join(settings.base_dir or ".", "file.log") # Обработка None
+log_file_path = os.path.join(settings.base_dir or ".", "file.log")  # Обработка None
 
 logger.add(
     log_file_path,
@@ -86,7 +86,7 @@ logger.add(
     backtrace=True,
     diagnose=True,
     filter=filename_filter,
-    enqueue=True # Добавлено для асинхронной обработки
+    enqueue=True,  # Добавлено для асинхронной обработки
 )
 
 # Теперь вы можете использовать logger в других модулях
@@ -97,4 +97,4 @@ if __name__ == "__main__":
     s = ProjectSettings()
     print(s.tlg_dir)
     logger.error("Сообщение об ошибке")
-    logger.bind(filename='имя_файла').error('Сообщение об ошибке с именем файла')
+    logger.bind(filename="имя_файла").error("Сообщение об ошибке с именем файла")

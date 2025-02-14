@@ -29,7 +29,15 @@ class SomeDataFromSomeTablesInline(admin.TabularInline):
     model = SomeDataFromSomeTables
     extra = 0
     readonly_fields = (
-        'location', 'name_organ', 'pseudonim', 'letters', 'writing', 'ip_address', 'some_number', 'work_timme')
+        "location",
+        "name_organ",
+        "pseudonim",
+        "letters",
+        "writing",
+        "ip_address",
+        "some_number",
+        "work_timme",
+    )
 
 
 @admin.register(SomeTables)
@@ -43,6 +51,7 @@ class SomeTablesAdmin(admin.ModelAdmin):
         search_fields: Поля для поиска.
         list_filter: Фильтры для боковой панели.
     """
+
     inlines = [SomeDataFromSomeTablesInline]
     list_display = ("id", "table_name", "related_data_count")
     list_display_links = "id", "table_name"
@@ -67,8 +76,14 @@ class SomeDataFromSomeTablesAdmin(admin.ModelAdmin):
         list_filter: Фильтры для боковой панели.
     """
 
-    list_display = ("id","dock_num", "location", "name_organ", "pseudonim", "ip_address")
+    list_display = (
+        "id",
+        "dock_num",
+        "location",
+        "name_organ",
+        "pseudonim",
+        "ip_address",
+    )
     search_fields = ("location", "name_organ", "pseudonim")
     list_display_links = "id", "location"
     list_filter = ("processed_at", "table_id")
-

@@ -10,7 +10,6 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views import View
-
 from work_for_ilia.models import Counter, SomeDataFromSomeTables, SomeTables
 from work_for_ilia.utils.custom_converter.converter_to_docx import Converter
 from work_for_ilia.utils.my_settings.settings_for_app import ProjectSettings, logger
@@ -181,7 +180,9 @@ class Cities(View):
             file_path = fs.save(uploaded_file.name, uploaded_file)
             logger.info("Запуск обработки файла в отдельном потоке")
             # Запуск обработки файла в отдельном потоке
-            threading.Thread(target=GlobusParser.process_file, args=(file_path,)).start()
+            threading.Thread(
+                target=GlobusParser.process_file, args=(file_path,)
+            ).start()
 
             return JsonResponse({"message": "File uploaded successfully"}, status=200)
         else:
@@ -230,10 +231,10 @@ class Statistic(View):
             HttpResponse: Ответ с HTML-шаблоном и статистикой.
         """
         total_files: int = (
-                Counter.objects.aggregate(total=Sum("num_files"))["total"] or 0
+            Counter.objects.aggregate(total=Sum("num_files"))["total"] or 0
         )
         coffee: int = (
-                total_files // 2
+            total_files // 2
         )  # Количество кофе, выпитого на основе общего числа файлов
 
         # Группируем записи по дате и подсчитываем сумму обработанных файлов за каждый день
@@ -273,4 +274,6 @@ class Statistic(View):
             template_name="work_for_ilia/statistics.html",
             context=context,
         )
+
+
 # TODO тут нужно вывести прогресс бар что б видно было весь процесс так как файл долго парсится либо сделать это в другом процессе? так же вопрос блокировки БД

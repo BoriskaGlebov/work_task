@@ -16,7 +16,7 @@ class Counter(models.Model):
     """
 
     processed_at: models.DateTimeField = models.DateTimeField(
-        auto_now_add=True, verbose_name="Дата создания/обновления"
+        auto_now=True, verbose_name="Дата создания/обновления"
     )
     num_files: models.IntegerField = models.IntegerField(
         verbose_name="Количество обработанных файлов"
@@ -87,13 +87,17 @@ class SomeDataFromSomeTables(models.Model):
     table_id: models.ForeignKey = models.ForeignKey(
         SomeTables, on_delete=models.CASCADE, verbose_name="Таблица"
     )
-    dock_num: models.IntegerField = models.IntegerField(verbose_name='№ п/п', null=False, default=9999)
-    location: models.CharField = models.CharField(max_length=255, verbose_name="Город", null=True)
+    dock_num: models.IntegerField = models.IntegerField(
+        verbose_name="№ п/п", null=False, default=9999
+    )
+    location: models.CharField = models.CharField(
+        max_length=255, verbose_name="Город", null=True
+    )
     name_organ: models.CharField = models.CharField(
         max_length=255, verbose_name="Название органа", null=True
     )
     pseudonim: models.CharField = models.CharField(
-        max_length=255, verbose_name="Псевдоним", null=True, unique=True
+        max_length=255, verbose_name="Псевдоним", null=True
     )
     letters: models.BooleanField = models.BooleanField(
         default=False, verbose_name="Письма", null=True
@@ -134,4 +138,6 @@ class SomeDataFromSomeTables(models.Model):
 
     def __str__(self):
         return f"Раздел - {self.table_id.table_name} - № - {self.dock_num} - {self.location}"
+
+
 # TODO я поменял тут кое что  про пустые записи но здесь не сделал
