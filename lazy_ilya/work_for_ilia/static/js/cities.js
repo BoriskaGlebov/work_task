@@ -184,74 +184,80 @@ class CitySearch {
      */
     handleSearch() {
         this.citiesGrid.innerHTML = '';
-        const searchTerm = this.searchInput.value.toLowerCase().trim(); // Получаем текст из поля ввода, приводим к нижнему регистру и удаляем пробелы в начале и конце.
+        const searchTerm = this.searchInput.value.toLowerCase().trim();
 
-        // Если поле поиска пустое
         if (searchTerm.length < 1) {
-            this.suggestionsList.innerHTML = ''; // Очищаем список предложений.
-            this.citiesGrid.innerHTML = ''; // Очищаем карточки городов.
+            this.suggestionsList.innerHTML = '';
+            this.citiesGrid.innerHTML = '';
             return;
         }
 
-        // Проверяем, что данные о городах загружены и являются массивом.
         if (!this.cities || !Array.isArray(this.cities)) {
             console.error('Cities data is not defined or is not an array.');
             return;
         }
 
-        // Фильтруем города по location, name_organ или их комбинации.
-        const filteredCities = this.cities.filter(city => {
-            const combinedName = `${city.location.toLowerCase()} [${city.name_organ.toLowerCase()}]`; // Создаем строку, содержащую название города и организации.
-            return (
-                city.location.toLowerCase().includes(searchTerm) || // Проверяем, содержит ли название города введенный текст.
-                city.name_organ.toLowerCase().includes(searchTerm) || // Проверяем, содержит ли название организации введенный текст.
-                combinedName.includes(searchTerm) // Проверяем, содержит ли комбинация "ГОРОД (Организация)" введенный текст.
-            );
-        });
+        const filteredCities = this.cities.reduce((acc, city) => {
+            if (city.location.toLowerCase().includes(searchTerm)) {
+                acc.push({city, match: city.location});
+            }
+            if (city.name_organ.toLowerCase().includes(searchTerm)) {
+                acc.push({city, match: city.name_organ});
+            }
+            if (city.pseudonim.toLowerCase().includes(searchTerm)) {
+                acc.push({city, match: city.pseudonim});
+            }
+            return acc;
+        }, []);
 
-        this.renderSuggestions(filteredCities); // Отображаем отфильтрованные города в списке предложений.
+        this.renderSuggestions(filteredCities);
     }
+
 
     /**
      * Отображает список предложений городов.
-     * @param {Array} cities - Массив городов для отображения.
+     * @param {Array} filteredCities - Массив городов для отображения.
      */
-    renderSuggestions(cities) {
-        this.selectedIndex = -1; // Сбрасываем индекс выделенного элемента.
+    renderSuggestions(filteredCities) {
+        this.selectedIndex = -1;
 
-        // Если нет подходящих городов, отображаем сообщение.
-        if (cities.length === 0) {
+        if (filteredCities.length === 0) {
             this.suggestionsList.innerHTML = '<div class="no-suggestions">Нет подходящих городов</div>';
             return;
         }
 
-        // Создаем HTML для каждого города в списке предложений.
-        this.suggestionsList.innerHTML = cities.map((city, index) => `
-            <div class="suggestion-item ${this.selectedIndex === index ? 'selected' : ''}" data-city="${city.location} [${city.name_organ}]">
-                ${city.location} [${city.name_organ}]
+        this.suggestionsList.innerHTML = filteredCities.map((item, index) => `
+            <div class="suggestion-item ${this.selectedIndex === index ? 'selected' : ''}" 
+                data-city="${item.match}"
+                data-type="${item.type}"
+                data-location="${item.city.location}"
+                data-name_organ="${item.city.name_organ}"
+                data-pseudonim="${item.city.pseudonim}">
+                ${item.match}
             </div>
         `).join('');
 
-        const suggestionItems = this.suggestionsList.querySelectorAll('.suggestion-item'); // Получаем все элементы списка предложений.
+        const suggestionItems = this.suggestionsList.querySelectorAll('.suggestion-item');
 
-        // Добавляем обработчик события `click` для каждого элемента списка предложений.
         suggestionItems.forEach(item => {
-            item.addEventListener('click', () => this.selectCity(item.dataset.city));
+            item.addEventListener('click', () => this.selectCity(item));
         });
     }
 
     /**
      * Выбирает город из списка предложений.
-     * @param {string} cityName - Название выбранного города.
+     * @param {string} item - Название выбранного города.
      */
-    selectCity(cityName) {
+    selectCity(item) {
         const city = this.cities.find(c =>
-            `${c.location} [${c.name_organ}]` === cityName // Сравниваем с форматом "ГОРОД (Организация)".
+            c.location === item.dataset.location &&
+            c.name_organ === item.dataset.name_organ &&
+            c.pseudonim === item.dataset.pseudonim
         );
         if (city) {
-            this.searchInput.value = cityName; // Устанавливаем значение в поле ввода.
-            this.suggestionsList.innerHTML = ''; // Очищаем список предложений.
-            this.renderCityCard(city); // Отображаем карточку выбранного города.
+            this.searchInput.value = item.dataset.city;
+            this.suggestionsList.innerHTML = '';
+            this.renderCityCard(city);
         }
     }
 
@@ -260,14 +266,12 @@ class CitySearch {
      * @param {object} city - Объект города для отображения.
      */
     renderCityCard(city) {
-        // Экранируем значения для корректного использования в селекторе.
         const escapedCityLocation = CSS.escape(city.location);
         const escapedCityNameOrgan = CSS.escape(city.name_organ);
+        const escapedCityPseudonim = CSS.escape(city.pseudonim);
 
-        // Проверяем, существует ли уже карточка для данного города.
-        const existingCard = document.querySelector(`.city-card[data-city="${escapedCityLocation} [${escapedCityNameOrgan}]"]`);
+        const existingCard = document.querySelector(`.city-card[data-city="${escapedCityLocation} [${escapedCityNameOrgan}] [${escapedCityPseudonim}]"]`);
 
-        // Если карточка не существует, создаем ее.
         if (!existingCard) {
             const cityCardHTML = `
                 <div class="city-card" data-city="${city.location} [${city.name_organ}]">
@@ -281,11 +285,10 @@ class CitySearch {
                 </div>
             `;
 
-            this.citiesGrid.innerHTML += cityCardHTML; // Добавляем карточку города в контейнер.
+            this.citiesGrid.innerHTML += cityCardHTML;
 
-            const newCard = this.citiesGrid.lastElementChild; // Получаем ссылку на только что добавленную карточку.
+            const newCard = this.citiesGrid.lastElementChild;
 
-            // Добавляем класс `show` к карточке, чтобы анимировать ее появление.
             requestAnimationFrame(() => {
                 newCard.classList.add('show');
             });
@@ -297,11 +300,11 @@ class CitySearch {
      * Скрывает список предложений.
      * @param {object} event - Объект события `click`.
      */
+
     handleClickOutside(event) {
-        // Если клик был не по полю ввода и не по списку предложений, скрываем список.
         if (!this.searchInput.contains(event.target) && !this.suggestionsList.contains(event.target)) {
-            this.suggestionsList.innerHTML = ''; // Очищаем список предложений.
-            this.selectedIndex = -1; // Сброс выделения.
+            this.suggestionsList.innerHTML = '';
+            this.selectedIndex = -1;
         }
     }
 
@@ -309,7 +312,6 @@ class CitySearch {
      * Отображает список предложений, если поле ввода не пустое.
      */
     showSuggestions() {
-        // Если в поле ввода есть текст, отображаем список предложений.
         if (this.searchInput.value.length > 0) {
             this.handleSearch();
         }
@@ -320,66 +322,57 @@ class CitySearch {
      * Отображает карточки для всех подходящих городов.
      */
     handleEnter() {
-        const searchTerm = this.searchInput.value.toLowerCase().trim(); // Получаем текст из поля ввода, приводим к нижнему регистру и удаляем пробелы.
-        // Если поле поиска пустое, ничего не делаем.
+        const searchTerm = this.searchInput.value.toLowerCase().trim();
         if (searchTerm === '') {
             return;
         }
-        // Фильтруем города по location, name_organ или их комбинации.
         const filteredCities = this.cities.filter(city => {
-            const combinedName = `${city.location.toLowerCase()} [${city.name_organ.toLowerCase()}]`;
+            const combinedName = `${city.location.toLowerCase()} [${city.name_organ.toLowerCase()}] [${city.pseudonim.toLowerCase()}]`;
             return (
                 city.location.toLowerCase().includes(searchTerm) ||
                 city.name_organ.toLowerCase().includes(searchTerm) ||
+                city.pseudonim.toLowerCase().includes(searchTerm) ||
                 combinedName.includes(searchTerm)
             );
         });
 
-        // Очищаем предыдущие карточки.
         this.citiesGrid.innerHTML = '';
 
-        // Создаём карточки для всех подходящих городов с задержкой.
         filteredCities.forEach((city, index) => {
             setTimeout(() => {
                 this.renderCityCard(city);
-            }, index * 100); // Задержка в 100 мс между созданием карточек.
+            }, index * 100);
         });
 
-        // Очищаем список предложений.
         this.suggestionsList.innerHTML = '';
     }
+
 
     /**
      * Перемещает выделение в списке предложений.
      * @param {number} direction - Направление перемещения (1 - вниз, -1 - вверх).
      */
     moveSelection(direction) {
-        const suggestions = Array.from(this.suggestionsList.querySelectorAll('.suggestion-item')); // Получаем массив элементов списка предложений.
+        const suggestions = Array.from(this.suggestionsList.querySelectorAll('.suggestion-item'));
 
-        if (suggestions.length === 0) return; // Если список предложений пуст, выходим из функции.
+        if (suggestions.length === 0) return;
 
-        // Убираем выделение с текущего элемента.
         if (this.selectedIndex >= 0) {
             suggestions[this.selectedIndex].classList.remove('selected');
         }
 
-        // Обновляем индекс выделенного элемента.
         this.selectedIndex += direction;
 
-        // Ограничиваем индекс в пределах массива.
         if (this.selectedIndex < 0) {
-            this.selectedIndex = suggestions.length - 1; // Перемещение к последнему элементу.
+            this.selectedIndex = suggestions.length - 1;
         } else if (this.selectedIndex >= suggestions.length) {
-            this.selectedIndex = 0; // Перемещение к первому элементу.
+            this.selectedIndex = 0;
         }
 
-        // Добавляем выделение к новому элементу.
         suggestions[this.selectedIndex].classList.add('selected');
 
-        // Прокручиваем выделенный элемент в видимую область, если необходимо.
         suggestions[this.selectedIndex].scrollIntoView({block: "nearest"});
 
-        // Обновляем значение в поле ввода.
         this.searchInput.value = suggestions[this.selectedIndex].dataset.city;
     }
 }
