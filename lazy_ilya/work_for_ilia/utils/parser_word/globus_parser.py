@@ -1,5 +1,6 @@
 import os
 import re
+from pprint import pprint
 
 from django.db.models import Q
 
@@ -17,6 +18,7 @@ from channels.layers import get_channel_layer
 from docx import Document
 from work_for_ilia.models import SomeDataFromSomeTables, SomeTables
 from work_for_ilia.utils.my_settings.settings_for_app import ProjectSettings, logger
+
 
 # from work_for_ilia.utils.my_settings.settings_for_app import ProjectSettings
 
@@ -41,6 +43,7 @@ class GlobusParser:
         }
 
     @classmethod
+    @logger.catch(message="Непредвиденное исключение")
     def process_file(cls, file_path: str) -> None:
         """
         Обрабатывает загруженный файл с данными о городах.
@@ -79,22 +82,13 @@ class GlobusParser:
                     if table.table_name != section_name:
                         table.table_name = section_name
                         tables_to_update.append(table)
-                        # logger.info(
-                        #     f"Обновлено название таблицы '{table.table_name}' (ID: {table.id})"
-                        # )
                         processed_tables.append(table)  # Запоминаем раздел
                     elif table and table.table_name == section_name:
                         processed_tables.append(table)  # Запоминаем раздел
-                        # logger.info(f"Ничего не обновлял '{table.table_name}' (ID: {table.id})")
-
                 else:
                     # Создание новой таблицы
                     table = SomeTables(table_name=section_name)
                     tables_to_add.append(table)
-                    # table.save()
-                    # logger.info(
-                    #     f"Создана новая таблица '{table.table_name}' (ID: {table.id})"
-                    # )
                     processed_tables.append(table)  # Запоминаем ID
         try:
             if tables_to_add:
@@ -151,7 +145,7 @@ class GlobusParser:
                     "dock_num": row_num + 1,
                     "location": cells[1],
                     "name_organ": cells[2],
-                    "pseudonim": cells[3] if cells[3] else None,
+                    "pseudonim": cells[3],
                     "letters": (
                         value_corrector.get(cells[4])
                         if value_corrector.get(cells[4])
@@ -201,42 +195,45 @@ class GlobusParser:
             #     logger.error(
             #         f"Ошибка при обработке записи Раздел {table_zip[0].table_name} -  Запись № {cells[0].text}"
             #     )
-        if cities_to_add:
-            res = SomeDataFromSomeTables.objects.bulk_create(cities_to_add)
-            for row in res:
-                logger.info(f"Добавил новую запись id = '{row.id}' - {row.location}")
-        if cities_to_update:
-            SomeDataFromSomeTables.objects.bulk_update(
-                cities_to_update,
-                [
-                    "location",
-                    "name_organ",
-                    "pseudonim",
-                    "letters",
-                    "writing",
-                    "ip_address",
-                    "some_number",
-                    "work_timme",
-                ],
-            )
-            for el in cities_to_update:
-                logger.info(f"Обновил запись id = '{el.id}' - {el.location}")
-        # Получите обновленный список городов
-        delete_cities_ids = SomeDataFromSomeTables.objects.select_related(
-            "table_id"
-        ).exclude(id__in=[row.id for row in processed_cities])
-        delete_cities_ids_count = delete_cities_ids.count()
-        delete_cities_ids.delete()
-        if delete_cities_ids_count > 0:
-            logger.info(
-                f"Удалено {delete_cities_ids_count} устаревших записей городов."
-            )
+        try:
+            if cities_to_add:
+                res = SomeDataFromSomeTables.objects.bulk_create(cities_to_add)
+                for row in res:
+                    logger.info(f"Добавил новую запись id = '{row.id}' - {row.location}")
+            if cities_to_update:
+                SomeDataFromSomeTables.objects.bulk_update(
+                    cities_to_update,
+                    [
+                        "location",
+                        "name_organ",
+                        "pseudonim",
+                        "letters",
+                        "writing",
+                        "ip_address",
+                        "some_number",
+                        "work_timme",
+                    ],
+                )
+                for el in cities_to_update:
+                    logger.info(f"Обновил запись id = '{el.id}' - {el.location}")
+            # Получите обновленный список городов
+            delete_cities_ids = SomeDataFromSomeTables.objects.select_related(
+                "table_id"
+            ).exclude(id__in=[row.id for row in processed_cities])
+            delete_cities_ids_count = delete_cities_ids.count()
+            delete_cities_ids.delete()
+            if delete_cities_ids_count > 0:
+                logger.info(
+                    f"Удалено {delete_cities_ids_count} устаревших записей городов."
+                )
+        except Exception as e:
+            logger.error(f"Произошла ошибка при работе со строками таблицы {e}")
 
-        all_rows = SomeDataFromSomeTables.objects.select_related("table_id").all()
+        all_rows = SomeDataFromSomeTables.objects.select_related("table_id").exclude(
+            Q(location__isnull=True) | Q(location__exact=''))
         updated_cities = [
             el.to_dict() for el in all_rows
         ]  # Предполагается, что у вас есть метод to_dict()
-
         logger.info("Обработка завершена")
 
         # Отправьте финальное сообщение с прогрессом и обновленным списком городов
@@ -249,8 +246,9 @@ class GlobusParser:
             },
         )
 
+        #
+        #
 
-#
-#
+
 if __name__ == "__main__":
     GlobusParser.process_file("globus.docx")

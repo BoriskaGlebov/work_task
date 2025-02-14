@@ -4,7 +4,7 @@ import threading
 from typing import Dict, List
 
 from django.contrib.auth.decorators import user_passes_test
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.db.models.functions import TruncDate
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -199,7 +199,8 @@ class Cities(View):
             HttpResponse: Ответ с HTML-шаблоном и данными о городах в формате JSON.
         """
         is_admin: bool = request.user.is_superuser
-        all_rows = SomeDataFromSomeTables.objects.select_related("table_id").all()
+        all_rows = SomeDataFromSomeTables.objects.select_related("table_id").exclude(
+            Q(location__isnull=True) | Q(location__exact=''))
         cities: List[dict] = [row.to_dict() for row in all_rows]
 
         cities_json: str = json.dumps(cities, ensure_ascii=False)
@@ -231,10 +232,10 @@ class Statistic(View):
             HttpResponse: Ответ с HTML-шаблоном и статистикой.
         """
         total_files: int = (
-            Counter.objects.aggregate(total=Sum("num_files"))["total"] or 0
+                Counter.objects.aggregate(total=Sum("num_files"))["total"] or 0
         )
         coffee: int = (
-            total_files // 2
+                total_files // 2
         )  # Количество кофе, выпитого на основе общего числа файлов
 
         # Группируем записи по дате и подсчитываем сумму обработанных файлов за каждый день
@@ -274,6 +275,5 @@ class Statistic(View):
             template_name="work_for_ilia/statistics.html",
             context=context,
         )
-
 
 # TODO тут нужно вывести прогресс бар что б видно было весь процесс так как файл долго парсится либо сделать это в другом процессе? так же вопрос блокировки БД
