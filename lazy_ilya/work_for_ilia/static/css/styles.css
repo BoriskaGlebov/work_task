@@ -587,6 +587,49 @@ textarea {
     font-weight: bold
 }
 
+/*!* Изменение размера checkbox *!*/
+/*input[type="checkbox"] {*/
+/*    transform: scale(1.5); !* Увеличение размера в 1.5 раза *!*/
+/*    position: absolute;*/
+/*    opacity: 0; !* Полностью скрываем стандартный чекбокс *!*/
+/*}*/
+/* Скрываем стандартный чекбокс */
+/* Скрываем стандартный чекбокс */
+.hidden-checkbox {
+    position: absolute;
+    opacity: 0;
+}
+
+/* Стили для кастомного чекбокса */
+.custom-checkbox {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ccc;
+    border-radius: 3px;
+    margin-right: 8px;
+    vertical-align: middle;
+    position: relative; /* Добавляем relative для позиционирования галочки */
+}
+
+
+/* Стили при выборе чекбокса */
+.hidden-checkbox:checked + .custom-checkbox {
+    border: 1px solid #ccc;
+}
+
+/* Добавление галочки при выборе */
+.hidden-checkbox:checked + .custom-checkbox::after {
+    content: '\2713'; /* Добавляем галочку при выборе */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+
+    transform: translate(-50%, -50%);
+    font-size: 16px;
+    color: green;
+}
+
 #createCityBtn svg {
     stroke: currentColor;
     stroke-width: 2;

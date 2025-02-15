@@ -88,31 +88,31 @@ class SomeDataFromSomeTables(models.Model):
         SomeTables, on_delete=models.CASCADE, verbose_name="Таблица"
     )
     dock_num: models.IntegerField = models.IntegerField(
-        verbose_name="№ п/п", null=False, default=9999
+        verbose_name="№ п/п", null=False, default=9999, blank=True,
     )
     location: models.CharField = models.CharField(
-        max_length=255, verbose_name="Город", null=True
+        max_length=255, verbose_name="Город", null=True, blank=True,
     )
     name_organ: models.CharField = models.CharField(
-        max_length=255, verbose_name="Название органа", null=True
+        max_length=255, verbose_name="Название органа", null=True, blank=True,
     )
     pseudonim: models.CharField = models.CharField(
-        max_length=255, verbose_name="Псевдоним", null=True
+        max_length=255, verbose_name="Псевдоним", null=True, blank=True,
     )
     letters: models.BooleanField = models.BooleanField(
-        default=False, verbose_name="Письма", null=True
+        default=False, verbose_name="Письма", null=True, blank=True,
     )
     writing: models.BooleanField = models.BooleanField(
-        default=False, verbose_name="Записи", null=True
+        default=False, verbose_name="Записи", null=True, blank=True,
     )
     ip_address: models.CharField = models.CharField(
-        max_length=255, verbose_name="Адрес IP", null=True
+        max_length=255, verbose_name="Адрес IP", null=True, blank=True,
     )
     some_number: models.CharField = models.CharField(
-        max_length=255, verbose_name="Спец номер", null=True
+        max_length=255, verbose_name="Спец номер", null=True, blank=True,
     )
     work_timme: models.CharField = models.CharField(
-        max_length=255, verbose_name="Рабочее время", null=True
+        max_length=255, verbose_name="Рабочее время", null=True, blank=True,
     )
 
     class Meta:

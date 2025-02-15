@@ -5,10 +5,11 @@ import traceback
 from typing import Dict, List
 
 from django.contrib.auth.decorators import user_passes_test
+from django.core import serializers
 from django.db.models import Sum, Q
 from django.db.models.functions import TruncDate
 from django.http import HttpRequest, HttpResponse, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -222,26 +223,109 @@ class Cities(View):
         )
 
 
-class CitiesCreateView(CreateView):
-    model = SomeDataFromSomeTables
-    # fields = "name", "price", "description", "discount"
-    form_class = CitiesForm
-    success_url = reverse_lazy("work_for_ilia:cities")
+# class CitiesCreateView(CreateView):
+#     model = SomeDataFromSomeTables
+#     # fields = "name", "price", "description", "discount"
+#     form_class = CitiesForm
+#     success_url = reverse_lazy("work_for_ilia:cities")
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['tables'] = SomeTables.objects.all()  # Передаем все таблицы в контекст
+#         return context
+#
+#     def form_valid(self, form):
+#         logger.info("Form is valid, about to save the new Cities instance.")
+#         instance = form.save()  # Создаем и сохраняем запись
+#         logger.info(f"Successfully saved Cities instance with id: {instance.id}")
+#         return super().form_valid(form)
+#
+#     def form_invalid(self, form):
+#         # logger.error(f"Попытка создать форму с некорректным записью в таблице {form}")
+#         return self.render_to_response(self.get_context_data(form=form))
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['tables'] = SomeTables.objects.all()  # Передаем все таблицы в контекст
-        return context
+def is_ajax(request):
+    return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
 
-    def form_valid(self, form):
-        logger.info("Form is valid, about to save the new Cities instance.")
-        instance = form.save()  # Создаем и сохраняем запись
-        logger.info(f"Successfully saved Cities instance with id: {instance.id}")
-        return super().form_valid(form)
 
-    def form_invalid(self, form):
-        # logger.error(f"Попытка создать форму с некорректным записью в таблице {form}")
-        return self.render_to_response(self.get_context_data(form=form))
+def city_form_view(request):
+    instance = None
+    button_text = "Сохранить изменения"
+    form = CitiesForm()  # Initialize form here
+
+    if request.method == 'POST':
+        # table_id = request.POST.get('table_id')
+        # dock_num = request.POST.get('dock_num')
+        form = CitiesForm(request.POST)
+
+        # Если такая запись уже существует, заполняем форму данными из БД
+        try:
+            table_id = request.POST.get('table_id')
+            dock_num = request.POST.get('dock_num')
+            instance = SomeDataFromSomeTables.objects.get(table_id=table_id, dock_num=dock_num)
+            form = CitiesForm(request.POST, instance=instance)
+            button_text = "Обновить"
+        except SomeDataFromSomeTables.DoesNotExist:
+            pass  # Оставляем форму для создания новой записи
+            logger.error("Form DoesNotExist")
+
+        if form.is_valid():
+            form.save()
+            return redirect(reverse_lazy("work_for_ilia:cities"))
+        else:
+            logger.error(f"Form is invalid. Errors: {form.errors}")
+    else:
+        # Если это GET-запрос, проверяем параметры
+        table_id = request.GET.get('table_id')
+        dock_num = request.GET.get('dock_num')
+
+        if table_id and dock_num:
+            try:
+                instance = SomeDataFromSomeTables.objects.get(table_id=table_id, dock_num=dock_num)
+                form = CitiesForm(instance=instance)
+                button_text = "Обновить"
+            except SomeDataFromSomeTables.DoesNotExist:
+                pass
+
+    tables = SomeTables.objects.all()
+
+    context = {
+        'form': form,
+        'tables': tables,
+        'button_text': button_text,
+        'instance': instance,
+    }
+
+    # Если это AJAX запрос, возвращаем данные в формате JSON
+    # Если это AJAX запрос, возвращаем данные в формате JSON
+    if is_ajax(request):
+        return JsonResponse({
+            'instance': {
+                'location': instance.location,
+                'name_organ': instance.name_organ,
+                'pseudonim': instance.pseudonim,
+                'letters': instance.letters,
+                'writing': instance.writing,
+                'ip_address': instance.ip_address,
+                'some_number': instance.some_number,
+                'work_time': instance.work_timme,
+            }
+        })
+
+    return render(request, 'work_for_ilia/somedatafromsometables_form.html', context)
+
+
+def check_record_exists(request):
+    table_id = request.GET.get('table_id')
+    dock_num = request.GET.get('dock_num')
+
+    try:
+        instance = SomeDataFromSomeTables.objects.get(table_id=table_id, dock_num=dock_num)
+        # Serialize the instance data
+        serialized_data = serializers.serialize('json', [instance, ])
+        return JsonResponse({'exists': True, 'data': serialized_data}, safe=False)
+    except SomeDataFromSomeTables.DoesNotExist:
+        return JsonResponse({'exists': False})
 
 
 def get_next_dock_num(request):
