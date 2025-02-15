@@ -236,6 +236,61 @@ class Cities(View):
             context={"cities_json": cities_json, "is_admin": is_admin},
         )
 
+    @method_decorator(group_or_superuser_required("redact-info"))
+    def put(self, request: HttpRequest) -> JsonResponse:
+        """
+        Обновляет информацию о городе.
+
+        Args:
+            request (HttpRequest): Объект запроса.
+
+        Returns:
+            JsonResponse: Ответ с сообщением об успехе или ошибке.
+        """
+        try:
+            table_id = request.GET.get('table_id')
+            dock_num = request.GET.get('dock_num')
+            city = get_object_or_404(SomeDataFromSomeTables, table_id=table_id, dock_num=dock_num)
+
+            data = json.loads(request.body)
+            city.location = data.get('location', city.location)
+            city.name_organ = data.get('name_organ', city.name_organ)
+            city.pseudonim = data.get('pseudonim', city.pseudonim)
+            city.ip_address = data.get('ip_address', city.ip_address)
+            city.work_time = data.get('work_time', city.work_time)
+            city.save()
+            return JsonResponse({'status': 'success'})
+        except SomeDataFromSomeTables.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'City not found'}, status=404)
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            logger.error(f"Error updating city: {e}")
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    @method_decorator(group_or_superuser_required("redact-info"))
+    def delete(self, request: HttpRequest) -> JsonResponse:
+        """
+        Удаляет город.
+
+        Args:
+            request (HttpRequest): Объект запроса.
+
+        Returns:
+            JsonResponse: Ответ с сообщением об успехе или ошибке.
+        """
+        try:
+            table_id = request.GET.get('table_id')
+            dock_num = request.GET.get('dock_num')
+            city = get_object_or_404(SomeDataFromSomeTables, table_id=table_id, dock_num=dock_num)
+            city.delete()
+            return JsonResponse({'status': 'success'})
+        except SomeDataFromSomeTables.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'City not found'}, status=404)
+        except Exception as e:
+            logger.error(f"Error deleting city: {e}")
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
 
 # class CitiesCreateView(CreateView):
 #     model = SomeDataFromSomeTables
@@ -327,7 +382,7 @@ def city_form_view(request):
             }
         })
 
-    return render(request, 'work_for_ilia/somedatafromsometables_form.html', context)
+    return render(request, 'work_for_ilia/city_create_or_update.html', context)
 
 
 def check_record_exists(request):

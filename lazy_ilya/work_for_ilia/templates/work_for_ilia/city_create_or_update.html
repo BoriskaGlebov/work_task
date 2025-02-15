@@ -151,7 +151,7 @@
             function handleTableDockChange() {
                 var tableId = $('#{{ form.table_id.id_for_label }}').val();
                 var dockNum = $('#{{ form.dock_num.id_for_label }}').val();
-                var formActionUrl = "{% url 'work_for_ilia:city_form' %}";
+                var formActionUrl = "{% url 'work_for_ilia:city_cr_or_upd' %}";
 
                 if (tableId && dockNum) {
                     formActionUrl = formActionUrl + "?table_id=" + tableId + "&dock_num=" + dockNum;
@@ -191,7 +191,7 @@
 
             // Функция для заполнения формы данными из существующей записи
             function populateFormWithData(tableId, dockNum) {
-                var formDataUrl = '{% url "work_for_ilia:city_form" %}?table_id=' + tableId + '&dock_num=' + dockNum;
+                var formDataUrl = '{% url "work_for_ilia:city_cr_or_upd" %}?table_id=' + tableId + '&dock_num=' + dockNum;
 
                 $.ajax({
                     url: formDataUrl,

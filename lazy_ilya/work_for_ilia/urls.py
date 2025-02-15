@@ -7,10 +7,11 @@ urlpatterns = [
     path("", Greater.as_view(), name="index"),
     path("update/", Greater.as_view(), name="update"),  # Добавьте этот маршру
     path("cities/", Cities.as_view(), name="cities"),
-    # path('cities/create', CitiesCreateView.as_view(), name="cities-create"),
-    path('citi_form/', city_form_view, name="city_form"),
-    path('check_record_exists/', check_record_exists, name='check_record_exists'),  # URL для AJAX запроса
-    path('get_next_dock_num/', get_next_dock_num, name='get_next_dock_num'),
+    path('edit-city/', Cities.as_view(), name='edit_city'),
+    path('delete-city/', Cities.as_view(), name='delete_city'),
+    path('citi-create-or-update/', city_form_view, name="city_cr_or_upd"),
+    path('check-record-exists/', check_record_exists, name='check_record_exists'),  # URL для AJAX запроса
+    path('get-next-dock-num/', get_next_dock_num, name='get_next_dock_num'),
 
     path("statistics/", Statistic.as_view(), name="statistics"),
     path(
