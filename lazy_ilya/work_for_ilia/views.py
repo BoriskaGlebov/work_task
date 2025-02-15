@@ -233,7 +233,14 @@ class CitiesCreateView(CreateView):
         context['tables'] = SomeTables.objects.all()  # Передаем все таблицы в контекст
         return context
 
+    def form_valid(self, form):
+        logger.info("Form is valid, about to save the new Cities instance.")
+        instance = form.save()  # Создаем и сохраняем запись
+        logger.info(f"Successfully saved Cities instance with id: {instance.id}")
+        return super().form_valid(form)
+
     def form_invalid(self, form):
+        # logger.error(f"Попытка создать форму с некорректным записью в таблице {form}")
         return self.render_to_response(self.get_context_data(form=form))
 
 

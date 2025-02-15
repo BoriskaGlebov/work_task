@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from work_for_ilia.models import SomeDataFromSomeTables
+from work_for_ilia.utils.my_settings.settings_for_app import logger
 
 
 class CitiesForm(forms.ModelForm):
@@ -40,6 +41,7 @@ class CitiesForm(forms.ModelForm):
 
         # Проверяем уникальность dock_num для данной table_id
         if SomeDataFromSomeTables.objects.filter(table_id=table_id, dock_num=dock_num).exists():
+            logger.error(f"Попытка создать запиьс в Раздел {table_id.table_name} - {dock_num} ")
             raise ValidationError("Этот номер уже существует для данной таблицы.")
 
         return dock_num
