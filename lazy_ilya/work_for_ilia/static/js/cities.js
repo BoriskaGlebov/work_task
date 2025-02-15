@@ -40,6 +40,21 @@ class CitySearch {
                 this.moveSelection(-1);
             }
         });
+        // Используем делегирование событий для открытия модального окна и других действий
+        this.citiesGrid.addEventListener('click', (event) => {
+            const target = event.target.closest('.city-card'); // Клик произошел на карточке
+            if (target) {
+                event.stopPropagation();
+                const cityData = target.dataset.city;
+                console.log(cityData);
+                if (this.isAdmin) {
+                    const city = this.getCityFromCard(target);
+                    if (city) {
+                        this.openEditModal(city);
+                    }
+                }
+            }
+        });
     }
 
     /**
@@ -300,6 +315,21 @@ class CitySearch {
         }
     }
 
+    getCityFromCard(card) {
+        const tableId = card.dataset.tableId;
+        const dockNum = card.dataset.dockNum;
+
+        if (!tableId || !dockNum) {
+            console.error('tableId or dockNum is missing on the card.');
+            return;
+        }
+        const city = this.cities.find(city =>
+            city.table_id == tableId &&
+            city.dock_num == dockNum
+        );
+        return city;
+    }
+
     /**
      * Обрабатывает нажатие клавиши Enter в поле ввода.
      * Отображает карточки для всех подходящих городов.
@@ -386,7 +416,10 @@ class CitySearch {
         if (!existingCard) {
 
             const cityCardHTML = `
-                <div class="city-card" data-city="${city.location} [${city.name_organ}] [${city.pseudonim}]" style="cursor: pointer;">
+                <div class="city-card" data-city="${city.location} [${city.name_organ}] [${city.pseudonim}]"
+                     data-table-id="${city.table_id}"
+                     data-dock-num="${city.dock_num}"
+                     style="cursor: pointer;">
                     <h3>${city.location}</h3>
                     <div class="city-info">
                         <p><strong>Псевдоним:</strong> ${city.pseudonim}</p>
@@ -405,12 +438,7 @@ class CitySearch {
                 newCard.classList.add('show');
             });
 
-            if (this.isAdmin) {
-                newCard.addEventListener('click', (event) => {
-                    event.stopPropagation();
-                    this.openEditModal(city);
-                });
-            }
+
         }
     }
 
