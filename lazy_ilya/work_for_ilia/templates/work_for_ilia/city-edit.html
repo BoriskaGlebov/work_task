@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lazy Ilia - Редактирование города</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="nav-bar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-link">Главная</a>
+      <a href="cities.html" class="nav-link active">Поиск городов</a>
+      <a href="statistics.html" class="nav-link">Статистика</a>
+      <a href="#" class="nav-link admin-link logout-link">LOGOUT</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1>Редактирование города</h1>
+    
+    <div class="city-edit-form">
+      <div class="form-group">
+        <label for="cityName">Название города:</label>
+        <input type="text" id="cityName" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="cityPopulation">Население:</label>
+        <input type="text" id="cityPopulation" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="cityRegion">Регион:</label>
+        <input type="text" id="cityRegion" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="cityFounded">Год основания:</label>
+        <input type="text" id="cityFounded" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="cityDescription">Описание:</label>
+        <textarea id="cityDescription" rows="5" required></textarea>
+      </div>
+
+      <div class="action-buttons">
+        <button id="saveCityBtn" class="primary-btn">
+          <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align: middle; margin-right: 8px;">
+            <path fill="currentColor" d="M13 0H0v16h16V3l-3-3zM8 1h4v4H8V1zM2 1h5v4h7v9H2V1z"/>
+          </svg>
+          Сохранить изменения
+        </button>
+        
+        <a href="cities.html" class="secondary-btn">
+          Отмена
+        </a>
+      </div>
+
+      <div id="saveCityProgress" class="progress-container">
+        <div id="saveCityProgressBar" class="progress-bar"></div>
+        <div id="saveCityProgressText" class="progress-text">Сохранение...</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="city-edit.js"></script>
+  <script src="auth.js"></script>
+</body>
+</html>

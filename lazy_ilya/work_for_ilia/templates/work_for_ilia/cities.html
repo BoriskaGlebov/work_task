@@ -14,6 +14,12 @@
         <!-- Upload section -->
         {% if is_admin %}
             <div class="upload-section" style="justify-content: center">
+                <a id="createCityBtn" class="primary-btn" href="{% url 'work_for_ilia:cities-create' %}"  style="">
+                    <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align: middle; margin-right: 8px;">
+                        <path fill="currentColor" d="M8 0v16M0 8h16"></path>
+                    </svg>
+                    Создать город
+                </a>
                 <label for="cityFileInput" class="upload-btn">
                     <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align: middle; margin-right: 8px;">
                         <path fill="currentColor" d="M8 0L3 5h3v8h4V5h3L8 0z"></path>

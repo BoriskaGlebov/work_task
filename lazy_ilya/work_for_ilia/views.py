@@ -9,9 +9,14 @@ from django.db.models import Sum, Q
 from django.db.models.functions import TruncDate
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
+from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views import View
+from django.views.generic import CreateView
+from django.db.models import Max
+
 from work_for_ilia.models import Counter, SomeDataFromSomeTables, SomeTables
+from work_for_ilia.forms import CitiesForm
 from work_for_ilia.utils.custom_converter.converter_to_docx import Converter
 from work_for_ilia.utils.my_settings.settings_for_app import ProjectSettings, logger
 from work_for_ilia.utils.parser_word.globus_parser import GlobusParser
@@ -215,6 +220,35 @@ class Cities(View):
             template_name="work_for_ilia/cities.html",
             context={"cities_json": cities_json, "is_admin": is_admin},
         )
+
+
+class CitiesCreateView(CreateView):
+    model = SomeDataFromSomeTables
+    # fields = "name", "price", "description", "discount"
+    form_class = CitiesForm
+    success_url = reverse_lazy("work_for_ilia:cities")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tables'] = SomeTables.objects.all()  # Передаем все таблицы в контекст
+        return context
+
+    def form_invalid(self, form):
+        return self.render_to_response(self.get_context_data(form=form))
+
+
+def get_next_dock_num(request):
+    table_id = request.GET.get('table_id')
+    if table_id:
+        last_dock_num = SomeDataFromSomeTables.objects.filter(table_id=table_id).aggregate(Max('dock_num'))[
+            'dock_num__max']
+        if last_dock_num is None:
+            next_dock_num = 1
+        else:
+            next_dock_num = last_dock_num + 1
+        return JsonResponse({'next_dock_num': next_dock_num})
+    else:
+        return JsonResponse({'next_dock_num': ''})
 
 
 class Statistic(View):

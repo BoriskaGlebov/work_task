@@ -1,0 +1,153 @@
+{% extends "work_for_ilia/base.html" %}
+
+{% load static %}  <!-- Загружаем тег для работы со статическими файлами Django -->
+
+{% block title %}
+    Создать город
+{% endblock %}
+
+
+{% block body %}  <!-- Блок для основного содержимого страницы, который можно переопределить в дочерних шаблонах -->
+    <div class="container">
+        <h1>Редактирование города</h1>
+
+        <div class="city-edit-form">
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label for="{{ form.table_id.id_for_label }}">Раздел:</label>
+                    <select name="{{ form.table_id.name }}" id="{{ form.table_id.id_for_label }}">
+                        <option value="">---------</option>
+                        {% for table in tables %}
+                            <option value="{{ table.id }}">{{ table.table_name }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if form.table_id.errors %}
+                        <div class="error-message">{{ form.table_id.errors|join:", " }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.dock_num.id_for_label }}">Порядковый номер в таблице:</label>
+                    {{ form.dock_num }}
+                    {% if form.dock_num.errors %}
+                        <div class="error-message">{{ form.dock_num.errors|join:", " }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.location.id_for_label }}">Место положение:</label>
+                    {{ form.location }}
+                    {% if form.location.errors %}
+                        <div class="error-message">{{ form.location.errors|join:", " }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.name_organ.id_for_label }}">Название Органа:</label>
+                    {{ form.name_organ }}
+                    {% if form.name_organ.errors %}
+                        <div class="error-message">{{ form.name_organ.errors|join:", " }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.pseudonim.id_for_label }}">Псевдоним:</label>
+                    {{ form.pseudonim }}
+                    {% if form.pseudonim.errors %}
+                        <div class="error-message">{{ form.pseudonim.errors|join:", " }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.letters.id_for_label }}">Писма:</label>
+                    {{ form.letters }}
+                    {% if form.letters.errors %}
+                        <div class="error-message">{{ form.letters.errors|join:", " }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.writing.id_for_label }}">Записи:</label>
+                    {{ form.writing }}
+                    {% if form.writing.errors %}
+                        <div class="error-message">{{ form.writing.errors|join:", " }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.ip_address.id_for_label }}">IP адрес:</label>
+                    {{ form.ip_address }}
+                    {% if form.ip_address.errors %}
+                        <div class="error-message">{{ form.ip_address.errors|join:", " }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.some_number.id_for_label }}">Спец номер:</label>
+                    {{ form.some_number }}
+                    {% if form.some_number.errors %}
+                        <div class="error-message">{{ form.some_number.errors|join:", " }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.work_timme.id_for_label }}">Рабочее время и телефон для связи:</label>
+                    {{ form.work_timme }}
+                    {% if form.work_timme.errors %}
+                        <div class="error-message">{{ form.work_timme.errors|join:", " }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="action-buttons">
+                    <button id="saveCityBtn" class="primary-btn" type="submit">
+                        <svg width="16" height="16" viewBox="0 0 16 16"
+                             style="vertical-align: middle; margin-right: 8px;">
+                            <path fill="currentColor" d="M13 0H0v16h16V3l-3-3zM8 1h4v4H8V1zM2 1h5v4h7v9H2V1z"></path>
+                        </svg>
+                        Сохранить изменения
+                    </button>
+
+                    <a href="{% url 'work_for_ilia:cities' %}" class="secondary-btn">
+                        Отмена
+                    </a>
+                </div>
+
+                <div id="saveCityProgress" class="progress-container">
+                    <div id="saveCityProgressBar" class="progress-bar"></div>
+                    <div id="saveCityProgressText" class="progress-text">Сохранение...</div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+
+{% endblock %}
+
+{% block extra_js %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#{{ form.table_id.id_for_label }}').change(function () {
+                var tableId = $(this).val();
+                if (tableId) {
+                    $.ajax({
+                        url: "{% url 'work_for_ilia:get_next_dock_num' %}",  // Замените на ваш URL для получения dock_num
+                        data: {
+                            'table_id': tableId
+                        },
+                        dataType: 'json',
+                        success: function (data) {
+                            $('#{{ form.dock_num.id_for_label }}').val(data.next_dock_num);
+                        }
+                    });
+                } else {
+                    $('#{{ form.dock_num.id_for_label }}').val(''); // Очистить поле, если table_id не выбран
+                }
+            });
+        });
+    </script>
+{% endblock %}

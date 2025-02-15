@@ -251,4 +251,8 @@ class GlobusParser:
 
 
 if __name__ == "__main__":
-    GlobusParser.process_file("globus.docx")
+    # GlobusParser.process_file("globus.docx")
+    d=SomeTables.objects.first()
+    s=SomeDataFromSomeTables(table_id=d,location='Москва')
+    s.save()
+    print(s)

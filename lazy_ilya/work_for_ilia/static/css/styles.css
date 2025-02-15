@@ -573,6 +573,26 @@ textarea {
     opacity: 0.8;
 }
 
+.city-edit-form {
+    max-width: 800px;
+    margin: 2rem auto;
+    background-color: var(--card-bg);
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.error-message {
+    color: #d83b01;
+    font-weight: bold
+}
+
+#createCityBtn svg {
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+}
+
 @media (max-width: 768px) {
     .container {
         width: 100%;
@@ -588,6 +608,11 @@ textarea {
         max-width: none; /* Убираем ограничение по максимальной ширине */
         width: 100%; /* Занимаем всю ширину контейнера */
     }
+
+    .city-edit-form {
+        padding: 1rem;
+    }
+
 
     .preview-content {
         width: 100%; /* Занимаем всю ширину контейнера */
@@ -671,10 +696,12 @@ textarea {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    margin-bottom: 1.5rem;
 }
 
 .form-group label {
     font-weight: 500;
+    margin-bottom: 0.5rem;
     color: var(--primary-color);
 }
 
@@ -691,4 +718,13 @@ textarea {
 
 .admin-link {
     margin-left: auto;
+}
+
+a {
+    text-decoration: none; /* Убирает подчеркивание */
+    color: inherit; /* Наследует цвет от родительского элемента */
+}
+
+a:hover {
+    text-decoration: none; /* Убирает подчеркивание при наведении */
 }

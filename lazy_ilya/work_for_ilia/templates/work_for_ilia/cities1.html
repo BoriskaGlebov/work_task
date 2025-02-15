@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lazy Ilia - Поиск городов</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="nav-bar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-link">Главная</a>
+      <a href="cities.html" class="nav-link active">Поиск городов</a>
+      <a href="statistics.html" class="nav-link">Статистика</a>
+      <a href="login.html" class="nav-link admin-link">Админ панель</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1>Поиск городов России</h1>
+    
+    <div class="upload-section">
+      <button id="createCityBtn" class="primary-btn" style="display: none;">
+        <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align: middle; margin-right: 8px;">
+          <path fill="currentColor" d="M8 0v16M0 8h16"/>
+        </svg>
+        Создать город
+      </button>
+
+      <label for="cityFileInput" class="upload-btn">
+        <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align: middle; margin-right: 8px;">
+          <path fill="currentColor" d="M8 0L3 5h3v8h4V5h3L8 0z"/>
+          <path fill="currentColor" d="M15 11v3H1v-3H0v4h16v-4h-1z"/>
+        </svg>
+        Добавить список городов
+        <input type="file" id="cityFileInput" accept=".doc,.docx">
+      </label>
+      
+      <button id="uploadCityFileBtn" class="primary-btn">
+        <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align: middle; margin-right: 8px;">
+          <path fill="currentColor" d="M8 0L3 5h3v8h4V5h3L8 0z"/>
+        </svg>
+        Загрузить
+      </button>
+      
+      <div id="cityUploadProgress" class="progress-container">
+        <div id="cityUploadProgressBar" class="progress-bar"></div>
+        <div id="cityUploadProgressText" class="progress-text">Загрузка...</div>
+      </div>
+    </div>
+
+    <div class="search-container">
+      <div class="search-wrapper">
+        <input type="text" class="search-input" id="citySearch" placeholder="Введите название города...">
+        <div class="suggestions-list" id="suggestionsList"></div>
+      </div>
+      <div class="cities-grid" id="citiesGrid"></div>
+    </div>
+  </div>
+
+  <script src="cities.js"></script>
+  <script src="auth.js"></script>
+</body>
+</html>

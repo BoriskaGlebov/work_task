@@ -139,5 +139,21 @@ class SomeDataFromSomeTables(models.Model):
     def __str__(self):
         return f"Раздел - {self.table_id.table_name} - № - {self.dock_num} - {self.location}"
 
+    def save(self, *args, **kwargs):
+        """
+        Переопределяем метод save, чтобы автоматически устанавливать dock_num.
+        """
+        if not self.pk:  # Проверяем, что это новая запись
+            # Получаем последний dock_num для данного table_id
+            last_dock_num = (
+                SomeDataFromSomeTables.objects.filter(table_id=self.table_id)
+                .aggregate(models.Max("dock_num"))["dock_num__max"]
+            )
+            # Если записей для данного table_id еще нет, начинаем с 1
+            if last_dock_num is None:
+                self.dock_num = 1
+            else:
+                self.dock_num = last_dock_num + 1
 
+        super().save(*args, **kwargs)
 # TODO я поменял тут кое что  про пустые записи но здесь не сделал
