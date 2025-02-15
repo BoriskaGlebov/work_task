@@ -1,60 +1,43 @@
 class CitySearch {
-    constructor() {
-        // Используем данные из глобальной переменной `window.citiesData` или пустой массив, если она не определена.
-        // Это позволяет предварительно загружать данные о городах, например, из JSON-файла.
+    constructor(isAdmin) {
+        this.isAdmin = isAdmin;
+        console.log('isAdmin:', this.isAdmin); // Добавлено для отладки
         this.cities = window.citiesData || [];
-
-        // Получаем ссылки на элементы DOM, с которыми будем взаимодействовать.
-        this.searchInput = document.getElementById('citySearch'); // Поле ввода для поиска города.
-        this.suggestionsList = document.getElementById('suggestionsList'); // Список предложений, отображаемый под полем ввода.
-        this.citiesGrid = document.getElementById('citiesGrid'); // Контейнер для отображения карточек городов.
-
-        // Индекс выбранного элемента в списке предложений. Используется для навигации с помощью стрелок.
+        this.csrfToken = "{{ csrf_token }}"; // Предполагается, что CSRF-токен доступен в шаблоне Django
+        this.searchInput = document.getElementById('citySearch');
+        this.suggestionsList = document.getElementById('suggestionsList');
+        this.citiesGrid = document.getElementById('citiesGrid');
         this.selectedIndex = -1;
+        this.fileInput = document.getElementById('cityFileInput');
+        this.uploadBtn = document.getElementById('uploadCityFileBtn');
+        this.uploadProgress = document.getElementById('cityUploadProgress');
+        this.uploadProgressBar = document.getElementById('cityUploadProgressBar');
+        this.uploadProgressText = document.getElementById('cityUploadProgressText');
+        this.modal = document.getElementById('editCityModal'); // Добавляем ссылку на модальное окно
 
-        // Элементы, связанные с загрузкой файла.
-        this.fileInput = document.getElementById('cityFileInput'); // Поле выбора файла.
-        this.uploadBtn = document.getElementById('uploadCityFileBtn'); // Кнопка загрузки файла.
-        this.uploadProgress = document.getElementById('cityUploadProgress'); // Контейнер для отображения прогресса загрузки.
-        this.uploadProgressBar = document.getElementById('cityUploadProgressBar'); // Индикатор прогресса загрузки.
-        this.uploadProgressText = document.getElementById('cityUploadProgressText'); // Текст, отображающий прогресс загрузки.
-
-        this.init(); // Вызываем метод инициализации, чтобы установить обработчики событий.
+        this.init();
     }
 
     /**
      * Инициализация обработчиков событий для элементов DOM.
      */
     init() {
-        // Обработчик события `input` для поля ввода.
-        // Вызывается при каждом изменении значения поля ввода.
         this.searchInput.addEventListener('input', () => this.handleSearch());
-
-        // Обработчик события `focus` для поля ввода.
-        // Вызывается при получении фокуса полем ввода.
         this.searchInput.addEventListener('focus', () => this.showSuggestions());
-
-        // Обработчик события `click` для всего документа.
-        // Используется для скрытия списка предложений при клике за пределами поля ввода и списка.
         document.addEventListener('click', (e) => this.handleClickOutside(e));
-
-        // Если кнопка загрузки файла существует, устанавливаем обработчик события `click`.
         if (this.uploadBtn) {
             this.uploadBtn.addEventListener('click', () => this.handleFileUpload());
         }
-
-        // Обработчик события `keydown` для поля ввода.
-        // Используется для обработки нажатий клавиш Enter, ArrowDown и ArrowUp.
         this.searchInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                e.preventDefault(); // Предотвращает отправку формы.
-                this.handleEnter(); // Вызываем метод обработки нажатия клавиши Enter.
+                e.preventDefault();
+                this.handleEnter();
             } else if (e.key === 'ArrowDown') {
-                e.preventDefault(); // Предотвращает прокрутку страницы.
-                this.moveSelection(1); // Вызываем метод перемещения выделения вниз.
+                e.preventDefault();
+                this.moveSelection(1);
             } else if (e.key === 'ArrowUp') {
-                e.preventDefault(); // Предотвращает прокрутку страницы.
-                this.moveSelection(-1); // Вызываем метод перемещения выделения вверх.
+                e.preventDefault();
+                this.moveSelection(-1);
             }
         });
     }
@@ -261,39 +244,39 @@ class CitySearch {
         }
     }
 
-    /**
-     * Отображает карточку города.
-     * @param {object} city - Объект города для отображения.
-     */
-    renderCityCard(city) {
-        const escapedCityLocation = CSS.escape(city.location);
-        const escapedCityNameOrgan = CSS.escape(city.name_organ);
-        const escapedCityPseudonim = CSS.escape(city.pseudonim);
-
-        const existingCard = document.querySelector(`.city-card[data-city="${escapedCityLocation} [${escapedCityNameOrgan}] [${escapedCityPseudonim}]"]`);
-
-        if (!existingCard) {
-            const cityCardHTML = `
-                <div class="city-card" data-city="${city.location} [${city.name_organ}]">
-                    <h3>${city.location}</h3>
-                    <div class="city-info">
-                        <p><strong>Псевдоним:</strong> ${city.pseudonim}</p>
-                        <p><strong>IP-адрес:</strong> ${city.ip_address}</p>
-                        <p><strong>Организация:</strong> ${city.name_organ}</p>
-                        <p><strong>Рабочее время:</strong> ${city.work_time}</p>
-                    </div>
-                </div>
-            `;
-
-            this.citiesGrid.innerHTML += cityCardHTML;
-
-            const newCard = this.citiesGrid.lastElementChild;
-
-            requestAnimationFrame(() => {
-                newCard.classList.add('show');
-            });
-        }
-    }
+    // /**
+    //  * Отображает карточку города.
+    //  * @param {object} city - Объект города для отображения.
+    //  */
+    // renderCityCard(city) {
+    //     const escapedCityLocation = CSS.escape(city.location);
+    //     const escapedCityNameOrgan = CSS.escape(city.name_organ);
+    //     const escapedCityPseudonim = CSS.escape(city.pseudonim);
+    //
+    //     const existingCard = document.querySelector(`.city-card[data-city="${escapedCityLocation} [${escapedCityNameOrgan}] [${escapedCityPseudonim}]"]`);
+    //
+    //     if (!existingCard) {
+    //         const cityCardHTML = `
+    //             <div class="city-card" data-city="${city.location} [${city.name_organ}]">
+    //                 <h3>${city.location}</h3>
+    //                 <div class="city-info">
+    //                     <p><strong>Псевдоним:</strong> ${city.pseudonim}</p>
+    //                     <p><strong>IP-адрес:</strong> ${city.ip_address}</p>
+    //                     <p><strong>Организация:</strong> ${city.name_organ}</p>
+    //                     <p><strong>Рабочее время:</strong> ${city.work_time}</p>
+    //                 </div>
+    //             </div>
+    //         `;
+    //
+    //         this.citiesGrid.innerHTML += cityCardHTML;
+    //
+    //         const newCard = this.citiesGrid.lastElementChild;
+    //
+    //         requestAnimationFrame(() => {
+    //             newCard.classList.add('show');
+    //         });
+    //     }
+    // }
 
     /**
      * Обрабатывает клик за пределами поля ввода и списка предложений.
@@ -375,7 +358,192 @@ class CitySearch {
 
         this.searchInput.value = suggestions[this.selectedIndex].dataset.city;
     }
+
+    getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+
+    renderCityCard(city) {
+        const escapedCityLocation = CSS.escape(city.location);
+        const escapedCityNameOrgan = CSS.escape(city.name_organ);
+        const escapedCityPseudonim = CSS.escape(city.pseudonim);
+
+        const existingCard = document.querySelector(`.city-card[data-city="${escapedCityLocation} [${escapedCityNameOrgan}] [${escapedCityPseudonim}]"]`);
+
+        if (!existingCard) {
+
+            const cityCardHTML = `
+                <div class="city-card" data-city="${city.location} [${city.name_organ}] [${city.pseudonim}]" style="cursor: pointer;">
+                    <h3>${city.location}</h3>
+                    <div class="city-info">
+                        <p><strong>Псевдоним:</strong> ${city.pseudonim}</p>
+                        <p><strong>IP-адрес:</strong> ${city.ip_address}</p>
+                        <p><strong>Организация:</strong> ${city.name_organ}</p>
+                        <p><strong>Рабочее время:</strong> ${city.work_time}</p>
+                    </div>
+                </div>
+            `;
+
+            this.citiesGrid.innerHTML += cityCardHTML;
+
+            const newCard = this.citiesGrid.lastElementChild;
+
+            requestAnimationFrame(() => {
+                newCard.classList.add('show');
+            });
+
+            if (this.isAdmin) {
+                newCard.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    this.openEditModal(city);
+                });
+            }
+        }
+    }
+
+    openEditModal(city) {
+        const modal = document.getElementById('editCityModal');
+        const editCityLocation = document.getElementById('editCityLocation');
+        const editCityNameOrgan = document.getElementById('editCityNameOrgan');
+        const editCityPseudonim = document.getElementById('editCityPseudonim');
+        const editCityIpAddress = document.getElementById('editCityIpAddress');
+        const editCityWorkTime = document.getElementById('editCityWorkTime');
+
+        // Заполняем поля формы данными города
+        editCityLocation.value = city.location;
+        editCityNameOrgan.value = city.name_organ;
+        editCityPseudonim.value = city.pseudonim;
+        editCityIpAddress.value = city.ip_address;
+        editCityWorkTime.value = city.work_time;
+
+        modal.style.display = "block";
+        modal.dataset.tableId = city.table_id;
+        modal.dataset.dockNum = city.dock_num;
+
+        // Добавляем обработчик для кнопки "Сохранить"
+        const saveCityButton = document.getElementById('saveCityButton');
+        saveCityButton.onclick = () => {
+            this.saveEditedCity(city.table_id, city.dock_num);
+        };
+
+        // Добавляем обработчик для кнопки закрытия
+        const closeButton = document.querySelector('.modal .close-button');
+        closeButton.onclick = () => {
+            this.closeEditModal();
+        };
+
+        // Закрытие модального окна при клике вне его
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                this.closeEditModal();
+            }
+        }.bind(this);
+    }
+
+    closeEditModal() {
+        const modal = document.getElementById('editCityModal');
+        modal.style.display = "none";
+    }
+
+    async saveEditedCity(tableId, dockNum) {
+        const modal = document.getElementById('editCityModal');
+        const editCityLocation = document.getElementById('editCityLocation');
+        const editCityNameOrgan = document.getElementById('editCityNameOrgan');
+        const editCityPseudonim = document.getElementById('editCityPseudonim');
+        const editCityIpAddress = document.getElementById('editCityIpAddress');
+        const editCityWorkTime = document.getElementById('editCityWorkTime');
+
+        const updatedCityData = {
+            location: editCityLocation.value,
+            name_organ: editCityNameOrgan.value,
+            pseudonim: editCityPseudonim.value,
+            ip_address: editCityIpAddress.value,
+            work_time: editCityWorkTime.value
+        };
+        const url = `/work/cities/${encodeURIComponent(tableId)}/${encodeURIComponent(dockNum)}/`;
+
+        try {
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCookie('csrftoken')
+                },
+                body: JSON.stringify(updatedCityData)
+            });
+
+            if (response.ok) {
+                // Находим индекс города в массиве cities
+                const index = this.cities.findIndex(city => city.table_id === tableId && city.dock_num === dockNum);
+
+                if (index !== -1) {
+                    // Обновляем данные города в массиве cities
+                    this.cities[index] = {
+                        ...this.cities[index], // Сохраняем старые данные
+                        ...updatedCityData // Обновляем новыми
+                    };
+                }
+                console.log('Город успешно обновлен');
+
+                this.citiesGrid.innerHTML = '';
+                // Удаляем старую карточку
+                const oldCard = document.querySelector(`.city-card[data-city="${CSS.escape(this.cities[index].location)} [${CSS.escape(this.cities[index].name_organ)}] [${CSS.escape(this.cities[index].pseudonim)}]"]`);
+                this.searchInput.value = '';
+                if (oldCard) {
+                    oldCard.remove();
+                }
+                // Создаем новую карточку
+                this.renderCityCard(this.cities[index]);
+                this.closeEditModal();
+
+            } else {
+                console.error('Ошибка при обновлении города');
+            }
+        } catch (error) {
+            console.error('Ошибка сети при обновлении города:', error);
+        }
+    }
+
+
+    async deleteCity(tableId, dockNum, cardElement) {
+        if (confirm('Вы уверены, что хотите удалить этот город?')) {
+            try {
+                const response = await fetch(`/work/delete_city/?table_id=${tableId}&dock_num=${dockNum}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': this.getCookie('csrftoken')
+                    }
+                });
+
+                if (response.ok) {
+                    cardElement.remove(); // Удаляем элемент из DOM
+                    console.log('Город успешно удален');
+                    //Удалите массив this.cities, чтобы удалить удаленный город
+                    this.cities = this.cities.filter(city => !(city.table_id === tableId && city.dock_num === dockNum));
+                    this.displayAllCities(); // Обновляем отображение
+                } else {
+                    console.error('Ошибка при удалении города');
+                }
+            } catch (error) {
+                console.error('Ошибка сети при удалении города:', error);
+            }
+        }
+    }
 }
 
 // Инициализация класса CitySearch при загрузке страницы.
-const citySearch = new CitySearch();
+const citySearch = new CitySearch(isAdmin);

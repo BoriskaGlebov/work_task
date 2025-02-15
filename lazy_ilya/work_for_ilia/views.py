@@ -237,27 +237,21 @@ class Cities(View):
         )
 
     @method_decorator(group_or_superuser_required("redact-info"))
-    def put(self, request: HttpRequest) -> JsonResponse:
+    def put(self, request: HttpRequest, table_id: int, dock_num: int) -> JsonResponse:
         """
         Обновляет информацию о городе.
-
-        Args:
-            request (HttpRequest): Объект запроса.
-
-        Returns:
-            JsonResponse: Ответ с сообщением об успехе или ошибке.
         """
         try:
-            table_id = request.GET.get('table_id')
-            dock_num = request.GET.get('dock_num')
-            city = get_object_or_404(SomeDataFromSomeTables, table_id=table_id, dock_num=dock_num)
+            # table_id = request.GET.get('table_id') # Неправильно
+            # dock_num = request.GET.get('dock_num') # Неправильно
 
+            city = get_object_or_404(SomeDataFromSomeTables, table_id=table_id, dock_num=dock_num)
             data = json.loads(request.body)
             city.location = data.get('location', city.location)
             city.name_organ = data.get('name_organ', city.name_organ)
             city.pseudonim = data.get('pseudonim', city.pseudonim)
             city.ip_address = data.get('ip_address', city.ip_address)
-            city.work_time = data.get('work_time', city.work_time)
+            city.work_timme = data.get('work_time', city.work_timme)
             city.save()
             return JsonResponse({'status': 'success'})
         except SomeDataFromSomeTables.DoesNotExist:
@@ -337,7 +331,7 @@ def city_form_view(request):
             button_text = "Обновить"
         except SomeDataFromSomeTables.DoesNotExist:
             pass  # Оставляем форму для создания новой записи
-            logger.error("Form DoesNotExist")
+            # logger.error("Form DoesNotExist")
 
         if form.is_valid():
             form.save()

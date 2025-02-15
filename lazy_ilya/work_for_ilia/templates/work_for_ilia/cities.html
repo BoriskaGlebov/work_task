@@ -14,7 +14,7 @@
         <!-- Upload section -->
         {% if is_admin %}
             <div class="upload-section" style="justify-content: center">
-                <a id="createCityBtn" class="primary-btn" href="{% url 'work_for_ilia:city_cr_or_upd' %}"  style="">
+                <a id="createCityBtn" class="primary-btn" href="{% url 'work_for_ilia:city_cr_or_upd' %}" style="">
                     <svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align: middle; margin-right: 8px;">
                         <path fill="currentColor" d="M8 0v16M0 8h16"></path>
                     </svg>
@@ -40,6 +40,7 @@
                     <div id="cityUploadProgressBar" class="progress-bar"></div>
                     <div id="cityUploadProgressText" class="progress-text">Загрузка...</div>
                 </div>
+
             </div>
         {% endif %}
 
@@ -52,6 +53,30 @@
             </div>
             <div class="cities-grid" id="citiesGrid"></div>
         </div>
+        <div id="editCityModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2>Редактировать город</h2>
+
+                <label for="editCityLocation">Местоположение:</label>
+                <input type="text" id="editCityLocation" name="location">
+
+                <label for="editCityNameOrgan">Организация:</label>
+                <input type="text" id="editCityNameOrgan" name="name_organ">
+
+                <label for="editCityPseudonim">Псевдоним:</label>
+                <input type="text" id="editCityPseudonim" name="pseudonim">
+
+                <label for="editCityIpAddress">IP-адрес:</label>
+                <input type="text" id="editCityIpAddress" name="ip_address">
+
+                <label for="editCityWorkTime">Время работы:</label>
+                <input type="text" id="editCityWorkTime" name="work_time">
+
+                <button id="saveCityButton">Сохранить</button>
+            </div>
+        </div>
+
     </div>
 
 
@@ -63,6 +88,7 @@
         // Создаем глобальную переменную для хранения данных
         {#console.log('Cities JSON:', '{{ cities_json|escapejs }}');#}
         window.citiesData = JSON.parse('{{ cities_json|escapejs }}');
+        const isAdmin = {{ is_admin|lower }};
     </script>
     <script>
         const uploadUrl = "{% url 'work_for_ilia:cities' %}";
