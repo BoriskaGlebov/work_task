@@ -4,7 +4,7 @@ import threading
 import traceback
 from typing import Dict, List
 
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.decorators import user_passes_test, login_required
 from django.core import serializers
 from django.db.models import Sum, Q
 from django.db.models.functions import TruncDate
@@ -161,12 +161,23 @@ class Greater(View):
             return JsonResponse({"error": str(e)}, status=500)
 
 
+def group_or_superuser_required(group_name):
+    """
+    Allows access to a view only to users who are superusers or belong to a specified group.
+    """
+
+    def check_user(user):
+        return user.is_superuser or user.groups.filter(name=group_name).exists()
+
+    return user_passes_test(check_user)
+
+
 class Cities(View):
     """
     Класс для обработки запросов, связанных с городами.
     """
 
-    @method_decorator(user_passes_test(lambda u: u.is_superuser))
+    @method_decorator(group_or_superuser_required("redact-info"))
     def post(self, request: HttpRequest) -> JsonResponse:
         """
         Обрабатывает загрузку файла с данными о городах.
@@ -210,6 +221,9 @@ class Cities(View):
             HttpResponse: Ответ с HTML-шаблоном и данными о городах в формате JSON.
         """
         is_admin: bool = request.user.is_superuser
+        # Если не администратор, проверяем, состоит ли в группе
+        if not is_admin:
+            is_admin = request.user.groups.filter(name='redact-info').exists()
         all_rows = SomeDataFromSomeTables.objects.select_related("table_id").exclude(
             Q(location__isnull=True) | Q(location__exact=''))
         cities: List[dict] = [row.to_dict() for row in all_rows]
@@ -248,6 +262,7 @@ def is_ajax(request):
     return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
 
 
+@group_or_superuser_required("redact-info")
 def city_form_view(request):
     instance = None
     button_text = "Сохранить изменения"

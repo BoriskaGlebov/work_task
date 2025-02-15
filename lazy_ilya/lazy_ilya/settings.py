@@ -122,6 +122,7 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+LOGIN_URL =reverse_lazy("work_for_ilia:login")  # Замените на ваш URL для страницы входа, если он отличается
 LOGIN_REDIRECT_URL = reverse_lazy("work_for_ilia:cities")
 ASGI_APPLICATION = "lazy_ilya.asgi.application"
 CHANNEL_LAYERS = {
