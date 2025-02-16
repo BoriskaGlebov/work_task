@@ -538,10 +538,16 @@ class CitySearch {
                 this.closeEditModal();
 
             } else {
+                this.closeEditModal();
+                alert(`Ошибка при обновлении города: ${errorData.message}`);
                 console.error('Ошибка при обновлении города');
+
             }
         } catch (error) {
+            this.closeEditModal();
             console.error('Ошибка сети при обновлении города:', error);
+            alert(`Ошибка сети при обновлении города: ${error}`);
+            this.closeEditModal();
         }
     }
 

@@ -236,7 +236,8 @@ class Cities(View):
             context={"cities_json": cities_json, "is_admin": is_admin},
         )
 
-    @method_decorator(group_or_superuser_required("redact-info"))
+    # @login_required
+    # @method_decorator(group_or_superuser_required("redact-info"))
     def put(self, request: HttpRequest, table_id: int, dock_num: int) -> JsonResponse:
         """
         Обновляет информацию о городе.
