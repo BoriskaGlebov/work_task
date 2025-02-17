@@ -1,7 +1,9 @@
 class CitySearch {
     constructor(isAdmin) {
         this.isAdmin = isAdmin;
+        this.isIlia = isIlia;
         console.log('isAdmin:', this.isAdmin); // Добавлено для отладки
+        console.log('isIlia:', this.isIlia); // Добавлено для отладки
         this.cities = window.citiesData || [];
         this.csrfToken = "{{ csrf_token }}"; // Предполагается, что CSRF-токен доступен в шаблоне Django
         this.searchInput = document.getElementById('citySearch');
@@ -47,7 +49,7 @@ class CitySearch {
                 event.stopPropagation();
                 const cityData = target.dataset.city;
                 console.log(cityData);
-                if (this.isAdmin) {
+                if (this.isAdmin || this.isIlia) {
                     const city = this.getCityFromCard(target);
                     if (city) {
                         this.openEditModal(city);

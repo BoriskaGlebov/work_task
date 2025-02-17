@@ -177,7 +177,6 @@ class Cities(View):
     Класс для обработки запросов, связанных с городами.
     """
 
-    @method_decorator(group_or_superuser_required("redact-info"))
     def post(self, request: HttpRequest) -> JsonResponse:
         """
         Обрабатывает загрузку файла с данными о городах.
@@ -221,9 +220,11 @@ class Cities(View):
             HttpResponse: Ответ с HTML-шаблоном и данными о городах в формате JSON.
         """
         is_admin: bool = request.user.is_superuser
+        is_ilia: bool = False
         # Если не администратор, проверяем, состоит ли в группе
         if not is_admin:
             is_admin = request.user.groups.filter(name='redact-info').exists()
+            is_ilia = request.user.groups.filter(name='adminka').exists()
         all_rows = SomeDataFromSomeTables.objects.select_related("table_id").exclude(
             Q(location__isnull=True) | Q(location__exact=''))
         cities: List[dict] = [row.to_dict() for row in all_rows]
@@ -233,11 +234,9 @@ class Cities(View):
         return render(
             request=request,
             template_name="work_for_ilia/cities.html",
-            context={"cities_json": cities_json, "is_admin": is_admin},
+            context={"cities_json": cities_json, "is_admin": is_admin, "is_ilia": is_ilia},
         )
 
-    # @login_required
-    # @method_decorator(group_or_superuser_required("redact-info"))
     def put(self, request: HttpRequest, table_id: int, dock_num: int) -> JsonResponse:
         """
         Обновляет информацию о городе.
@@ -263,7 +262,6 @@ class Cities(View):
             logger.error(f"Error updating city: {e}")
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-    @method_decorator(group_or_superuser_required("redact-info"))
     def delete(self, request: HttpRequest) -> JsonResponse:
         """
         Удаляет город.
@@ -286,27 +284,6 @@ class Cities(View):
             logger.error(f"Error deleting city: {e}")
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-
-# class CitiesCreateView(CreateView):
-#     model = SomeDataFromSomeTables
-#     # fields = "name", "price", "description", "discount"
-#     form_class = CitiesForm
-#     success_url = reverse_lazy("work_for_ilia:cities")
-#
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         context['tables'] = SomeTables.objects.all()  # Передаем все таблицы в контекст
-#         return context
-#
-#     def form_valid(self, form):
-#         logger.info("Form is valid, about to save the new Cities instance.")
-#         instance = form.save()  # Создаем и сохраняем запись
-#         logger.info(f"Successfully saved Cities instance with id: {instance.id}")
-#         return super().form_valid(form)
-#
-#     def form_invalid(self, form):
-#         # logger.error(f"Попытка создать форму с некорректным записью в таблице {form}")
-#         return self.render_to_response(self.get_context_data(form=form))
 
 def is_ajax(request):
     return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'

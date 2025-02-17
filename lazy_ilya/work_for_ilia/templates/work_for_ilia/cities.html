@@ -89,6 +89,7 @@
         {#console.log('Cities JSON:', '{{ cities_json|escapejs }}');#}
         window.citiesData = JSON.parse('{{ cities_json|escapejs }}');
         const isAdmin = {{ is_admin|lower }};
+        const isIlia = {{ is_ilia|lower }};
     </script>
     <script>
         const uploadUrl = "{% url 'work_for_ilia:cities' %}";
