@@ -310,6 +310,7 @@ class GlobusParser:
         table_headers = ['№ №', 'Место положения', 'Наименование органа', 'Название пункта\n(псевдоним)',
                          'Вид передаваемой информации', 'Какой-то номер', 'Время работы, телефон для связи']
         table_headers2 = ['Письма', 'Написание', 'Сетевой адрес IP']
+        document.add_paragraph("Какой-то текст для начала")
         for num, name in enumerate(tables_name):
             paragraph = document.add_paragraph(name[1], style='CustomHeadingStyle')
             document.add_paragraph()
