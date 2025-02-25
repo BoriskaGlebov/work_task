@@ -121,12 +121,27 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
+# Установка по умолчанию для автоматически создаваемых полей в моделях Django.
+# BigAutoField — это целочисленный идентификатор, который автоматически увеличивается.
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-LOGIN_URL =reverse_lazy("work_for_ilia:login")  # Замените на ваш URL для страницы входа, если он отличается
+
+# URL для перенаправления неавторизованных пользователей при попытке доступа к защищенным страницам.
+# Замените на ваш URL для страницы входа, если он отличается.
+LOGIN_URL = reverse_lazy("work_for_ilia:login")
+
+# URL для перенаправления пользователей после успешного входа.
 LOGIN_REDIRECT_URL = reverse_lazy("work_for_ilia:cities")
+
+# Указание приложения ASGI для проекта Django.
+# ASGI (Asynchronous Server Gateway Interface) — это интерфейс для асинхронных веб-приложений.
 ASGI_APPLICATION = "lazy_ilya.asgi.application"
+
+# Настройка слоев каналов для приложения Channels.
+# Channels — это расширение Django для работы с веб-сокетами и другими асинхронными протоколами.
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",  # Для разработки
+        # Используем слой каналов в памяти для разработки.
+        # Это не подходит для продакшена, так как данные будут потеряны при перезапуске сервера.
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
     },
 }
