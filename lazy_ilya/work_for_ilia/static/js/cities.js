@@ -551,6 +551,12 @@ class CitySearch {
         saveCityButton.onclick = () => {
             this.saveEditedCity(city.table_id, city.dock_num);
         };
+        const deleteCityButton = document.getElementById('deleteCityButton');
+        deleteCityButton.onclick = () => {
+            const tableId = modal.dataset.tableId;
+            const dockNum = modal.dataset.dockNum;
+            this.deleteCity(tableId, dockNum);
+        };
 
         // Добавляем обработчик для кнопки закрытия
         const closeButton = document.querySelector('.modal .close-button');
@@ -638,9 +644,11 @@ class CitySearch {
 
 
     async deleteCity(tableId, dockNum, cardElement) {
-        if (confirm('Вы уверены, что хотите удалить этот город?')) {
+        console.log('Удаляем город с tableId:', tableId, 'и dockNum:', dockNum);
+
+        if (confirm('Вы уверены, что хотите удалить данные о городе?')) {
             try {
-                const response = await fetch(`/work/delete_city/?table_id=${tableId}&dock_num=${dockNum}`, {
+                const response = await fetch(`/work/cities/${encodeURIComponent(tableId)}/${encodeURIComponent(dockNum)}/`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
@@ -649,19 +657,32 @@ class CitySearch {
                 });
 
                 if (response.ok) {
-                    cardElement.remove(); // Удаляем элемент из DOM
-                    console.log('Город успешно удален');
-                    //Удалите массив this.cities, чтобы удалить удаленный город
-                    this.cities = this.cities.filter(city => !(city.table_id === tableId && city.dock_num === dockNum));
-                    this.displayAllCities(); // Обновляем отображение
+                    console.log('Данные о городе успешно удалены');
+                    // Закрываем модальное окно
+                    this.closeEditModal();
+                    // Очищаем строку поиска
+                    this.searchInput.value = '';
+                    // Обновляем данные о городе в массиве this.cities
+                    const index = this.cities.findIndex(city => String(city.table_id) === String(tableId) && String(city.dock_num) === String(dockNum));
+                    if (index !== -1) {
+                        console.log('Город найден в массиве. Удаляем его.');
+                        this.cities.splice(index, 1);
+                    } else {
+                        console.log('Город не найден в массиве.');
+                    }
+                    // Обновляем отображение
+                    this.citiesGrid.innerHTML = '';
+                    // this.displayAllCities();
                 } else {
-                    console.error('Ошибка при удалении города');
+                    console.error('Ошибка при удалении данных о городе');
                 }
             } catch (error) {
-                console.error('Ошибка сети при удалении города:', error);
+                console.error('Ошибка сети при удалении данных о городе:', error);
             }
         }
     }
+
+
 }
 
 // Инициализация класса CitySearch при загрузке страницы.

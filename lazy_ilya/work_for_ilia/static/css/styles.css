@@ -543,6 +543,12 @@ textarea {
     box-sizing: border-box; /* Чтобы padding не увеличивал ширину */
 }
 
+/* Контейнер для кнопок */
+.button-container {
+    float: right;
+    margin-top: 20px;
+}
+
 /* Кнопка сохранения */
 #saveCityButton {
     background-color: #4CAF50;
@@ -551,17 +557,27 @@ textarea {
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    float: right;
-    margin-top: 20px;
+    margin-right: 10px; /* Отступ между кнопками */
 }
 
 #saveCityButton:hover {
     background-color: #45a049;
 }
 
-#saveCityButton:hover {
-    background-color: #45a049;
+/* Кнопка удаления */
+#deleteCityButton {
+    background-color: #ff0000;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
+
+#deleteCityButton:hover {
+    background-color: #fa5561;
+}
+
 
 .city-card {
     margin-bottom: 20px;

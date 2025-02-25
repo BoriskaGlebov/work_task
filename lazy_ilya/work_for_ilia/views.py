@@ -262,7 +262,7 @@ class Cities(View):
             logger.error(f"Error updating city: {e}")
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-    def delete(self, request: HttpRequest) -> JsonResponse:
+    def delete(self, request: HttpRequest, table_id: int, dock_num: int) -> JsonResponse:
         """
         Удаляет город.
 
@@ -273,10 +273,19 @@ class Cities(View):
             JsonResponse: Ответ с сообщением об успехе или ошибке.
         """
         try:
-            table_id = request.GET.get('table_id')
-            dock_num = request.GET.get('dock_num')
+            # table_id = request.GET.get('table_id')
+            # dock_num = request.GET.get('dock_num')
             city = get_object_or_404(SomeDataFromSomeTables, table_id=table_id, dock_num=dock_num)
-            city.delete()
+            if city:
+                city.location = ''
+                city.name_organ = ''
+                city.pseudonim = ''
+                city.letters = False
+                city.writing = False
+                city.ip_address = ''
+                city.some_number = ''
+                city.work_timme = ''
+                city.save()
             return JsonResponse({'status': 'success'})
         except SomeDataFromSomeTables.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'City not found'}, status=404)
@@ -453,4 +462,3 @@ class Statistic(View):
             template_name="work_for_ilia/statistics.html",
             context=context,
         )
-
