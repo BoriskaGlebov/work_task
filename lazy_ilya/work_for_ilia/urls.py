@@ -1,6 +1,7 @@
 from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import path
-from work_for_ilia.views import Cities, Greater, Statistic, city_form_view, get_next_dock_num, check_record_exists
+from work_for_ilia.views import Cities, Greater, Statistic, city_form_view, get_next_dock_num, check_record_exists, \
+    download_file
 
 app_name = "work_for_ilia"
 urlpatterns = [
@@ -8,6 +9,7 @@ urlpatterns = [
     path("update/", Greater.as_view(), name="update"),  # Добавьте этот маршру
     path("cities/", Cities.as_view(), name="cities"),
     path('cities/<int:table_id>/<int:dock_num>/', Cities.as_view(), name='edit_city'),
+    path('cities/download/', download_file, name='download_file'),
     path('delete-city/', Cities.as_view(), name='delete_city'),
     path('citi-create-or-update/', city_form_view, name="city_cr_or_upd"),
     path('check-record-exists/', check_record_exists, name='check_record_exists'),  # URL для AJAX запроса

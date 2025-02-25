@@ -1,6 +1,8 @@
+import asyncio
 import os
 import re
 from pprint import pprint
+from queue import Queue
 
 from django.db.models import Q
 from docx.enum.section import WD_ORIENT
@@ -27,6 +29,7 @@ from work_for_ilia.utils.my_settings.settings_for_app import ProjectSettings, lo
 
 
 # from work_for_ilia.utils.my_settings.settings_for_app import ProjectSettings
+# Создаем очередь для обновлений прогресса
 
 
 class GlobusParser:
@@ -268,7 +271,7 @@ class GlobusParser:
         cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
 
     @classmethod
-    def create_globus(cls):
+    def create_globus(cls, filename: str = "globus_new.docx", send_progress=None):
         document = Document()
 
         # Получение секции документа
@@ -360,10 +363,16 @@ class GlobusParser:
                             cls.style_cell_text(cell)
                         else:
                             cls.style_cell_text(cell, justifu=True)
+                        # Отправляем прогресс
+            progress = int(((num + 1) / len(tables_name)) * 100)
+            logger.info(f"Прогресс создания документа {progress}%")
+            # Отправляем прогресс
+            if send_progress:
+                progress = int(((num + 1) / len(tables_name)) * 100)
+                send_progress(progress)
             document.add_page_break()
-            document.save(os.path.join(ProjectSettings.tlg_dir, 'globus_new.docx'))
+        document.save(os.path.join(ProjectSettings.tlg_dir, filename))
 
 
-if __name__ == "__main__":
-    # GlobusParser.process_file("globus.docx")
+if __name__ == '__main__':
     GlobusParser.create_globus()

@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import user_passes_test, login_required
 from django.core import serializers
 from django.db.models import Sum, Q
 from django.db.models.functions import TruncDate
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse, FileResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
@@ -19,7 +19,7 @@ from django.db.models import Max
 from work_for_ilia.models import Counter, SomeDataFromSomeTables, SomeTables
 from work_for_ilia.forms import CitiesForm
 from work_for_ilia.utils.custom_converter.converter_to_docx import Converter
-from work_for_ilia.utils.my_settings.settings_for_app import ProjectSettings, logger
+from work_for_ilia.utils.my_settings.settings_for_app import ProjectSettings, logger, settings
 from work_for_ilia.utils.parser_word.globus_parser import GlobusParser
 from work_for_ilia.utils.parser_word.my_parser import (
     Parser,
@@ -285,6 +285,12 @@ class Cities(View):
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 
+def download_file(request):
+    file_path = os.path.join(ProjectSettings.tlg_dir, 'globus_new.docx')
+    print(file_path)
+    return FileResponse(open(file_path, 'rb'), as_attachment=True, filename='globus_new.docx')
+
+
 def is_ajax(request):
     return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
 
@@ -448,4 +454,3 @@ class Statistic(View):
             context=context,
         )
 
-# TODO тут нужно вывести прогресс бар что б видно было весь процесс так как файл долго парсится либо сделать это в другом процессе? так же вопрос блокировки БД

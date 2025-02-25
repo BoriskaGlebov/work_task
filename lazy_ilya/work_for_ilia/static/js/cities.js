@@ -12,9 +12,13 @@ class CitySearch {
         this.selectedIndex = -1;
         this.fileInput = document.getElementById('cityFileInput');
         this.uploadBtn = document.getElementById('uploadCityFileBtn');
+        this.downloadBtn = document.getElementById('downloadCityFileBtn'); // Добавляем ссылку на кнопку скачивания
         this.uploadProgress = document.getElementById('cityUploadProgress');
         this.uploadProgressBar = document.getElementById('cityUploadProgressBar');
         this.uploadProgressText = document.getElementById('cityUploadProgressText');
+        this.downloadProgress = document.getElementById('cityUploadProgress');  // прогресс скачивания
+        this.downloadProgressBar = document.getElementById('cityUploadProgressBar'); //  прогресс бар скачивания
+        this.downloadProgressText = document.getElementById('cityUploadProgressText');  // текст прогресса скачивания
         this.modal = document.getElementById('editCityModal'); // Добавляем ссылку на модальное окно
 
         this.init();
@@ -29,6 +33,9 @@ class CitySearch {
         document.addEventListener('click', (e) => this.handleClickOutside(e));
         if (this.uploadBtn) {
             this.uploadBtn.addEventListener('click', () => this.handleFileUpload());
+        }
+        if (this.downloadBtn) { //  Добавляем прослушиватель для кнопки скачивания
+            this.downloadBtn.addEventListener('click', () => this.handleFileDownload());
         }
         this.searchInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
@@ -175,6 +182,82 @@ class CitySearch {
             console.error('Ошибка при выполнении запроса', error);
             alert('Произошла ошибка при загрузке файла');
         }
+    }
+
+    async handleFileDownload() {
+        this.downloadProgress.style.display = 'block';
+        this.downloadProgressBar.style.width = '0%';
+        this.downloadProgressText.textContent = 'Подготовка к скачиванию...';
+
+        const socket = new WebSocket('ws://localhost:8000/ws/download_progress/'); // Другой WebSocket URL для скачивания
+        let timeoutId;
+
+        const setupTimeout = () => {
+            timeoutId = setTimeout(() => {
+                console.error('WebSocket (Download): No response from server. Closing connection.');
+                socket.close();
+                this.downloadProgress.style.display = 'none';
+                alert('Превышено время ожидания ответа от сервера.');
+            }, 10000);
+        };
+
+        const resetTimeout = () => {
+            clearTimeout(timeoutId);
+            setupTimeout();
+        };
+
+        socket.onopen = () => {
+            setupTimeout();
+            socket.send(JSON.stringify({task: 'start_download'})); //  Отправляем команду серверу начать скачивание
+        };
+
+        socket.onmessage = (event) => {
+            resetTimeout();
+            console.log('Получено сообщение:', event.data); // Логирование полученных данных
+            const data = JSON.parse(event.data);
+            const progress = data.progress;
+
+            this.downloadProgressBar.style.width = `${progress}%`;
+            this.downloadProgressText.textContent = `Скачивание: ${progress}%...`;
+
+            if (data.file_url) {
+                clearTimeout(timeoutId);
+                socket.close();
+                this.downloadProgress.style.display = 'none'; // Hide the progress bar
+
+                // Trigger the file download using the URL received from the server
+                this.downloadFile(data.file_url);
+            }
+            if (data.error) { //  Обрабатываем ошибку, полученную от сервера
+                clearTimeout(timeoutId);
+                console.error('Ошибка на сервере:', data.error, data.traceback);
+                alert(`Произошла ошибка: ${data.error}`);
+                socket.close(); // закрываем сокет при получении ошибки с сервера
+                this.downloadProgress.style.display = 'none'; // скрываем прогресс бар при получении ошибки
+            }
+        };
+
+        socket.onclose = () => {
+            clearTimeout(timeoutId);
+            console.log('WebSocket connection closed');
+        };
+
+        socket.onerror = (error) => {
+            clearTimeout(timeoutId);
+            console.error('WebSocket error:', error);
+            this.downloadProgress.style.display = 'none'; // скрываем прогресс бар в случае ошибки
+            alert('Произошла ошибка при получении обновлений о прогрессе.');
+            socket.close();
+        };
+    }
+
+    downloadFile(fileUrl) {
+        const link = document.createElement('a');
+        link.href = fileUrl;
+        link.setAttribute('download', 'globus_new.docx'); // Укажите имя файла (или получите его из ответа сервера)
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
 

@@ -1,8 +1,14 @@
+import asyncio
 import json
+import os
+import queue
+import threading
+import time
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 
-from .utils.my_settings.settings_for_app import logger
+from .utils.my_settings.settings_for_app import logger, ProjectSettings
+from .utils.parser_word.globus_parser import GlobusParser
 
 
 class ProgressConsumer(AsyncWebsocketConsumer):
@@ -55,3 +61,45 @@ class ProgressConsumer(AsyncWebsocketConsumer):
                 await self.send(text_data=json.dumps(response_data))
             except Exception as e:
                 logger.error(f"Ошибка при отправке сообщения: {e}")
+
+
+class DownloadProgressConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        await self.accept()
+        self.group_name = "download_progress"
+        await self.channel_layer.group_add(self.group_name, self.channel_name)
+
+    async def receive(self, text_data):
+        text_data_json = json.loads(text_data)
+        task = text_data_json.get('task')
+        if task == 'start_download':
+            await self.start_download()
+
+    async def start_download(self):
+        # Создаем файл в отдельном потоке
+        thread = threading.Thread(target=self.generate_file)
+        thread.start()
+
+    def generate_file(self):
+        GlobusParser.create_globus(send_progress=self.send_progress_to_channel)
+
+    def send_progress_to_channel(self, progress):
+        async def send_progress():
+            await self.channel_layer.group_send(
+                self.group_name,
+                {
+                    'type': 'send_progress',
+                    'progress': progress,
+                }
+            )
+
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(send_progress())
+
+    async def send_progress(self, event):
+        progress = event['progress']
+        await self.send(text_data=json.dumps({
+            'progress': progress,
+            'file_url': 'download/' if progress == 100 else None
+        }))
