@@ -4,13 +4,14 @@ import re
 from pprint import pprint
 from queue import Queue
 
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from docx.enum.section import WD_ORIENT
 from docx.enum.style import WD_STYLE_TYPE
 from docx.enum.table import WD_ALIGN_VERTICAL
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
 from docx.oxml.ns import qn
 from docx.shared import RGBColor, Pt, Inches
+from docx.text.font import Font
 
 # Укажите путь к настройкам вашего проекта
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lazy_ilya.settings")
@@ -19,7 +20,7 @@ import django
 # Настройка Django
 django.setup()
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any, Callable, Tuple
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
@@ -28,17 +29,18 @@ from work_for_ilia.models import SomeDataFromSomeTables, SomeTables
 from work_for_ilia.utils.my_settings.settings_for_app import ProjectSettings, logger
 
 
-# from work_for_ilia.utils.my_settings.settings_for_app import ProjectSettings
-# Создаем очередь для обновлений прогресса
-
-
 class GlobusParser:
     """
-    Класс обрабатывает содержимое файла с Городами
+    Класс обрабатывает содержимое файла с Городами.
     """
 
-    def __init__(self):
-        self.model_inf = {
+    def __init__(self) -> None:
+        """
+        Инициализирует экземпляр класса GlobusParser.
+
+        Создает структуру для хранения информации о городах.
+        """
+        self.model_inf: Dict[str, Any] = {
             "table_id": "",
             "dock_num": "",
             "location": "",
@@ -61,26 +63,26 @@ class GlobusParser:
         Args:
             file_path (str): Путь к загруженному файлу.
         """
-        doc = Document(os.path.join(ProjectSettings.tlg_dir, file_path))
-        tables = doc.tables
-        paragraphs = doc.paragraphs
-        processed_tables = []  # Список обработанных разделов
-        tables_to_add = []
-        tables_to_update = []
+        doc: Document = Document(os.path.join(ProjectSettings.tlg_dir, file_path))
+        tables: List[Any] = doc.tables
+        paragraphs: List[Any] = doc.paragraphs
+        processed_tables: List[SomeTables] = []  # Список обработанных разделов
+        tables_to_add: List[SomeTables] = []
+        tables_to_update: List[SomeTables] = []
 
-        processed_cities = []
-        cities_to_add = []
-        cities_to_update = []
+        processed_cities: List[SomeDataFromSomeTables] = []
+        cities_to_add: List[SomeDataFromSomeTables] = []
+        cities_to_update: List[SomeDataFromSomeTables] = []
 
         for paragraph in paragraphs[1:]:
-            pattern = r"^Раздел (\d+)\s*(.*)"  # Группировка номера и названия
-            text = paragraph.text.strip()
+            pattern: str = r"^Раздел (\d+)\s*(.*)"  # Группировка номера и названия
+            text: str = paragraph.text.strip()
 
-            match = re.match(pattern, text)
+            match: re.Match = re.match(pattern, text)
 
             if match:
-                section_number = match.group(1)  # Номер раздела
-                section_name = text  # Полное название раздела
+                section_number: str = match.group(1)  # Номер раздела
+                section_name: str = text  # Полное название раздела
                 # Поиск таблицы по номеру раздела (в table_name)
                 table: Optional[SomeTables] = SomeTables.objects.filter(
                     Q(table_name__startswith=f"Раздел {section_number}")
@@ -101,13 +103,13 @@ class GlobusParser:
                     processed_tables.append(table)  # Запоминаем ID
         try:
             if tables_to_add:
-                res = SomeTables.objects.bulk_create(tables_to_add)
+                res: List[SomeTables] = SomeTables.objects.bulk_create(tables_to_add)
                 for el in res:
                     logger.info(
                         f"Создана новая таблица '{el.table_name}' (ID: {el.id})"
                     )
             if tables_to_update:
-                res2 = SomeTables.objects.bulk_update(
+                res2: int = SomeTables.objects.bulk_update(
                     tables_to_update,
                     [
                         "table_name",
@@ -121,7 +123,7 @@ class GlobusParser:
             tables_to_delete = SomeTables.objects.exclude(
                 id__in=[table.id for table in processed_tables]
             )  # Исключаем обработанные
-            deleted_count = tables_to_delete.count()
+            deleted_count: int = tables_to_delete.count()
             tables_to_delete.delete()
             if deleted_count > 0:
                 logger.info(f"Удалено {deleted_count} устаревших таблиц.")
@@ -141,15 +143,15 @@ class GlobusParser:
                 },
             )
             for row_num, row in enumerate(table_zip[1].rows[3:]):
-                cells = [cell.text.strip().replace("\n", "<br>") for cell in row.cells]
-                row_in_db = (
+                cells: List[str] = [cell.text.strip().replace("\n", "<br>") for cell in row.cells]
+                row_in_db: Optional[SomeDataFromSomeTables] = (
                     SomeDataFromSomeTables.objects.select_related("table_id")
                     .filter(table_id=table_zip[0].id, dock_num=row_num + 1)
                     .first()
                 )
 
-                value_corrector = {"+": True, "-": False}
-                cls.model_inf: Dict[str, any] = {
+                value_corrector: Dict[str, bool] = {"+": True, "-": False}
+                cls.model_inf: Dict[str, Any] = {
                     "table_id": table_zip[0],
                     "dock_num": row_num + 1,
                     "location": cells[1],
@@ -175,11 +177,8 @@ class GlobusParser:
                         cells[8] if cells[6] not in ["+", "-"] else cells[9]
                     ),
                 }
-
-                # cr_or_upd_row = SomeDataFromSomeTables(**cls.model_inf)
-                # processed_cities.append(cr_or_upd_row)
                 if row_in_db:
-                    needs_update = False
+                    needs_update: bool = False
                     for key, value in cls.model_inf.items():
                         if getattr(row_in_db, key) != value:
                             setattr(row_in_db, key, value)
@@ -194,19 +193,12 @@ class GlobusParser:
                     )  # Добавляем в список обработанных в любом случае
 
                 else:
-                    cr_or_upd_row = SomeDataFromSomeTables(**cls.model_inf)
+                    cr_or_upd_row: SomeDataFromSomeTables = SomeDataFromSomeTables(**cls.model_inf)
                     cities_to_add.append(cr_or_upd_row)
                     processed_cities.append(cr_or_upd_row)
-            # if cr_or_upd_row[1]:
-            #     logger.info(f"Добавил новую запись {str(cr_or_upd_row[0])}")
-
-            # except Exception as e:
-            #     logger.error(
-            #         f"Ошибка при обработке записи Раздел {table_zip[0].table_name} -  Запись № {cells[0].text}"
-            #     )
         try:
             if cities_to_add:
-                res = SomeDataFromSomeTables.objects.bulk_create(cities_to_add)
+                res: List[SomeDataFromSomeTables] = SomeDataFromSomeTables.objects.bulk_create(cities_to_add)
                 for row in res:
                     logger.info(f"Добавил новую запись id = '{row.id}' - {row.location}")
             if cities_to_update:
@@ -229,7 +221,7 @@ class GlobusParser:
             delete_cities_ids = SomeDataFromSomeTables.objects.select_related(
                 "table_id"
             ).exclude(id__in=[row.id for row in processed_cities])
-            delete_cities_ids_count = delete_cities_ids.count()
+            delete_cities_ids_count: int = delete_cities_ids.count()
             delete_cities_ids.delete()
             if delete_cities_ids_count > 0:
                 logger.info(
@@ -240,7 +232,7 @@ class GlobusParser:
 
         all_rows = SomeDataFromSomeTables.objects.select_related("table_id").exclude(
             Q(location__isnull=True) | Q(location__exact=''))
-        updated_cities = [
+        updated_cities: List[Dict[str, Any]] = [
             el.to_dict() for el in all_rows
         ]  # Предполагается, что у вас есть метод to_dict()
         logger.info("Обработка завершена")
@@ -255,11 +247,8 @@ class GlobusParser:
             },
         )
 
-        #
-        #
-
     @classmethod
-    def style_cell_text(cls, cell, justifu: bool = False):
+    def style_cell_text(cls, cell: Any, justifu: bool = False) -> None:
         """Стилизует текст в ячейке таблицы."""
         for paragraph in cell.paragraphs:
             paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY if justifu else WD_ALIGN_PARAGRAPH.CENTER  # Горизонтальное выравнивание
@@ -271,35 +260,37 @@ class GlobusParser:
         cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
 
     @classmethod
-    def create_globus(cls, filename: str = "globus_new.docx", send_progress=None):
-        document = Document()
+    def create_globus(cls, filename: str = "globus_new.docx",
+                      send_progress: Optional[Callable[[int], None]] = None) -> None:
+        """Создает документ Word с данными о городах."""
+        document: Document = Document()
 
         # Получение секции документа
-        section = document.sections[0]
+        section: Any = document.sections[0]
         # Установка альбомной ориентации
         section.orientation = WD_ORIENT.LANDSCAPE
         # Явно задаем размеры страницы для альбомной ориентации
         section.page_width = Inches(11.69)  # Ширина для альбомной ориентации (A4)
         section.page_height = Inches(8.27)  # Высота для альбомной ориентации (A4)
-        top_margin_cm = 2
-        bottom_margin_cm = 2
-        left_margin_cm = 3
-        right_margin_cm = 1.5
+        top_margin_cm: int = 2
+        bottom_margin_cm: int = 2
+        left_margin_cm: int = 3
+        right_margin_cm: float = 1.5
         # Преобразование сантиметров в дюймы и установка полей
         section.top_margin = Inches(top_margin_cm / 2.54)
         section.bottom_margin = Inches(bottom_margin_cm / 2.54)
         section.left_margin = Inches(left_margin_cm / 2.54)
         section.right_margin = Inches(right_margin_cm / 2.54)
         # Стиль для заголовка
-        style1 = document.styles.add_style('CustomHeadingStyle', WD_STYLE_TYPE.PARAGRAPH)
+        style1: Any = document.styles.add_style('CustomHeadingStyle', WD_STYLE_TYPE.PARAGRAPH)
         style1.base_style = document.styles['Heading 1']  # Наследуем от Heading 1
-        font1 = style1.font
+        font1: Font = style1.font
         font1.name = 'Times New Roman'
         font1._element.rPr.rFonts.set(qn('w:ascii'), 'Times New Roman')  # Для правильной установки шрифта
         font1.color.rgb = RGBColor(0, 0, 0)  # Черный цвет
         font1.size = Pt(16)
 
-        paragraph_format = style1.paragraph_format
+        paragraph_format: Any = style1.paragraph_format
         paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY  # Выравнивание по ширине
         paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE  # Одинарный интервал
         paragraph_format.space_before = Pt(0)  # Убираем отступ перед абзацем
@@ -307,12 +298,12 @@ class GlobusParser:
         paragraph_format.first_line_indent = Inches(0)  # Убираем отступ первой строки
 
         tables_name = SomeTables.objects.values_list('id', 'table_name')
-        table_headers = ['№ №', 'Место положения', 'Наименование органа', 'Название пункта\n(псевдоним)',
-                         'Вид передаваемой информации', 'Какой-то номер', 'Время работы, телефон для связи']
-        table_headers2 = ['Письма', 'Написание', 'Сетевой адрес IP']
+        table_headers: List[str] = ['№ №', 'Место положения', 'Наименование органа', 'Название пункта\n(псевдоним)',
+                                    'Вид передаваемой информации', 'Какой-то номер', 'Время работы, телефон для связи']
+        table_headers2: List[str] = ['Письма', 'Написание', 'Сетевой адрес IP']
         document.add_paragraph("Какой-то текст для начала")
         for num, name in enumerate(tables_name):
-            paragraph = document.add_paragraph(name[1], style='CustomHeadingStyle')
+            paragraph: Any = document.add_paragraph(name[1], style='CustomHeadingStyle')
             document.add_paragraph()
             paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT  # Выравнивание по центру
 
@@ -320,7 +311,7 @@ class GlobusParser:
                 'table_id', 'dock_num', 'location', 'name_organ', 'pseudonim', 'letters', 'writing', 'ip_address',
                 'some_number', 'work_timme')
             # Добавление таблицы
-            table = document.add_table(rows=3 + len(table_data), cols=9)
+            table: Any = document.add_table(rows=3 + len(table_data), cols=9)
             table.cell(0, 0).merge(table.cell(2, 0))  # Объединяем ячейки
             table.cell(0, 1).merge(table.cell(2, 1))  # Объединяем ячейки
             table.cell(0, 2).merge(table.cell(2, 2))  # Объединяем ячейки
@@ -337,7 +328,7 @@ class GlobusParser:
             table.style = 'Table Grid'  # Установка стиля таблицы с границами
 
             # Добавление заголовков таблицы
-            hdr_cells = table.rows[0].cells
+            hdr_cells: List[Any] = table.rows[0].cells
             hdr_cells[0].text = table_headers[0]
             hdr_cells[1].text = table_headers[1]
             hdr_cells[2].text = table_headers[2]
@@ -345,7 +336,7 @@ class GlobusParser:
             hdr_cells[4].text = table_headers[4]
             hdr_cells[7].text = table_headers[5]
             hdr_cells[8].text = table_headers[6]
-            hdr_cells1 = table.rows[1].cells
+            hdr_cells1: List[Any] = table.rows[1].cells
             for i, header in enumerate(table_headers2):
                 hdr_cells1[i + 4].text = header
             # Установка стиля для всех ячеек
@@ -354,7 +345,7 @@ class GlobusParser:
                     cls.style_cell_text(cell)
                     if row_num >= 3:
                         # Получаем данные для вставки
-                        data_insert = str(table_data[row_num - 3][cell_num + 1]).replace('<br>', '\n')
+                        data_insert: str = str(table_data[row_num - 3][cell_num + 1]).replace('<br>', '\n')
                         if data_insert == 'True':
                             data_insert = '+'
                         elif data_insert == 'False':
@@ -364,8 +355,8 @@ class GlobusParser:
                             cls.style_cell_text(cell)
                         else:
                             cls.style_cell_text(cell, justifu=True)
-                        # Отправляем прогресс
-            progress = int(((num + 1) / len(tables_name)) * 100)
+            # Отправляем прогресс
+            progress: int = int(((num + 1) / len(tables_name)) * 100)
             logger.info(f"Прогресс создания документа {progress}%")
             # Отправляем прогресс
             if send_progress:

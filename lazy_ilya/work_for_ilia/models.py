@@ -156,4 +156,4 @@ class SomeDataFromSomeTables(models.Model):
                 self.dock_num = last_dock_num + 1
 
         super().save(*args, **kwargs)
-# TODO я поменял тут кое что  про пустые записи но здесь не сделал
+

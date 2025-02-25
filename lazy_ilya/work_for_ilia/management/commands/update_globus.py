@@ -2,6 +2,7 @@ import os
 
 from django.core.management import BaseCommand
 from work_for_ilia.utils.my_settings.settings_for_app import logger
+from work_for_ilia.utils.parser_word.globus_parser import GlobusParser
 from work_for_ilia.views import Cities
 
 
@@ -37,7 +38,7 @@ class Command(BaseCommand):
             )
 
             # Обработка файла и обновление базы данных
-            Cities.process_file(file_path)
+            GlobusParser.process_file(file_path)
 
             self.stdout.write(self.style.SUCCESS("БД обновлена"))
         except Exception as e:

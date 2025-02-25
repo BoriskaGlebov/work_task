@@ -1,5 +1,8 @@
 from django.contrib import admin
+from typing import Tuple, List
+
 from work_for_ilia.models import Counter, SomeDataFromSomeTables, SomeTables
+from django.db.models import QuerySet
 
 
 @admin.register(Counter)
@@ -7,17 +10,17 @@ class CounterAdmin(admin.ModelAdmin):
     """
     Админка для модели Counter.
 
-    Поля:
-        list_display: Поля для отображения в списке.
-        list_filter: Фильтры для боковой панели.
-        search_fields: Поля для поиска.
+    Attributes:
+        list_display (tuple[str]): Поля для отображения в списке.
+        list_filter (tuple[str]): Фильтры для боковой панели.
+        search_fields (tuple[str]): Поля для поиска.
     """
 
-    list_display = ("processed_at", "num_files")
-    list_filter = ("processed_at",)
-    search_fields = ("num_files",)
+    list_display: Tuple[str] = ("processed_at", "num_files")
+    list_filter: Tuple[str] = ("processed_at",)
+    search_fields: Tuple[str] = ("num_files",)
 
-    def processed_at(self, obj):
+    def processed_at(self, obj: Counter) -> str:
         """Форматирует дату обработки."""
         return obj.processed_at.strftime("%d.%m.%Y %H:%M")
 
@@ -26,9 +29,19 @@ class CounterAdmin(admin.ModelAdmin):
 
 
 class SomeDataFromSomeTablesInline(admin.TabularInline):
+    """
+    Inline админка для модели SomeDataFromSomeTables.
+    Используется внутри админки SomeTables.
+
+    Attributes:
+        model (SomeDataFromSomeTables): Модель для inline админки.
+        extra (int): Количество пустых форм для добавления новых записей.
+        readonly_fields (tuple[str]): Поля, доступные только для чтения.
+    """
+
     model = SomeDataFromSomeTables
-    extra = 0
-    readonly_fields = (
+    extra: int = 0
+    readonly_fields: Tuple[str] = (
         "location",
         "name_organ",
         "pseudonim",
@@ -45,20 +58,21 @@ class SomeTablesAdmin(admin.ModelAdmin):
     """
     Админка для модели SomeTables.
 
-    Поля:
-        list_display: Поля для отображения в списке.
-        list_display_links: Поля, по которым можно перейти к редактированию записи.
-        search_fields: Поля для поиска.
-        list_filter: Фильтры для боковой панели.
+    Attributes:
+        inlines (list[SomeDataFromSomeTablesInline]): Inline админки для связанных данных.
+        list_display (tuple[str]): Поля для отображения в списке.
+        list_display_links (tuple[str]): Поля, по которым можно перейти к редактированию записи.
+        search_fields (tuple[str]): Поля для поиска.
+        list_filter (tuple[str]): Фильтры для боковой панели.
     """
 
-    inlines = [SomeDataFromSomeTablesInline]
-    list_display = ("id", "table_name", "related_data_count")
-    list_display_links = "id", "table_name"
-    search_fields = ("table_name",)
-    list_filter = ("processed_at",)
+    inlines: List[SomeDataFromSomeTablesInline] = [SomeDataFromSomeTablesInline]
+    list_display: Tuple[str] = ("id", "table_name", "related_data_count")
+    list_display_links: Tuple[str] = "id", "table_name"
+    search_fields: Tuple[str] = ("table_name",)
+    list_filter: Tuple[str] = ("processed_at",)
 
-    def related_data_count(self, obj):
+    def related_data_count(self, obj: SomeTables) -> int:
         """Возвращает количество связанных записей в SomeDataFromSomeTables."""
         return SomeDataFromSomeTables.objects.filter(table_id=obj).count()
 
@@ -70,13 +84,13 @@ class SomeDataFromSomeTablesAdmin(admin.ModelAdmin):
     """
     Админка для модели SomeDataFromSomeTables.
 
-    Поля:
-        list_display: Поля для отображения в списке.
-        search_fields: Поля для поиска.
-        list_filter: Фильтры для боковой панели.
+    Attributes:
+        list_display (tuple[str]): Поля для отображения в списке.
+        search_fields (tuple[str]): Поля для поиска.
+        list_filter (tuple[str]): Фильтры для боковой панели.
     """
 
-    list_display = (
+    list_display: Tuple[str] = (
         "id",
         "dock_num",
         "location",
@@ -84,6 +98,6 @@ class SomeDataFromSomeTablesAdmin(admin.ModelAdmin):
         "pseudonim",
         "ip_address",
     )
-    search_fields = ("location", "name_organ", "pseudonim")
-    list_display_links = "id", "location"
-    list_filter = ("processed_at", "table_id")
+    search_fields: Tuple[str] = ("location", "name_organ", "pseudonim")
+    list_display_links: Tuple[str] = "id", "location"
+    list_filter: Tuple[str] = ("processed_at", "table_id")
