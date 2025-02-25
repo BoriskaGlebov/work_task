@@ -223,8 +223,8 @@ class Cities(View):
         is_ilia: bool = False
         # Если не администратор, проверяем, состоит ли в группе
         if not is_admin:
-            is_admin = request.user.groups.filter(name='redact-info').exists()
-            is_ilia = request.user.groups.filter(name='adminka').exists()
+            is_admin = request.user.groups.filter(name='admins').exists()
+            is_ilia = request.user.groups.filter(name='ilia-group').exists()
         all_rows = SomeDataFromSomeTables.objects.select_related("table_id").exclude(
             Q(location__isnull=True) | Q(location__exact=''))
         cities: List[dict] = [row.to_dict() for row in all_rows]
@@ -304,7 +304,7 @@ def is_ajax(request):
     return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
 
 
-@group_or_superuser_required("redact-info")
+@group_or_superuser_required("admins")
 def city_form_view(request):
     instance = None
     button_text = "Сохранить изменения"
