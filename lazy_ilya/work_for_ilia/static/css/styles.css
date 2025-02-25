@@ -30,13 +30,13 @@
 
 @keyframes gradient {
     0% {
-        background-position: 0% 50%;
+        background-position: 0 50%;
     }
     50% {
         background-position: 100% 50%;
     }
     100% {
-        background-position: 0% 50%;
+        background-position: 0 50%;
     }
 }
 
@@ -463,6 +463,11 @@ textarea {
     background-color: var(--bg-color);
 }
 
+.suggestion-item.selected {
+    background-color: var(--bg-color);
+    font-weight: bold;
+}
+
 .search-input {
     width: 100%;
     padding: 1rem;
@@ -477,6 +482,110 @@ textarea {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 1rem;
     margin-top: 2rem;
+}
+
+/* Стили для модального окна */
+.modal {
+    display: none; /* Скрыто по умолчанию */
+    position: fixed; /* Фиксированное положение */
+    z-index: 1000; /* Поверх всего */
+    left: 0;
+    top: 0;
+    width: 100%; /* Полная ширина */
+    height: 100%; /* Полная высота */
+    overflow: auto; /* Прокрутка при необходимости */
+    background-color: rgba(0, 0, 0, 0.4); /* Полупрозрачный фон */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* Центрирование по вертикали и горизонтали */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Ширина контента */
+    max-width: 600px; /* Максимальная ширина контента */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    position: relative; /* Для позиционирования кнопки закрытия */
+}
+
+/* Кнопка закрытия */
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Стили для формы */
+.modal-content label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.modal-content input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* Чтобы padding не увеличивал ширину */
+}
+
+/* Контейнер для кнопок */
+.button-container {
+    float: right;
+    margin-top: 20px;
+}
+
+/* Кнопка сохранения */
+#saveCityButton {
+    background-color: #4CAF50;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px; /* Отступ между кнопками */
+}
+
+#saveCityButton:hover {
+    background-color: #45a049;
+}
+
+/* Кнопка удаления */
+#deleteCityButton {
+    background-color: #ff0000;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#deleteCityButton:hover {
+    background-color: #fa5561;
+}
+
+
+.city-card {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    transition: all 0.3s ease;
 }
 
 .city-card {
@@ -568,6 +677,69 @@ textarea {
     opacity: 0.8;
 }
 
+.city-edit-form {
+    max-width: 800px;
+    margin: 2rem auto;
+    background-color: var(--card-bg);
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.error-message {
+    color: #d83b01;
+    font-weight: bold
+}
+
+/*!* Изменение размера checkbox *!*/
+/*input[type="checkbox"] {*/
+/*    transform: scale(1.5); !* Увеличение размера в 1.5 раза *!*/
+/*    position: absolute;*/
+/*    opacity: 0; !* Полностью скрываем стандартный чекбокс *!*/
+/*}*/
+/* Скрываем стандартный чекбокс */
+/* Скрываем стандартный чекбокс */
+.hidden-checkbox {
+    position: absolute;
+    opacity: 0;
+}
+
+/* Стили для кастомного чекбокса */
+.custom-checkbox {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ccc;
+    border-radius: 3px;
+    margin-right: 8px;
+    vertical-align: middle;
+    position: relative; /* Добавляем relative для позиционирования галочки */
+}
+
+
+/* Стили при выборе чекбокса */
+.hidden-checkbox:checked + .custom-checkbox {
+    border: 1px solid #ccc;
+}
+
+/* Добавление галочки при выборе */
+.hidden-checkbox:checked + .custom-checkbox::after {
+    content: '\2713'; /* Добавляем галочку при выборе */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+
+    transform: translate(-50%, -50%);
+    font-size: 16px;
+    color: green;
+}
+
+#createCityBtn svg {
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+}
+
 @media (max-width: 768px) {
     .container {
         width: 100%;
@@ -583,6 +755,11 @@ textarea {
         max-width: none; /* Убираем ограничение по максимальной ширине */
         width: 100%; /* Занимаем всю ширину контейнера */
     }
+
+    .city-edit-form {
+        padding: 1rem;
+    }
+
 
     .preview-content {
         width: 100%; /* Занимаем всю ширину контейнера */
@@ -666,10 +843,12 @@ textarea {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    margin-bottom: 1.5rem;
 }
 
 .form-group label {
     font-weight: 500;
+    margin-bottom: 0.5rem;
     color: var(--primary-color);
 }
 
@@ -686,4 +865,13 @@ textarea {
 
 .admin-link {
     margin-left: auto;
+}
+
+a {
+    text-decoration: none; /* Убирает подчеркивание */
+    color: inherit; /* Наследует цвет от родительского элемента */
+}
+
+a:hover {
+    text-decoration: none; /* Убирает подчеркивание при наведении */
 }

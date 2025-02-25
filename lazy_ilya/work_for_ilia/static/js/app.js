@@ -117,13 +117,7 @@ class DocumentConverter {
             }
         });
 
-        // Обработчик клика по элементу списка файлов (должен быть перемещен в updateFilesList)
-        fileItem.addEventListener('click', () => {
-            document.querySelectorAll('.file-preview-item').forEach(item => item.classList.remove('active'));
-            fileItem.classList.add('active');
-            this.showFilePreview(fileName); // Отображение предварительного просмотра выбранного файла
-            this.isNavigating = true; // Устанавливаем состояние навигации в true
-        });
+
     }
 
     /**
@@ -202,6 +196,7 @@ class DocumentConverter {
             });
 
             filesListContainer.appendChild(fileItem);
+
             // Создание кнопки удаления
             const deleteButton = document.createElement('button');
             deleteButton.innerText = 'Удалить';
@@ -220,6 +215,7 @@ class DocumentConverter {
             filesListContainer.appendChild(fileItem);
         });
     }
+
 
     /**
      * Удаляет файл из списка загруженных файлов.

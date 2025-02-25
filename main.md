@@ -18,6 +18,8 @@
 1. `python -m pip wheel -r requirements.txt -w dist`
 2. `python -m pip download -r requirements.txt --dest dist --only-binary :all:`
 3. `python -m pip download -r .\requirements.txt`
+4. `pip download -d ./packages --platform win_amd64 --python-version 38 --only-binary=:all: --implementation cp -r requirements.txt`
+
 
 ## Установка whl пакетов
 

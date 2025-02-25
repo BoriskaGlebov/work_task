@@ -1,23 +1,32 @@
 import json
 import os.path
+import threading
+import traceback
+from typing import Dict, List, Callable, Any, Optional
 
-from django.contrib.auth.decorators import user_passes_test
-from django.db.models import Sum
+from django.contrib.auth.decorators import user_passes_test, login_required
+from django.contrib.auth.models import User
+from django.core import serializers
+from django.db.models import Sum, Q
 from django.db.models.functions import TruncDate
-from django.http import HttpRequest, JsonResponse, HttpResponse
-from django.shortcuts import render
+from django.http import HttpRequest, HttpResponse, JsonResponse, FileResponse
+from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views import View
-from docx import Document
+from django.views.generic import CreateView
+from django.db.models import Max
 
-from work_for_ilia.models import Counter, SomeDataFromSomeTables
+from work_for_ilia.models import Counter, SomeDataFromSomeTables, SomeTables
+from work_for_ilia.forms import CitiesForm
 from work_for_ilia.utils.custom_converter.converter_to_docx import Converter
-from work_for_ilia.utils.my_settings.disrs_for_app import ProjectSettings, logger
-from work_for_ilia.utils.parser_word.my_parser import Parser, replace_unsupported_characters
+from work_for_ilia.utils.my_settings.settings_for_app import ProjectSettings, logger, settings
+from work_for_ilia.utils.parser_word.globus_parser import GlobusParser
+from work_for_ilia.utils.parser_word.my_parser import (
+    Parser,
+    replace_unsupported_characters,
+)
 from work_for_ilia.utils.storage import OverwritingFileSystemStorage
-
-
-# from plyer import notification
 
 
 # Create your views here.
@@ -40,7 +49,7 @@ class Greater(View):
             HttpResponse: Ответ с загруженной формой.
         """
         logger.debug("Загрузил страницу")
-        return render(request=request, template_name='work_for_ilia/index.html')
+        return render(request=request, template_name="work_for_ilia/index.html")
 
     def post(self, request: HttpRequest) -> JsonResponse:
         """
@@ -52,47 +61,55 @@ class Greater(View):
         Returns:
             JsonResponse: Ответ с информацией о загруженных файлах и их содержимом.
         """
-        uploaded_files = request.FILES.getlist('file')
-        document_number = int(request.POST.get('document_number', 0))
-        fs = OverwritingFileSystemStorage(location=ProjectSettings.tlg_dir, allow_overwrite=True)
+        uploaded_files = request.FILES.getlist("file")
+        document_number = int(request.POST.get("document_number", 0))
+        fs = OverwritingFileSystemStorage(
+            location=ProjectSettings.tlg_dir, allow_overwrite=True
+        )
 
         if not uploaded_files:
-            return JsonResponse({'error': 'Нет загруженных файлов'}, status=400)
+            return JsonResponse({"error": "Нет загруженных файлов"}, status=400)
 
         if document_number <= 0:
-            return JsonResponse({'error': 'Номер документа должен быть больше нуля'}, status=400)
+            return JsonResponse(
+                {"error": "Номер документа должен быть больше нуля"}, status=400
+            )
 
-        new_files = []  # Список для хранения имен новых файлов
+        new_files: List[str] = []  # Список для хранения имен новых файлов
 
         try:
             for index, uploaded_file in enumerate(uploaded_files):
                 # Сохраните файл и получите его имя
                 filename = fs.save(f"{index + 1}{uploaded_file.name}", uploaded_file)
-                new_files.append(f"{index + document_number}_{str(os.path.splitext(filename)[0])[1:]}.txt")
+                new_files.append(
+                    f"{index + document_number}_{str(os.path.splitext(filename)[0])[1:]}.txt"
+                )
 
             # Конвертация файлов в .docx и парсинг содержимого
             Converter(ProjectSettings.tlg_dir).convert_files()
-            content = Parser(ProjectSettings.tlg_dir, document_number).create_file_parsed()
+            content = Parser(
+                ProjectSettings.tlg_dir, document_number
+            ).create_file_parsed()
 
             # Удаляем все файлы, кроме .txt
             for file in os.listdir(ProjectSettings.tlg_dir):
                 file_path = os.path.join(ProjectSettings.tlg_dir, file)
-                if os.path.isfile(file_path) and not file_path.endswith('.txt'):
+                if os.path.isfile(file_path) and not file_path.endswith(".txt"):
                     os.remove(file_path)
-            logger.debug(f'{new_files} - отправил названние новых файлов')
-            return JsonResponse({'content': content, 'new_files': new_files})
+            logger.debug(f"{new_files} - отправил названние новых файлов")
+            return JsonResponse({"content": content, "new_files": new_files})
 
         except ValueError as ve:
-            logger.error(f'ValueError: {str(ve)}')
-            return JsonResponse({'error': 'Неверный номер документа.'}, status=400)
+            logger.error(f"ValueError: {str(ve)}")
+            return JsonResponse({"error": "Неверный номер документа."}, status=400)
 
         except FileNotFoundError as fnfe:
-            logger.error(f'FileNotFoundError: {str(fnfe)}')
-            return JsonResponse({'error': 'Файл не найден.'}, status=404)
+            logger.error(f"FileNotFoundError: {str(fnfe)}")
+            return JsonResponse({"error": "Файл не найден."}, status=404)
 
         except Exception as e:
             logger.error(str(e))
-            return JsonResponse({'error': str(e)}, status=500)
+            return JsonResponse({"error": str(e)}, status=500)
 
     def put(self, request: HttpRequest) -> JsonResponse:
         """
@@ -109,45 +126,80 @@ class Greater(View):
             data = json.loads(request.body)
 
             for file_data in data:
-                document_number = file_data.get('document_number')
-                new_content = replace_unsupported_characters(file_data.get('content'))
-                new_file_name: str = file_data.get('new_file_name')  # Получаем новое имя файла
+                document_number = file_data.get("document_number")
+                new_content = replace_unsupported_characters(file_data.get("content"))
+                new_file_name: str = file_data.get(
+                    "new_file_name"
+                )  # Получаем новое имя файла
 
-                if not new_file_name.endswith('.txt'):
+                if not new_file_name.endswith(".txt"):
                     continue
 
                 # Определяем путь к файлу для сохранения
                 file_path = os.path.join(ProjectSettings.tlg_dir, new_file_name)
 
                 # Сохраняем новое содержимое в файл
-                with open(file_path, 'w', encoding='cp866') as file:
+                with open(file_path, "w", encoding="cp866") as file:
                     file.write(new_content)
 
                 counter += 1
-                logger.info(f'Сохранил файл {new_file_name}')
+                logger.info(f"Сохранил файл {new_file_name}")
 
             res = Counter.objects.create(num_files=counter)
             res.save()
-            return JsonResponse({'status': 'success', 'message': 'Все файлы успешно сохранены.'})
+            return JsonResponse(
+                {"status": "success", "message": "Все файлы успешно сохранены."}
+            )
 
         except json.JSONDecodeError:
-            logger.error(str('error') + 'Неверный формат данных')
-            return JsonResponse({'status': 'error', 'message': 'Неверный формат данных.'}, status=400)
+            logger.error(str("error") + "Неверный формат данных")
+            return JsonResponse(
+                {"status": "error", "message": "Неверный формат данных."}, status=400
+            )
 
         except Exception as e:
             logger.error(str(e))
-            return JsonResponse({'error': str(e)}, status=500)
+            return JsonResponse({"error": str(e)}, status=500)
+
+
+def group_or_superuser_required(group_name: str) -> Callable:
+    """
+    Разрешает доступ к представлению только суперпользователям или пользователям,
+    состоящим в указанной группе.
+
+    Аргументы:
+        group_name (str): Название группы, которой разрешен доступ.
+
+    Возвращает:
+        Callable: Декоратор, который проверяет, является ли пользователь
+                  суперпользователем или состоит в указанной группе.
+    """
+
+    def check_user(user: User) -> bool:
+        """
+        Проверяет, является ли пользователь суперпользователем или состоит в указанной группе.
+
+        Аргументы:
+            user (User): Объект пользователя Django.
+
+        Возвращает:
+            bool: True, если пользователь является суперпользователем или состоит в группе,
+                  иначе False.
+        """
+        return user.is_superuser or user.groups.filter(name=group_name).exists()
+
+    return user_passes_test(check_user)
 
 
 class Cities(View):
     """
     Класс для обработки запросов, связанных с городами.
 
-    Этот класс обрабатывает HTTP-запросы для получения списка городов и загрузки файлов с данными о городах.
+    Этот класс обрабатывает загрузку файлов с данными о городах, получение списка городов,
+    обновление и удаление информации о городах.
     """
 
-    @method_decorator(user_passes_test(lambda u: u.is_superuser))
-    def post(self, request: HttpRequest) -> HttpResponse:
+    def post(self, request: HttpRequest) -> JsonResponse:
         """
         Обрабатывает загрузку файла с данными о городах.
 
@@ -155,22 +207,32 @@ class Cities(View):
             request (HttpRequest): Объект запроса.
 
         Returns:
-            HttpResponse: Ответ с данными о городах в формате JSON или статус ошибки.
+            JsonResponse: Ответ с сообщением об успешной загрузке файла или ошибкой.
         """
-        uploaded_file = request.FILES.get('cityFile')
-        fs = OverwritingFileSystemStorage(location=ProjectSettings.tlg_dir, allow_overwrite=True)
+        try:
+            uploaded_file = request.FILES.get("cityFile")
+            if not uploaded_file:
+                return JsonResponse({"error": "Файл не загружен"}, status=400)
 
-        if uploaded_file:
-            # Сохранение загруженного файла
+            fs = OverwritingFileSystemStorage(
+                location=ProjectSettings.tlg_dir, allow_overwrite=True
+            )
             file_path = fs.save(uploaded_file.name, uploaded_file)
-            parser = Parser(ProjectSettings.tlg_dir, 0)
-            doc = Document(os.path.join(fs.base_location, file_path))
-            cities = parser.globus_parser(doc)
-            # Преобразование данных о городах в формат JSON для ответа
-            cities_json = json.dumps(cities, ensure_ascii=False)
-            return HttpResponse(cities_json, content_type='application/json')
-        else:
-            return HttpResponse(status=400)
+
+            logger.info("Запуск обработки файла в отдельном потоке")
+
+            # Запускаем обработку файла в отдельном потоке
+            threading.Thread(
+                target=GlobusParser.process_file, args=(file_path,)
+            ).start()
+
+            return JsonResponse({"message": "Файл загружен успешно"}, status=200)
+
+        except Exception as e:
+            # Если возникает исключение, логируем его и возвращаем сообщение об ошибке
+            traceback_str = traceback.format_exc()  # Получаем полный traceback
+            logger.error(f"Ошибка при загрузке или обработке файла: {e}\n{traceback_str}")
+            return JsonResponse({"error": str(e), "traceback": traceback_str}, status=500)
 
     def get(self, request: HttpRequest) -> HttpResponse:
         """
@@ -182,12 +244,259 @@ class Cities(View):
         Returns:
             HttpResponse: Ответ с HTML-шаблоном и данными о городах в формате JSON.
         """
-        is_admin = request.user.is_superuser
-        all_rows = SomeDataFromSomeTables.objects.select_related('table_id').all()
-        cities = [row.to_dict() for row in all_rows]
-        cities_json = json.dumps(cities, ensure_ascii=False)
-        return render(request=request, template_name='work_for_ilia/cities.html', context={'cities_json': cities_json,
-                                                                                           'is_admin': is_admin})
+        is_admin: bool = request.user.is_superuser
+        is_ilia: bool = False
+        # Если не администратор, проверяем, состоит ли в группе
+        if not is_admin:
+            is_admin = request.user.groups.filter(name='admins').exists()
+            is_ilia = request.user.groups.filter(name='ilia-group').exists()
+
+        all_rows = SomeDataFromSomeTables.objects.select_related("table_id").exclude(
+            Q(location__isnull=True) | Q(location__exact='')
+        )
+
+        # Преобразуем данные в словарь для каждого города
+        cities: List[Dict[str, Any]] = [row.to_dict() for row in all_rows]
+
+        # Преобразуем данные в JSON
+        cities_json: str = json.dumps(cities, ensure_ascii=False)
+
+        return render(
+            request=request,
+            template_name="work_for_ilia/cities.html",
+            context={"cities_json": cities_json, "is_admin": is_admin, "is_ilia": is_ilia},
+        )
+
+    def put(self, request: HttpRequest, table_id: int, dock_num: int) -> JsonResponse:
+        """
+        Обновляет информацию о городе.
+
+        Args:
+            request (HttpRequest): Объект запроса.
+            table_id (int): ID таблицы.
+            dock_num (int): Номер доки.
+
+        Returns:
+            JsonResponse: Ответ с сообщением об успехе или ошибке.
+        """
+        try:
+            # Получаем город по ID таблицы и номеру доки
+            city = get_object_or_404(SomeDataFromSomeTables, table_id=table_id, dock_num=dock_num)
+
+            # Загружаем данные из тела запроса
+            data = json.loads(request.body)
+
+            # Обновляем поля города
+            city.location = data.get('location', city.location)
+            city.name_organ = data.get('name_organ', city.name_organ)
+            city.pseudonim = data.get('pseudonim', city.pseudonim)
+            city.ip_address = data.get('ip_address', city.ip_address)
+            city.work_timme = data.get('work_time', city.work_timme)
+            city.save()
+
+            return JsonResponse({'status': 'success'})
+
+        except SomeDataFromSomeTables.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Город не найден'}, status=404)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'Неверный формат JSON'}, status=400)
+
+        except Exception as e:
+            logger.error(f"Ошибка при обновлении города: {e}")
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    def delete(self, request: HttpRequest, table_id: int, dock_num: int) -> JsonResponse:
+        """
+        Удаляет город.
+
+        Args:
+            request (HttpRequest): Объект запроса.
+            table_id (int): ID таблицы.
+            dock_num (int): Номер доки.
+
+        Returns:
+            JsonResponse: Ответ с сообщением об успехе или ошибке.
+        """
+        try:
+            # Получаем город по ID таблицы и номеру доки
+            city = get_object_or_404(SomeDataFromSomeTables, table_id=table_id, dock_num=dock_num)
+
+            if city:
+                # Очищаем поля города
+                city.location = ''
+                city.name_organ = ''
+                city.pseudonim = ''
+                city.letters = False
+                city.writing = False
+                city.ip_address = ''
+                city.some_number = ''
+                city.work_timme = ''
+                city.save()
+
+            return JsonResponse({'status': 'success'})
+
+        except SomeDataFromSomeTables.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Город не найден'}, status=404)
+
+        except Exception as e:
+            logger.error(f"Ошибка при удалении города: {e}")
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+def download_file(request: HttpRequest) -> FileResponse:
+    """
+    Предоставляет файл для скачивания.
+
+    Args:
+        request (HttpRequest): Объект HTTP-запроса.
+
+    Returns:
+        FileResponse: HTTP-ответ, содержащий файл для скачивания.
+    """
+    file_path: str = os.path.join(ProjectSettings.tlg_dir, 'globus_new.docx')
+    logger.info(f"Запрос на скачивание файла: {file_path}")
+    return FileResponse(open(file_path, 'rb'), as_attachment=True, filename='globus_new.docx')
+
+
+def is_ajax(request: HttpRequest) -> bool:
+    """
+    Проверяет, является ли HTTP-запрос AJAX-запросом.
+
+    Args:
+        request (HttpRequest): Объект HTTP-запроса.
+
+    Returns:
+        bool: True, если запрос является AJAX-запросом, иначе False.
+    """
+    return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
+
+
+@group_or_superuser_required("admins")
+def city_form_view(request: HttpRequest) -> HttpResponse:
+    """
+    Обрабатывает запросы для создания и обновления информации о городе.
+
+    Этот view обрабатывает как GET-запросы для отображения формы, так и POST-запросы
+    для сохранения данных формы. Доступ разрешен только администраторам или суперпользователям.
+
+    Args:
+        request (HttpRequest): Объект HTTP-запроса.
+
+    Returns:
+        HttpResponse: HTTP-ответ, содержащий HTML-страницу с формой или JSON-ответ
+                      в случае AJAX-запроса.
+    """
+    instance: Optional[SomeDataFromSomeTables] = None
+    button_text: str = "Сохранить изменения"
+    form: CitiesForm = CitiesForm()  # Initialize form here
+
+    if request.method == 'POST':
+        form = CitiesForm(request.POST, instance=instance)
+
+        # Если такая запись уже существует, заполняем форму данными из БД
+        try:
+            table_id: str = request.POST.get('table_id')
+            dock_num: str = request.POST.get('dock_num')
+            instance = SomeDataFromSomeTables.objects.get(table_id=table_id, dock_num=dock_num)
+            form = CitiesForm(request.POST, instance=instance)
+            button_text = "Обновить"
+        except SomeDataFromSomeTables.DoesNotExist:
+            logger.info("Запись не существует, форма для создания новой записи")
+
+        if form.is_valid():
+            form.save()
+            logger.info("Форма успешно сохранена")
+            return redirect(reverse_lazy("work_for_ilia:cities"))
+        else:
+            logger.error(f"Форма не валидна. Ошибки: {form.errors}")
+    else:
+        # Если это GET-запрос, проверяем параметры
+        table_id: Optional[str] = request.GET.get('table_id')
+        dock_num: Optional[str] = request.GET.get('dock_num')
+
+        if table_id and dock_num:
+            try:
+                instance = SomeDataFromSomeTables.objects.get(table_id=table_id, dock_num=dock_num)
+                form = CitiesForm(instance=instance)
+                button_text = "Обновить"
+            except SomeDataFromSomeTables.DoesNotExist:
+                logger.info("Запись не существует")
+
+    tables: SomeTables = SomeTables.objects.all()
+
+    context: Dict[str, Any] = {
+        'form': form,
+        'tables': tables,
+        'button_text': button_text,
+        'instance': instance,
+    }
+
+    # Если это AJAX запрос, возвращаем данные в формате JSON
+    if is_ajax(request):
+        if instance:
+            return JsonResponse({
+                'instance': {
+                    'location': instance.location,
+                    'name_organ': instance.name_organ,
+                    'pseudonim': instance.pseudonim,
+                    'letters': instance.letters,
+                    'writing': instance.writing,
+                    'ip_address': instance.ip_address,
+                    'some_number': instance.some_number,
+                    'work_time': instance.work_timme,
+                }
+            })
+        else:
+            logger.warning("Отправка пустого JSON ответа, т.к. instance не найден")
+            return JsonResponse({})
+
+    return render(request, 'work_for_ilia/city_create_or_update.html', context)
+
+
+def check_record_exists(request: HttpRequest) -> JsonResponse:
+    """
+    Проверяет, существует ли запись о городе с указанными table_id и dock_num.
+
+    Args:
+        request (HttpRequest): Объект HTTP-запроса, содержащий table_id и dock_num в GET-параметрах.
+
+    Returns:
+        JsonResponse: JSON-ответ, указывающий, существует ли запись и содержащий её данные, если она существует.
+                      Возвращает {'exists': True, 'data': serialized_data} если запись существует,
+                      иначе {'exists': False}.
+    """
+    table_id: str = request.GET.get('table_id')
+    dock_num: str = request.GET.get('dock_num')
+
+    try:
+        instance: SomeDataFromSomeTables = SomeDataFromSomeTables.objects.get(table_id=table_id, dock_num=dock_num)
+        # Serialize the instance data
+        serialized_data: str = serializers.serialize('json', [instance, ])
+        return JsonResponse({'exists': True, 'data': serialized_data}, safe=False)
+    except SomeDataFromSomeTables.DoesNotExist:
+        return JsonResponse({'exists': False})
+
+
+def get_next_dock_num(request: HttpRequest) -> JsonResponse:
+    """
+    Возвращает следующий доступный dock_num для указанного table_id.
+
+    Args:
+        request (HttpRequest): Объект HTTP-запроса, содержащий table_id в GET-параметрах.
+
+    Returns:
+        JsonResponse: JSON-ответ, содержащий следующий доступный dock_num или пустую строку, если table_id не указан.
+    """
+    table_id: str = request.GET.get('table_id')
+    if table_id:
+        aggregate_result: Dict[str, Optional[int]] = SomeDataFromSomeTables.objects.filter(
+            table_id=table_id).aggregate(Max('dock_num'))
+        last_dock_num: Optional[int] = aggregate_result['dock_num__max']
+        next_dock_num: int = 1 if last_dock_num is None else last_dock_num + 1
+        return JsonResponse({'next_dock_num': next_dock_num})
+    else:
+        return JsonResponse({'next_dock_num': ''})
 
 
 class Statistic(View):
@@ -209,43 +518,47 @@ class Statistic(View):
         Returns:
             HttpResponse: Ответ с HTML-шаблоном и статистикой.
         """
-        total_files: int = Counter.objects.aggregate(total=Sum('num_files'))['total'] or 0
-        coffee: int = (total_files // 2) or 0
+        total_files: int = (
+                Counter.objects.aggregate(total=Sum("num_files"))["total"] or 0
+        )
+        coffee: int = (
+                total_files // 2
+        )  # Количество кофе, выпитого на основе общего числа файлов
 
         # Группируем записи по дате и подсчитываем сумму обработанных файлов за каждый день
-        daily_totals = Counter.objects.annotate(date=TruncDate('processed_at')).values('date').annotate(
-            total=Sum('num_files')).order_by('-total')
+        daily_totals = (
+            Counter.objects.annotate(date=TruncDate("processed_at"))
+            .values("date")
+            .annotate(total=Sum("num_files"))
+            .order_by("-total")
+        )
 
         # Получаем день с максимальным количеством обработанных файлов
         if daily_totals:
             max_day = daily_totals[0]  # Первый элемент будет с максимальным значением
-            max_date = max_day['date']
-            max_total_files = max_day['total']
+            max_date = max_day["date"]
+            max_total_files = max_day["total"]
         else:
             max_date = None
             max_total_files = 0
 
         # Форматируем дату
-        if max_date:
-            formatted_date = max_date.strftime('%d - %m - %Y')
-        else:
-            formatted_date = "Нет данных"
+        formatted_date: str = (
+            max_date.strftime("%d - %m - %Y") if max_date else "Нет данных"
+        )
 
-        context = {
-            'converted_files': str(total_files),
-            'hard_day': {
-                'max_date': formatted_date,
-                'max_day_files': str(max_total_files)
+        context: Dict[str, any] = {
+            "converted_files": str(total_files),
+            "hard_day": {
+                "max_date": formatted_date,
+                "max_day_files": str(max_total_files),
             },
-            'coffee_drunk': {
-                'amount': str(coffee),
-                'note': '(1 кружка на 2 файла)'
-            }
+            "coffee_drunk": {"amount": str(coffee), "note": "(1 кружка на 2 файла)"},
         }
 
-        logger.info(f'Контекст для статистики {context}')
-        return render(request=request, template_name='work_for_ilia/statistics.html', context=context)
-
-
-class Login(View):
-    pass
+        logger.info(f"Контекст для статистики {context}")
+        return render(
+            request=request,
+            template_name="work_for_ilia/statistics.html",
+            context=context,
+        )

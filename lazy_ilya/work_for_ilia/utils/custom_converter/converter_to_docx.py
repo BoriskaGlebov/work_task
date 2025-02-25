@@ -2,8 +2,7 @@ import os
 from typing import List
 
 from spire.doc import Document, FileFormat
-
-from work_for_ilia.utils.my_settings.disrs_for_app import ProjectSettings
+from work_for_ilia.utils.my_settings.settings_for_app import ProjectSettings, logger
 
 
 class Converter:
@@ -32,9 +31,10 @@ class Converter:
             исключая файлы с расширениями .txt и .docx.
         """
         files = [
-            file for file in os.listdir(self.dir)
+            file
+            for file in os.listdir(self.dir)
             if os.path.isfile(os.path.join(self.dir, file))
-               and not file.endswith(('.txt', '.docx'))
+            and not file.endswith((".txt", ".docx"))
         ]
         return files
 
@@ -48,15 +48,16 @@ class Converter:
         out_list = []
         for file_name in self.all_files():
             n_name = os.path.splitext(file_name)[0]
-            new_file_name = os.path.join(self.dir, f'{n_name}.docx')
+            new_file_name = os.path.join(self.dir, f"{n_name}.docx")
             document = Document()
             document.LoadFromFile(os.path.join(self.dir, file_name))
             document.SaveToFile(new_file_name, FileFormat.Docx)
             out_list.append(new_file_name)
+            logger.bind(filename=file_name).info("Конвертирован файл - ")
         return out_list
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(ProjectSettings.tlg_dir)
     s = Converter(ProjectSettings.tlg_dir)
     print(s.all_files())

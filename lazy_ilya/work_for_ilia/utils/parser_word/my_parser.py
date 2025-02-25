@@ -1,22 +1,19 @@
+import datetime
 import os
 from pprint import pprint
+from typing import List
 
 import django
+from docx import Document
+from work_for_ilia.utils.my_settings.settings_for_app import logger
 
 # Укажите путь к настройкам вашего проекта
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lazy_ilya.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lazy_ilya.settings")
 
 # Настройка Django
 django.setup()
 
-import datetime
-import os
-from typing import List
-
-from docx import Document
-
-from work_for_ilia.models import SomeTables, SomeDataFromSomeTables
-from work_for_ilia.utils.my_settings.disrs_for_app import ProjectSettings
+from work_for_ilia.utils.my_settings.settings_for_app import ProjectSettings
 
 
 class Parser:
@@ -36,19 +33,21 @@ class Parser:
             directory (str): Путь к директории для обработки файлов.
             start_number (int): Начальный номер для именования выходных файлов.
         """
-        self.directory = directory
-        self.start_number = start_number
+        self.directory: str = directory
+        self.start_number: int = start_number
 
     def all_files(self) -> List[str]:
         """
         Находит все файлы .docx в указанной директории.
 
         Returns:
-            list[str]: Список имен файлов .docx в директории.
+            List[str]: Список имен файлов .docx в директории.
         """
-        files = [
-            file for file in os.listdir(self.directory)
-            if os.path.isfile(os.path.join(self.directory, file)) and file.endswith('.docx')
+        files: List[str] = [
+            file
+            for file in os.listdir(self.directory)
+            if os.path.isfile(os.path.join(self.directory, file))
+            and file.endswith(".docx")
         ]
         return files
 
@@ -63,38 +62,38 @@ class Parser:
         Returns:
             str: Отформатированный текст с ограниченной длиной строк.
         """
-        words = text.split()
-        formatted_lines = []
-        current_line = []
+        words: List[str] = text.split()
+        formatted_lines: List[str] = []
+        current_line: List[str] = []
 
         for word in words:
             # Проверяем, если добавление слова превышает максимальную длину
-            if len(' '.join(current_line + [word])) <= max_length:
+            if len(" ".join(current_line + [word])) <= max_length:
                 current_line.append(word)
             else:
                 # Сохраняем текущую строку и начинаем новую
-                formatted_lines.append(' '.join(current_line))
+                formatted_lines.append(" ".join(current_line))
                 current_line = [word]
 
         # Добавляем последнюю строку, если она не пустая
         if current_line:
-            formatted_lines.append(' '.join(current_line))
+            formatted_lines.append(" ".join(current_line))
 
-        return '\n'.join(formatted_lines)
+        return "\n".join(formatted_lines)
 
     def create_file_parsed(self) -> List[str]:
         """
         Создает отредактированные файлы .txt из документов .docx.
 
         Returns:
-            list[str]: Список содержимого отредактированных файлов.
+            List[str]: Список содержимого отредактированных файлов.
         """
-        content_files = []
+        content_files: List[str] = []
 
         for file in self.all_files():
             document = Document(os.path.join(self.directory, file))
-            n_name = f"{self.start_number}_{os.path.splitext(file)[0]}.txt"
-            out_txt = ''
+            n_name: str = f"{self.start_number}_{os.path.splitext(file)[0]}.txt"
+            out_txt: str = ""
 
             # Читаем верхний колонтитул
             special_header = document.sections[0].first_page_header
@@ -105,93 +104,57 @@ class Parser:
             for table in header.tables:
                 for row in table.rows:
                     for cell in row.cells:
-                        if 'из:' in cell.text.lower():
-                            out_txt += self.format_text(cell.text[:-1].strip().upper()) + ' '
-                        elif 'г. москва' in cell.text.lower():
-                            out_txt += self.format_text(
-                                cell.text.strip().upper()) + f'  НР {self.start_number}   Для анального пользования\n'.upper()
+                        if "из:" in cell.text.lower():
+                            out_txt += (
+                                self.format_text(cell.text[:-1].strip().upper()) + " "
+                            )
+                        elif "г. москва" in cell.text.lower():
+                            out_txt += (
+                                self.format_text(cell.text.strip().upper())
+                                + f"  НР {self.start_number}   Для анального пользования\n".upper()
+                            )
 
             # Читаем основной текст документа и таблицы
             out_txt += "\n\n          Содержимое документа:\n\n"
-            num_tables = 0
+            num_tables: int = 0
 
             for element in document.element.body:
-                if element.tag.endswith('p'):  # Проверяем, является ли элемент абзацем
+                if element.tag.endswith("p"):  # Проверяем, является ли элемент абзацем
                     text: str = element.text.strip()
                     if element.text.startswith(
-                            'Evaluation Warning: The document was created with Spire.Doc for Python.'):
+                        "Evaluation Warning: The document was created with Spire.Doc for Python."
+                    ):
                         continue
-                    elif element.text.startswith('Куда и кому:'):
-                        new_str = text.replace('Куда и кому:', '')
-                        out_txt += self.format_text(new_str.upper()) + '\n'
-                    elif element.text.startswith('Уважаемый'):
-                        out_txt += '      ' + self.format_text(text.upper()) + '\n'
+                    elif element.text.startswith("Куда и кому:"):
+                        new_str: str = text.replace("Куда и кому:", "")
+                        out_txt += self.format_text(new_str.upper()) + "\n"
+                    elif element.text.startswith("Уважаемый"):
+                        out_txt += "      " + self.format_text(text.upper()) + "\n"
                     elif text:  # Если абзац не пустой
-                        out_txt += self.format_text(text.upper()) + '\n'
+                        out_txt += self.format_text(text.upper()) + "\n"
                     else:  # Печатаем пустую строку для пустого абзаца
-                        out_txt += '\n'
-                elif element.tag.endswith('tbl') and num_tables < len(document.tables):
+                        out_txt += "\n"
+                elif element.tag.endswith("tbl") and num_tables < len(document.tables):
                     table = document.tables[num_tables]  # Получаем таблицу по индексу
                     for row in table.rows:
                         for cell in row.cells:
-                            if cell.text.startswith('Особый знак'):
-                                out_txt += (f"Особый знак НР {str(self.start_number)}/П Заместитель доярки\n"
-                                            f"{datetime.datetime.now().strftime('%d.%m.%Y')}   колхозник   А.М. Поликарп \n")
+                            if cell.text.startswith("Особый знак"):
+                                out_txt += (
+                                    f"Особый знак НР {str(self.start_number)}/П Заместитель доярки\n"
+                                    f"{datetime.datetime.now().strftime('%d.%m.%Y')}   колхозник   А.М. Поликарп \n"
+                                )
                                 break
 
                     num_tables += 1
 
             self.start_number += 1
             content_files.append(out_txt)
+            logger.bind(filename=n_name).info("Обработал файл - ")
 
         return content_files
 
-    def globus_parser(self, document: Document):
-        tables = document.tables
-        paragraphs = document.paragraphs
-        tables_name = []
-        existing_names = set(SomeTables.objects.values_list('table_name', flat=True))
-        for paragraph in paragraphs[1:]:
-            if paragraph.text:
-                res = SomeTables(table_name=paragraph.text)
-                if res.table_name not in existing_names:
-                    tables_name.append(res)
-        SomeTables.objects.bulk_create(tables_name)
-        for num, table in enumerate(tables):
-            table_in_bd = SomeTables.objects.get(pk=num + 1)
-            print(table_in_bd.id)
-            for row in table.rows[3:]:
-                res = {'table_id': 0,
-                       'location': '',
-                       'name_organ': '',
-                       'pseudonim': '',
-                       'letters': False,
-                       'writing': False,
-                       'ip_address': '',
-                       'some_number': 0,
-                       'work_timme': ''
-                       }
-                for key, cell in zip(res, row.cells):
-                    if key == 'table_id':
-                        res[key] = table_in_bd
-                    elif key in ['letters', 'writing']:
-                        value_corrector = {'+': True,
-                                           '-': False}
-                        res[key] = value_corrector[cell.text]
-                    # elif key == 'some_number':
-                    #     res[key] = int(cell.text)
-                    else:
-                        res[key] = cell.text
-                # print(res)
-                SomeDataFromSomeTables.objects.update_or_create(**res)
-        all_rows = SomeDataFromSomeTables.objects.select_related('table_id').all()
-        pprint([el.to_dict() for el in all_rows])
-        return [el.to_dict() for el in all_rows]
 
-
-#
-
-def replace_unsupported_characters(text, replacement='?'):
+def replace_unsupported_characters(text: str, replacement: str = "?") -> str:
     """
     Заменяет неподдерживаемые символы на указанный символ замены.
 
@@ -203,12 +166,14 @@ def replace_unsupported_characters(text, replacement='?'):
         str: Текст с замененными неподдерживаемыми символами.
     """
     # Создаем новый текст с заменами
-    filtered_text = ''.join(char if can_encode(char) else replacement for char in text)
+    filtered_text: str = "".join(
+        char if can_encode(char) else replacement for char in text
+    )
 
     return filtered_text
 
 
-def can_encode(char):
+def can_encode(char: str) -> bool:
     """
     Проверяет, может ли символ быть закодирован в cp866.
 
@@ -219,18 +184,15 @@ def can_encode(char):
         bool: True, если символ может быть закодирован в cp866, иначе False.
     """
     try:
-        char.encode('cp866')
+        char.encode("cp866")
         return True
     except UnicodeEncodeError:
         return False
 
 
-if __name__ == '__main__':
-    start_numm = 123
+if __name__ == "__main__":
+    start_numm: int = 123
     s = Parser(ProjectSettings.tlg_dir, start_numm)
+
     print(s)
     print(s.all_files())
-    doc = Document('D:\SkillBox\work_task\lazy_ilya\work_for_ilia\\utils\\test_dir\globus.docx')
-    print(s.globus_parser(doc))
-    # print(os.listdir(ProjectSettings.tlg_dir))
-    # os.remove(*os.listdir(ProjectSettings.tlg_dir))

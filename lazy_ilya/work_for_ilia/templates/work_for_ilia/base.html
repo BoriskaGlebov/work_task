@@ -8,8 +8,10 @@
 
     <!-- Подключение CSS-стилей из статических файлов -->
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    <link rel="icon" href="{% static 'favicon.ico'%}" type="image/x-icon">
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
     <title>{% block title %}Base title{% endblock %}</title>
+
+    <script type="text/javascript" src="{% static 'js/jquery.js' %}"></script>
     <!-- Заголовок страницы, который можно переопределить в дочерних шаблонах -->
 </head>
 <body>
