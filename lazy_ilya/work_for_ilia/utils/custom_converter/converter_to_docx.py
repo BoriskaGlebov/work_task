@@ -34,7 +34,7 @@ class Converter:
             file
             for file in os.listdir(self.dir)
             if os.path.isfile(os.path.join(self.dir, file))
-            and not file.endswith((".txt", ".docx"))
+               and not file.endswith((".txt", ".docx"))
         ]
         return files
 

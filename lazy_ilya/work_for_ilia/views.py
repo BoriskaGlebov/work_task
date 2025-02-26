@@ -250,7 +250,6 @@ class Cities(View):
         if not is_admin:
             is_admin = request.user.groups.filter(name='admins').exists()
             is_ilia = request.user.groups.filter(name='ilia-group').exists()
-
         all_rows = SomeDataFromSomeTables.objects.select_related("table_id").exclude(
             Q(location__isnull=True) | Q(location__exact='')
         )
