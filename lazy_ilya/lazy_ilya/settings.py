@@ -145,3 +145,7 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels.layers.InMemoryChannelLayer",
     },
 }
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_AGE = 60  # Время жизни сессии в секундах (например, 30 минут)
+SESSION_SAVE_EVERY_REQUEST = True  # Обновляет таймер сессии при каждом запросе

@@ -75,7 +75,7 @@
                 <div class="form-group">
                     <div class="checkbox-wrapper">
                         <label class="checkbox-label">
-                             {{ form.letters}}  <!-- Скрываем стандартный чекбокс -->
+                            {{ form.letters }}  <!-- Скрываем стандартный чекбокс -->
                             <span class="custom-checkbox"></span>
                             Письма
                         </label>
@@ -88,7 +88,7 @@
                 <div class="form-group">
                     <div class="checkbox-wrapper">
                         <label class="checkbox-label">
-                             {{ form.writing }}  <!-- Скрываем стандартный чекбокс -->
+                            {{ form.writing }}  <!-- Скрываем стандартный чекбокс -->
                             <span class="custom-checkbox"></span>
                             Записи
                         </label>
@@ -123,7 +123,7 @@
 
                 <!-- Кнопка для сохранения/обновления -->
                 <div class="action-buttons">
-                    <button id="saveCityBtn" class="primary-btn" type="submit">
+                    <button id="saveCityBtn" class="primary-btn">
                         <svg width="16" height="16" viewBox="0 0 16 16"
                              style="vertical-align: middle; margin-right: 8px;">
                             <path fill="currentColor" d="M13 0H0v16h16V3l-3-3zM8 1h4v4H8V1zM2 1h5v4h7v9H2V1z"></path>
@@ -147,11 +147,26 @@
 {% block extra_js %}
     <script>
         $(document).ready(function () {
+            // Функция для проверки и отправки формы
+            function validateAndSubmitForm() {
+                const tableId = $('#{{ form.table_id.id_for_label }}').val();
+                if (!tableId || tableId === '') {
+                    alert("Пожалуйста, выберите название таблицы.");
+                    return false;
+                }
+                return true;
+            }
+
             // Функция для обработки изменений в table_id и dock_num
             function handleTableDockChange() {
-                var tableId = $('#{{ form.table_id.id_for_label }}').val();
-                var dockNum = $('#{{ form.dock_num.id_for_label }}').val();
-                var formActionUrl = "{% url 'work_for_ilia:city_cr_or_upd' %}";
+                const tableId = $('#{{ form.table_id.id_for_label }}').val();
+                const dockNum = $('#{{ form.dock_num.id_for_label }}').val();
+                let formActionUrl = "{% url 'work_for_ilia:city_cr_or_upd' %}";
+
+                if (!tableId || tableId === '') {
+                    alert("Пожалуйста, выберите название таблицы.");
+                    return;
+                }
 
                 if (tableId && dockNum) {
                     formActionUrl = formActionUrl + "?table_id=" + tableId + "&dock_num=" + dockNum;
@@ -191,7 +206,7 @@
 
             // Функция для заполнения формы данными из существующей записи
             function populateFormWithData(tableId, dockNum) {
-                var formDataUrl = '{% url "work_for_ilia:city_cr_or_upd" %}?table_id=' + tableId + '&dock_num=' + dockNum;
+                const formDataUrl = '{% url "work_for_ilia:city_cr_or_upd" %}?table_id=' + tableId + '&dock_num=' + dockNum;
 
                 $.ajax({
                     url: formDataUrl,
@@ -228,7 +243,7 @@
 
             // Обработка изменений в поле table_id
             $('#{{ form.table_id.id_for_label }}').change(function () {
-                var tableId = $(this).val();
+                const tableId = $(this).val();
                 if (tableId) {
                     $.ajax({
                         url: "{% url 'work_for_ilia:get_next_dock_num' %}",
@@ -255,12 +270,22 @@
             $('#{{ form.dock_num.id_for_label }}').on('input', handleTableDockChange);  // Используем on('input') для обновления при вводе
 
             // Инициализация при загрузке страницы, если уже выбраны значения
-            var initialTableId = $('#{{ form.table_id.id_for_label }}').val();
-            var initialDockNum = $('#{{ form.dock_num.id_for_label }}').val();
+            const initialTableId = $('#{{ form.table_id.id_for_label }}').val();
+            const initialDockNum = $('#{{ form.dock_num.id_for_label }}').val();
 
             if (initialTableId && initialDockNum) {
                 handleTableDockChange();  // Проверяем существование записи при загрузке страницы
             }
+
+            // Обработчик события для кнопки "Сохранить изменения"
+            $('#saveCityBtn').click(function (event) {
+                event.preventDefault(); // Предотвращаем автоматическую отправку формы
+
+                if (validateAndSubmitForm()) {
+                    // Отправляем форму программно
+                    $('form').submit();
+                }
+            });
         });
 
 
