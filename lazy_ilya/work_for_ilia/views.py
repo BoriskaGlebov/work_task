@@ -7,7 +7,7 @@ from typing import Any, Callable, Dict, List, Optional
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from django.core import serializers
-from django.db.models import Max, Q, Sum
+from django.db.models import Max, Q, Sum, F
 from django.db.models.functions import TruncDate
 from django.http import FileResponse, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -16,7 +16,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic import CreateView
 from work_for_ilia.forms import CitiesForm
-from work_for_ilia.models import Counter, SomeDataFromSomeTables, SomeTables
+from work_for_ilia.models import Counter, SomeDataFromSomeTables, SomeTables, CounterCities
 from work_for_ilia.utils.custom_converter.converter_to_docx import Converter
 from work_for_ilia.utils.my_settings.settings_for_app import (ProjectSettings,
                                                               logger, settings)
@@ -319,7 +319,7 @@ class Cities(View):
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
     def delete(
-        self, request: HttpRequest, table_id: int, dock_num: int
+            self, request: HttpRequest, table_id: int, dock_num: int
     ) -> JsonResponse:
         """
         Удаляет город.
@@ -535,6 +535,43 @@ def get_next_dock_num(request: HttpRequest) -> JsonResponse:
         return JsonResponse({"next_dock_num": ""})
 
 
+# Be careful with disabling CSRF protection in production! Consider using @method_decorator(csrf_protect, name='dispatch') in a class-based view instead.
+def track_city(request: HttpRequest) -> JsonResponse:
+    """
+    Представление для подсчета запросов по городам к каким городам чаще делаются запросы
+    """
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            table_id = data.get('table_id')
+            dock_num = data.get('dock_num')
+            some_data = get_object_or_404(SomeDataFromSomeTables, table_id=table_id, dock_num=dock_num)
+            #  Do something with the data (e.g., save to the database)
+            #  Example (assuming you have a CitySelection model):
+            #  CitySelection.objects.create(city_id=city_id, city_name=city_name)
+
+            # Получаем или создаем запись для данного dock_num
+            counter_city, created = CounterCities.objects.get_or_create(
+                dock_num_id=some_data.id,
+                defaults={'count_responses': 0}
+            )
+
+            # Увеличиваем счетчик запросов
+            counter_city.count_responses = F('count_responses') + 1
+            counter_city.save()
+
+            print(f"City selected: tableID={table_id}, dock_num={dock_num}")  # For debugging
+
+            return JsonResponse({'status': 'success'}, status=200)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            print(e)
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+
 class Statistic(View):
     """
     Класс для обработки запросов статистики.
@@ -555,10 +592,10 @@ class Statistic(View):
             HttpResponse: Ответ с HTML-шаблоном и статистикой.
         """
         total_files: int = (
-            Counter.objects.aggregate(total=Sum("num_files"))["total"] or 0
+                Counter.objects.aggregate(total=Sum("num_files"))["total"] or 0
         )
         coffee: int = (
-            total_files // 2
+                total_files // 2
         )  # Количество кофе, выпитого на основе общего числа файлов
 
         # Группируем записи по дате и подсчитываем сумму обработанных файлов за каждый день

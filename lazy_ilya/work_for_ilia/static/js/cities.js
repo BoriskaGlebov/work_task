@@ -1,5 +1,5 @@
 class CitySearch {
-    constructor(isAdmin,isIlia) {
+    constructor(isAdmin, isIlia) {
         this.isAdmin = isAdmin;
         this.isIlia = isIlia;
         console.log('isAdmin:', this.isAdmin); // Добавлено для отладки
@@ -341,42 +341,42 @@ class CitySearch {
             this.searchInput.value = item.dataset.city;
             this.suggestionsList.innerHTML = '';
             this.renderCityCard(city);
+            //  Отправляем запрос на сервер для записи выбора города
+            this.trackCitySelection(city);
         }
     }
 
-    // /**
-    //  * Отображает карточку города.
-    //  * @param {object} city - Объект города для отображения.
-    //  */
-    // renderCityCard(city) {
-    //     const escapedCityLocation = CSS.escape(city.location);
-    //     const escapedCityNameOrgan = CSS.escape(city.name_organ);
-    //     const escapedCityPseudonim = CSS.escape(city.pseudonim);
-    //
-    //     const existingCard = document.querySelector(`.city-card[data-city="${escapedCityLocation} [${escapedCityNameOrgan}] [${escapedCityPseudonim}]"]`);
-    //
-    //     if (!existingCard) {
-    //         const cityCardHTML = `
-    //             <div class="city-card" data-city="${city.location} [${city.name_organ}]">
-    //                 <h3>${city.location}</h3>
-    //                 <div class="city-info">
-    //                     <p><strong>Псевдоним:</strong> ${city.pseudonim}</p>
-    //                     <p><strong>IP-адрес:</strong> ${city.ip_address}</p>
-    //                     <p><strong>Организация:</strong> ${city.name_organ}</p>
-    //                     <p><strong>Рабочее время:</strong> ${city.work_time}</p>
-    //                 </div>
-    //             </div>
-    //         `;
-    //
-    //         this.citiesGrid.innerHTML += cityCardHTML;
-    //
-    //         const newCard = this.citiesGrid.lastElementChild;
-    //
-    //         requestAnimationFrame(() => {
-    //             newCard.classList.add('show');
-    //         });
-    //     }
-    // }
+    /**
+     * Отправляет запрос на сервер для записи информации о выбранном городе.
+     * @param {object} city - Объект с данными о городе.
+     */
+    async trackCitySelection(city) {
+        try {
+            console.log(city)
+            const response = await fetch(trackCities, {  //  Укажите URL-адрес для обработки запроса на сервере
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken  //  Не забудьте включить CSRF-токен
+                },
+
+                body: JSON.stringify({
+                    table_id: city.table_id,
+                    dock_num: city.dock_num,
+
+                })
+            });
+
+            if (!response.ok) {
+                console.error('Ошибка при отправке данных о городе на сервер:', response.status);
+            } else {
+                console.log('Данные о городе успешно отправлены на сервер');
+            }
+        } catch (error) {
+            console.error('Ошибка при отправке запроса:', error);
+        }
+    }
+
 
     /**
      * Обрабатывает клик за пределами поля ввода и списка предложений.
@@ -408,11 +408,10 @@ class CitySearch {
             console.error('tableId or dockNum is missing on the card.');
             return;
         }
-        const city = this.cities.find(city =>
-            city.table_id == tableId &&
-            city.dock_num == dockNum
+        return this.cities.find(city =>
+            city.table_id === tableId &&
+            city.dock_num === dockNum
         );
-        return city;
     }
 
     /**
@@ -420,29 +419,38 @@ class CitySearch {
      * Отображает карточки для всех подходящих городов.
      */
     handleEnter() {
-        const searchTerm = this.searchInput.value.toLowerCase().trim();
-        if (searchTerm === '') {
-            return;
+        if (this.selectedIndex !== -1 && this.suggestionsList.children.length > 0) {
+            const selectedItem = this.suggestionsList.children[this.selectedIndex];
+            this.selectCity(selectedItem); // Вызываем selectCity с выбранным элементом
+            this.suggestionsList.innerHTML = ''; // Очищаем список предложений после выбора
+        } else {
+            // Если нет выбранного элемента в списке, выполняем поиск
+            const searchTerm = this.searchInput.value.toLowerCase().trim();
+            if (searchTerm === '') {
+                return;
+            }
+
+            // Очищаем текущие карточки и список предложений
+            this.citiesGrid.innerHTML = '';
+            this.suggestionsList.innerHTML = '';
+
+            // Выполняем поиск и отображаем результаты на citiesGrid (без предложений)
+            const filteredCities = this.cities.filter(city => {
+                const combinedName = `${city.location.toLowerCase()} [${city.name_organ.toLowerCase()}] [${city.pseudonim.toLowerCase()}]`;
+                return (
+                    city.location.toLowerCase().includes(searchTerm) ||
+                    city.name_organ.toLowerCase().includes(searchTerm) ||
+                    city.pseudonim.toLowerCase().includes(searchTerm) ||
+                    combinedName.includes(searchTerm)
+                );
+            });
+
+            filteredCities.forEach((city, index) => {
+                setTimeout(() => {
+                    this.renderCityCard(city);
+                }, index * 100);
+            });
         }
-        const filteredCities = this.cities.filter(city => {
-            const combinedName = `${city.location.toLowerCase()} [${city.name_organ.toLowerCase()}] [${city.pseudonim.toLowerCase()}]`;
-            return (
-                city.location.toLowerCase().includes(searchTerm) ||
-                city.name_organ.toLowerCase().includes(searchTerm) ||
-                city.pseudonim.toLowerCase().includes(searchTerm) ||
-                combinedName.includes(searchTerm)
-            );
-        });
-
-        this.citiesGrid.innerHTML = '';
-
-        filteredCities.forEach((city, index) => {
-            setTimeout(() => {
-                this.renderCityCard(city);
-            }, index * 100);
-        });
-
-        this.suggestionsList.innerHTML = '';
     }
 
 
@@ -686,4 +694,4 @@ class CitySearch {
 }
 
 // Инициализация класса CitySearch при загрузке страницы.
-const citySearch = new CitySearch(isAdmin,isIlia);
+const citySearch = new CitySearch(isAdmin, isIlia);

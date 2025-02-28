@@ -182,3 +182,15 @@ class SomeDataFromSomeTables(models.Model):
                 self.dock_num = last_dock_num + 1
 
         super().save(*args, **kwargs)
+
+
+class CounterCities(models.Model):
+    processed_at: models.DateTimeField = models.DateTimeField(
+        auto_now_add=True, verbose_name="Дата создания/обновления"
+    )
+    dock_num: models.ForeignKey = models.ForeignKey(
+        SomeDataFromSomeTables, on_delete=models.CASCADE, verbose_name="Пункт в таблице документов"
+    )
+    count_responses: models.IntegerField = models.IntegerField(
+        verbose_name="Количество запросов к этому городу"
+    )
