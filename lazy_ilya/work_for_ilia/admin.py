@@ -1,8 +1,8 @@
-from django.contrib import admin
-from typing import Tuple, List
+from typing import List, Tuple
 
-from work_for_ilia.models import Counter, SomeDataFromSomeTables, SomeTables
+from django.contrib import admin
 from django.db.models import QuerySet
+from work_for_ilia.models import Counter, SomeDataFromSomeTables, SomeTables
 
 
 @admin.register(Counter)

@@ -1,7 +1,8 @@
 # create_superuser.py
 import os
+from typing import Dict, List
+
 import django
-from typing import List, Dict
 
 # Убедитесь, что настройки Django загружены
 os.environ.setdefault(
@@ -32,10 +33,16 @@ class UserCreator:
         self.email: str = os.getenv("DJANGO_SUPERUSER_EMAIL")
         self.password: str = os.getenv("DJANGO_SUPERUSER_PASSWORD")
         self.additional_users: List[Dict[str, str]] = [
-            {"username": os.getenv("DJANGO_USER1"), "email": os.getenv("DJANGO_USER1_EMAIL"),
-             "password": os.getenv("DJANGO_USER1_PASSWORD")},
-            {"username": os.getenv("DJANGO_USER2"), "email": os.getenv("DJANGO_USER2_EMAIL"),
-             "password": os.getenv("DJANGO_USER2_PASSWORD")},
+            {
+                "username": os.getenv("DJANGO_USER1"),
+                "email": os.getenv("DJANGO_USER1_EMAIL"),
+                "password": os.getenv("DJANGO_USER1_PASSWORD"),
+            },
+            {
+                "username": os.getenv("DJANGO_USER2"),
+                "email": os.getenv("DJANGO_USER2_EMAIL"),
+                "password": os.getenv("DJANGO_USER2_PASSWORD"),
+            },
         ]
 
     def create_superuser(self) -> None:
@@ -43,7 +50,9 @@ class UserCreator:
         Создание суперпользователя, если он не существует.
         """
         if not User.objects.filter(username=self.username).exists():
-            User.objects.create_superuser(username=self.username, email=self.email, password=self.password)
+            User.objects.create_superuser(
+                username=self.username, email=self.email, password=self.password
+            )
             logger.info(f"Суперпользователь '{self.username}' создан.")
         else:
             logger.info(f"Суперпользователь '{self.username}' уже существует.")
@@ -58,7 +67,7 @@ class UserCreator:
                     username=user_data["username"],
                     email=user_data["email"],
                     password=user_data["password"],
-                    is_staff=True
+                    is_staff=True,
                 )
                 logger.info(f"Пользователь '{user_data['username']}' создан.")
             else:
@@ -75,14 +84,31 @@ class GroupManager:
         Инициализация класса с данными для групп и назначения пользователей в группы.
         """
         self.groups: List[Dict[str, List[str]]] = [
-            {"name": "admins",
-             "permissions": ["add_counter", "change_counter", "delete_counter", "view_counter", "add_sometables",
-                             "change_sometables", "delete_sometables", "view_sometables", "add_somedatafromsometables",
-                             "change_somedatafromsometables", "delete_somedatafromsometables",
-                             "view_somedatafromsometables",
-                             ]},
-            {"name": "ilia-group", "permissions": ["view_counter", "view_sometables", "view_somedatafromsometables",
-                                                   ]},
+            {
+                "name": "admins",
+                "permissions": [
+                    "add_counter",
+                    "change_counter",
+                    "delete_counter",
+                    "view_counter",
+                    "add_sometables",
+                    "change_sometables",
+                    "delete_sometables",
+                    "view_sometables",
+                    "add_somedatafromsometables",
+                    "change_somedatafromsometables",
+                    "delete_somedatafromsometables",
+                    "view_somedatafromsometables",
+                ],
+            },
+            {
+                "name": "ilia-group",
+                "permissions": [
+                    "view_counter",
+                    "view_sometables",
+                    "view_somedatafromsometables",
+                ],
+            },
         ]
         self.user_group_assignments: List[Dict[str, str]] = [
             {"username": os.getenv("DJANGO_USER1"), "group_name": "admins"},
@@ -104,7 +130,9 @@ class GroupManager:
                 try:
                     permission = Permission.objects.get(codename=permission_codename)
                     group.permissions.add(permission)
-                    logger.info(f"Право '{permission_codename}' добавлено к группе '{group_data['name']}'.")
+                    logger.info(
+                        f"Право '{permission_codename}' добавлено к группе '{group_data['name']}'."
+                    )
                 except Permission.DoesNotExist:
                     logger.error(f"Право '{permission_codename}' не найдено.")
 
@@ -116,7 +144,9 @@ class GroupManager:
             user = User.objects.get(username=assignment["username"])
             group = Group.objects.get(name=assignment["group_name"])
             user.groups.add(group)
-            logger.info(f"Пользователь '{assignment['username']}' добавлен в группу '{assignment['group_name']}'.")
+            logger.info(
+                f"Пользователь '{assignment['username']}' добавлен в группу '{assignment['group_name']}'."
+            )
 
 
 if __name__ == "__main__":

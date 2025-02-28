@@ -10,7 +10,7 @@ from docx.enum.style import WD_STYLE_TYPE
 from docx.enum.table import WD_ALIGN_VERTICAL
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
 from docx.oxml.ns import qn
-from docx.shared import RGBColor, Pt, Inches
+from docx.shared import Inches, Pt, RGBColor
 from docx.text.font import Font
 
 # Укажите путь к настройкам вашего проекта
@@ -20,13 +20,14 @@ import django
 # Настройка Django
 django.setup()
 
-from typing import Dict, List, Optional, Any, Callable, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from docx import Document
 from work_for_ilia.models import SomeDataFromSomeTables, SomeTables
-from work_for_ilia.utils.my_settings.settings_for_app import ProjectSettings, logger
+from work_for_ilia.utils.my_settings.settings_for_app import (ProjectSettings,
+                                                              logger)
 
 
 class GlobusParser:
@@ -143,7 +144,9 @@ class GlobusParser:
                 },
             )
             for row_num, row in enumerate(table_zip[1].rows[3:]):
-                cells: List[str] = [cell.text.strip().replace("\n", "<br>") for cell in row.cells]
+                cells: List[str] = [
+                    cell.text.strip().replace("\n", "<br>") for cell in row.cells
+                ]
                 row_in_db: Optional[SomeDataFromSomeTables] = (
                     SomeDataFromSomeTables.objects.select_related("table_id")
                     .filter(table_id=table_zip[0].id, dock_num=row_num + 1)
@@ -193,14 +196,20 @@ class GlobusParser:
                     )  # Добавляем в список обработанных в любом случае
 
                 else:
-                    cr_or_upd_row: SomeDataFromSomeTables = SomeDataFromSomeTables(**cls.model_inf)
+                    cr_or_upd_row: SomeDataFromSomeTables = SomeDataFromSomeTables(
+                        **cls.model_inf
+                    )
                     cities_to_add.append(cr_or_upd_row)
                     processed_cities.append(cr_or_upd_row)
         try:
             if cities_to_add:
-                res: List[SomeDataFromSomeTables] = SomeDataFromSomeTables.objects.bulk_create(cities_to_add)
+                res: List[SomeDataFromSomeTables] = (
+                    SomeDataFromSomeTables.objects.bulk_create(cities_to_add)
+                )
                 for row in res:
-                    logger.info(f"Добавил новую запись id = '{row.id}' - {row.location}")
+                    logger.info(
+                        f"Добавил новую запись id = '{row.id}' - {row.location}"
+                    )
             if cities_to_update:
                 SomeDataFromSomeTables.objects.bulk_update(
                     cities_to_update,
@@ -231,7 +240,8 @@ class GlobusParser:
             logger.error(f"Произошла ошибка при работе со строками таблицы {e}")
 
         all_rows = SomeDataFromSomeTables.objects.select_related("table_id").exclude(
-            Q(location__isnull=True) | Q(location__exact=''))
+            Q(location__isnull=True) | Q(location__exact="")
+        )
         updated_cities: List[Dict[str, Any]] = [
             el.to_dict() for el in all_rows
         ]  # Предполагается, что у вас есть метод to_dict()
@@ -251,17 +261,22 @@ class GlobusParser:
     def style_cell_text(cls, cell: Any, justifu: bool = False) -> None:
         """Стилизует текст в ячейке таблицы."""
         for paragraph in cell.paragraphs:
-            paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY if justifu else WD_ALIGN_PARAGRAPH.CENTER  # Горизонтальное выравнивание
+            paragraph.alignment = (
+                WD_ALIGN_PARAGRAPH.JUSTIFY if justifu else WD_ALIGN_PARAGRAPH.CENTER
+            )  # Горизонтальное выравнивание
 
             # Установка стиля для каждого run в параграфе
             for run in paragraph.runs:
-                run.font.name = 'Times New Roman'
+                run.font.name = "Times New Roman"
                 run.font.size = Pt(12)
         cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
 
     @classmethod
-    def create_globus(cls, filename: str = "globus_new.docx",
-                      send_progress: Optional[Callable[[int], None]] = None) -> None:
+    def create_globus(
+        cls,
+        filename: str = "globus_new.docx",
+        send_progress: Optional[Callable[[int], None]] = None,
+    ) -> None:
         """Создает документ Word с данными о городах."""
         document: Document = Document()
 
@@ -282,34 +297,60 @@ class GlobusParser:
         section.left_margin = Inches(left_margin_cm / 2.54)
         section.right_margin = Inches(right_margin_cm / 2.54)
         # Стиль для заголовка
-        style1: Any = document.styles.add_style('CustomHeadingStyle', WD_STYLE_TYPE.PARAGRAPH)
-        style1.base_style = document.styles['Heading 1']  # Наследуем от Heading 1
+        style1: Any = document.styles.add_style(
+            "CustomHeadingStyle", WD_STYLE_TYPE.PARAGRAPH
+        )
+        style1.base_style = document.styles["Heading 1"]  # Наследуем от Heading 1
         font1: Font = style1.font
-        font1.name = 'Times New Roman'
-        font1._element.rPr.rFonts.set(qn('w:ascii'), 'Times New Roman')  # Для правильной установки шрифта
+        font1.name = "Times New Roman"
+        font1._element.rPr.rFonts.set(
+            qn("w:ascii"), "Times New Roman"
+        )  # Для правильной установки шрифта
         font1.color.rgb = RGBColor(0, 0, 0)  # Черный цвет
         font1.size = Pt(16)
 
         paragraph_format: Any = style1.paragraph_format
-        paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY  # Выравнивание по ширине
-        paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE  # Одинарный интервал
+        paragraph_format.alignment = (
+            WD_ALIGN_PARAGRAPH.JUSTIFY
+        )  # Выравнивание по ширине
+        paragraph_format.line_spacing_rule = (
+            WD_LINE_SPACING.SINGLE
+        )  # Одинарный интервал
         paragraph_format.space_before = Pt(0)  # Убираем отступ перед абзацем
         paragraph_format.space_after = Pt(0)  # Убираем отступ после абзаца
         paragraph_format.first_line_indent = Inches(0)  # Убираем отступ первой строки
 
-        tables_name = SomeTables.objects.values_list('id', 'table_name')
-        table_headers: List[str] = ['№ №', 'Место положения', 'Наименование органа', 'Название пункта\n(псевдоним)',
-                                    'Вид передаваемой информации', 'Какой-то номер', 'Время работы, телефон для связи']
-        table_headers2: List[str] = ['Письма', 'Написание', 'Сетевой адрес IP']
+        tables_name = SomeTables.objects.values_list("id", "table_name")
+        table_headers: List[str] = [
+            "№ №",
+            "Место положения",
+            "Наименование органа",
+            "Название пункта\n(псевдоним)",
+            "Вид передаваемой информации",
+            "Какой-то номер",
+            "Время работы, телефон для связи",
+        ]
+        table_headers2: List[str] = ["Письма", "Написание", "Сетевой адрес IP"]
         document.add_paragraph("Какой-то текст для начала")
         for num, name in enumerate(tables_name):
-            paragraph: Any = document.add_paragraph(name[1], style='CustomHeadingStyle')
+            paragraph: Any = document.add_paragraph(name[1], style="CustomHeadingStyle")
             document.add_paragraph()
             paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT  # Выравнивание по центру
 
-            table_data = SomeDataFromSomeTables.objects.filter(table_id=name[0]).values_list(
-                'table_id', 'dock_num', 'location', 'name_organ', 'pseudonim', 'letters', 'writing', 'ip_address',
-                'some_number', 'work_timme')
+            table_data = SomeDataFromSomeTables.objects.filter(
+                table_id=name[0]
+            ).values_list(
+                "table_id",
+                "dock_num",
+                "location",
+                "name_organ",
+                "pseudonim",
+                "letters",
+                "writing",
+                "ip_address",
+                "some_number",
+                "work_timme",
+            )
             # Добавление таблицы
             table: Any = document.add_table(rows=3 + len(table_data), cols=9)
             table.cell(0, 0).merge(table.cell(2, 0))  # Объединяем ячейки
@@ -325,7 +366,7 @@ class GlobusParser:
             table.cell(0, 7).merge(table.cell(2, 7))  # Объединяем ячейки
             table.cell(0, 8).merge(table.cell(2, 8))  # Объединяем ячейки
 
-            table.style = 'Table Grid'  # Установка стиля таблицы с границами
+            table.style = "Table Grid"  # Установка стиля таблицы с границами
 
             # Добавление заголовков таблицы
             hdr_cells: List[Any] = table.rows[0].cells
@@ -345,11 +386,13 @@ class GlobusParser:
                     cls.style_cell_text(cell)
                     if row_num >= 3:
                         # Получаем данные для вставки
-                        data_insert: str = str(table_data[row_num - 3][cell_num + 1]).replace('<br>', '\n')
-                        if data_insert == 'True':
-                            data_insert = '+'
-                        elif data_insert == 'False':
-                            data_insert = '-'
+                        data_insert: str = str(
+                            table_data[row_num - 3][cell_num + 1]
+                        ).replace("<br>", "\n")
+                        if data_insert == "True":
+                            data_insert = "+"
+                        elif data_insert == "False":
+                            data_insert = "-"
                         cell.text = data_insert
                         if cell_num in [0, 1, 3, 4, 5, 7]:
                             cls.style_cell_text(cell)
@@ -366,5 +409,5 @@ class GlobusParser:
         document.save(os.path.join(ProjectSettings.tlg_dir, filename))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     GlobusParser.create_globus()

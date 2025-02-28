@@ -4,11 +4,11 @@ import os
 import queue
 import threading
 import time
-from typing import Dict, Any, Callable, Optional
+from typing import Any, Callable, Dict, Optional
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 
-from .utils.my_settings.settings_for_app import logger, ProjectSettings
+from .utils.my_settings.settings_for_app import ProjectSettings, logger
 from .utils.parser_word.globus_parser import GlobusParser
 
 
@@ -101,9 +101,9 @@ class DownloadProgressConsumer(AsyncWebsocketConsumer):
             text_data (str): JSON строка с данными от клиента.
         """
         text_data_json: Dict[str, Any] = json.loads(text_data)
-        task: Optional[str] = text_data_json.get('task')
+        task: Optional[str] = text_data_json.get("task")
 
-        if task == 'start_download':
+        if task == "start_download":
             await self.start_download()
 
     async def start_download(self) -> None:
@@ -131,9 +131,9 @@ class DownloadProgressConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_send(
                 self.group_name,
                 {
-                    'type': 'send_progress',
-                    'progress': progress,
-                }
+                    "type": "send_progress",
+                    "progress": progress,
+                },
             )
 
         loop: asyncio.AbstractEventLoop = asyncio.new_event_loop()
@@ -147,13 +147,12 @@ class DownloadProgressConsumer(AsyncWebsocketConsumer):
         Args:
             event (Dict[str, Any]): Словарь, содержащий данные события, включая 'progress' и 'file_url'.
         """
-        progress: int = event['progress']
-        file_url: Optional[str] = 'download/' if progress == 100 else None
+        progress: int = event["progress"]
+        file_url: Optional[str] = "download/" if progress == 100 else None
 
-        await self.send(text_data=json.dumps({
-            'progress': progress,
-            'file_url': file_url
-        }))
+        await self.send(
+            text_data=json.dumps({"progress": progress, "file_url": file_url})
+        )
 
     async def disconnect(self, close_code: int) -> None:
         """
@@ -162,5 +161,7 @@ class DownloadProgressConsumer(AsyncWebsocketConsumer):
         Args:
             close_code (int): Код закрытия соединения.
         """
-        logger.info(f"Client disconnected from download progress with close code: {close_code}")
+        logger.info(
+            f"Client disconnected from download progress with close code: {close_code}"
+        )
         await self.channel_layer.group_discard(self.group_name, self.channel_name)

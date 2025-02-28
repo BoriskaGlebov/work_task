@@ -1,12 +1,13 @@
-import unittest
-import os
-import tempfile
-import shutil
-from unittest.mock import patch
-from docx import Document
 import datetime
-from work_for_ilia.utils.parser_word.my_parser import Parser, replace_unsupported_characters, \
-    can_encode  # Импортируйте класс Parser и функции
+import os
+import shutil
+import tempfile
+import unittest
+from unittest.mock import patch
+
+from docx import Document
+from work_for_ilia.utils.parser_word.my_parser import (  # Импортируйте класс Parser и функции
+    Parser, can_encode, replace_unsupported_characters)
 
 
 class TestParser(unittest.TestCase):
@@ -37,14 +38,14 @@ class TestParser(unittest.TestCase):
         # Создаем тестовые файлы
         self.create_docx_file("test1.docx", "Test content 1")
         self.create_docx_file("test2.docx", "Test content 2")
-        with open(os.path.join(self.temp_dir, 'test.txt'), 'w') as f:
-            f.write('Test content')
+        with open(os.path.join(self.temp_dir, "test.txt"), "w") as f:
+            f.write("Test content")
 
         # Проверяем список файлов .docx
         files = self.parser.all_files()
-        self.assertIn('test1.docx', files)
-        self.assertIn('test2.docx', files)
-        self.assertNotIn('test.txt', files)
+        self.assertIn("test1.docx", files)
+        self.assertIn("test2.docx", files)
+        self.assertNotIn("test.txt", files)
 
     def test_format_text(self):
         # Проверяем форматирование текста
@@ -63,7 +64,7 @@ class TestParser(unittest.TestCase):
         # Проверяем результат
         self.assertEqual(len(parsed_files), 1)
 
-        self.assertIn('TEST CONTENT', parsed_files[0])
+        self.assertIn("TEST CONTENT", parsed_files[0])
 
     def test_replace_unsupported_characters(self):
         # Проверяем замену неподдерживаемых символов
@@ -77,5 +78,5 @@ class TestParser(unittest.TestCase):
         self.assertFalse(can_encode("«"))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

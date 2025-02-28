@@ -2,7 +2,8 @@ import os
 from typing import List
 
 from spire.doc import Document, FileFormat
-from work_for_ilia.utils.my_settings.settings_for_app import ProjectSettings, logger
+from work_for_ilia.utils.my_settings.settings_for_app import (ProjectSettings,
+                                                              logger)
 
 
 class Converter:
@@ -34,7 +35,7 @@ class Converter:
             file
             for file in os.listdir(self.dir)
             if os.path.isfile(os.path.join(self.dir, file))
-               and not file.endswith((".txt", ".docx"))
+            and not file.endswith((".txt", ".docx"))
         ]
         return files
 
