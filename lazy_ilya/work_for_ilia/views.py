@@ -212,6 +212,8 @@ class Cities(View):
         try:
             uploaded_file = request.FILES.get("cityFile")
             if not uploaded_file:
+                logger.error("Файл не загружен")
+                logger.error(f"FILES: {request.FILES}")
                 return JsonResponse({"error": "Файл не загружен"}, status=400)
 
             fs = OverwritingFileSystemStorage(
