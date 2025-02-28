@@ -342,7 +342,7 @@ class CitySearch {
             this.suggestionsList.innerHTML = '';
             this.renderCityCard(city);
             //  Отправляем запрос на сервер для записи выбора города
-            this.trackCitySelection(city);
+            // this.trackCitySelection(city);
         }
     }
 
@@ -531,8 +531,9 @@ class CitySearch {
                 newCard.classList.add('show');
             });
 
-
         }
+        // Отправляем запрос на сервер для записи информации о отображенном городе
+        this.trackCitySelection(city);
     }
 
     openEditModal(city) {

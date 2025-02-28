@@ -1,5 +1,6 @@
 class Statistics {
     constructor(stats) {
+        console.log(stats)
         this.statsContainer = document.getElementById('statsContainer');
         this.stats = [
             {
@@ -17,6 +18,18 @@ class Statistics {
                 subtext: stats.coffee_drunk.note || ''
             }
         ];
+        // Добавляем карточки для городов
+        if (typeof stats.popular_cities === 'object' && stats.popular_cities !== null) {
+            Object.keys(stats.popular_cities).forEach((cityKey) => {
+                const cityData = stats.popular_cities[cityKey];
+                this.stats.push({
+                    label: `Популярный город ${cityKey.replace('city', '')}`,
+                    value: cityData.amount || '0',
+                    subtext: cityData.name || ''
+                });
+            });
+        }
+
         console.log('Stats:', this.stats);
         this.init();
     }

@@ -189,7 +189,7 @@ class CounterCities(models.Model):
         auto_now_add=True, verbose_name="Дата создания/обновления"
     )
     dock_num: models.ForeignKey = models.ForeignKey(
-        SomeDataFromSomeTables, on_delete=models.CASCADE, verbose_name="Пункт в таблице документов"
+        SomeDataFromSomeTables, on_delete=models.CASCADE, verbose_name="Пункт в таблице документов",unique=True
     )
     count_responses: models.IntegerField = models.IntegerField(
         verbose_name="Количество запросов к этому городу"

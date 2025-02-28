@@ -2,6 +2,7 @@ import json
 import os.path
 import threading
 import traceback
+from pprint import pprint
 from typing import Any, Callable, Dict, List, Optional
 
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -619,15 +620,24 @@ class Statistic(View):
         formatted_date: str = (
             max_date.strftime("%d - %m - %Y") if max_date else "Нет данных"
         )
-
+        popular_city = CounterCities.objects.order_by('-count_responses')[:3]
         context: Dict[str, any] = {
-            "converted_files": str(total_files),
-            "hard_day": {
-                "max_date": formatted_date,
-                "max_day_files": str(max_total_files),
-            },
-            "coffee_drunk": {"amount": str(coffee), "note": "(1 кружка на 2 файла)"},
+            "statistics_json": json.dumps({
+                "converted_files": str(total_files),
+                "coffee_drunk": {
+                    "amount": str(coffee),
+                    "note": "(1 кружка на 2 файла)"
+                },
+                "hard_day": {
+                    "max_day_files": str(max_total_files),
+                    "max_date": formatted_date
+                },
+                "popular_cities": {f"city{num + 1}": {'name': el.dock_num.location,
+                                                      'amount': str(el.count_responses)} for num, el in
+                                   enumerate(popular_city)} if popular_city else ""
+            })
         }
+        pprint(context)
 
         logger.info(f"Контекст для статистики {context}")
         return render(
