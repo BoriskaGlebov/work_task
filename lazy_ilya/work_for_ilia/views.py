@@ -340,6 +340,13 @@ class Cities(View):
             )
 
             if city:
+                try:
+                    counter_city = CounterCities.objects.get(
+                        dock_num=city)  # changed name to the name u have in related model
+                    counter_city.delete()  # Удаляем запись CounterCities
+                except CounterCities.DoesNotExist:
+                    # Если CounterCities не существует, ничего страшного, продолжаем
+                    pass
                 # Очищаем поля города
                 city.location = ""
                 city.name_organ = ""

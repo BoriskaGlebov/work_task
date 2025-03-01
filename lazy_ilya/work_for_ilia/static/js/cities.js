@@ -51,11 +51,10 @@ class CitySearch {
         });
         // Используем делегирование событий для открытия модального окна и других действий
         this.citiesGrid.addEventListener('click', (event) => {
-            const target = event.target.closest('.city-card'); // Клик произошел на карточке
+            const target = event.target.closest('.city-card');
             if (target) {
                 event.stopPropagation();
                 const cityData = target.dataset.city;
-                console.log(cityData);
                 if (this.isAdmin || this.isIlia) {
                     const city = this.getCityFromCard(target);
                     if (city) {
@@ -352,7 +351,6 @@ class CitySearch {
      */
     async trackCitySelection(city) {
         try {
-            console.log(city)
             const response = await fetch(trackCities, {  //  Укажите URL-адрес для обработки запроса на сервере
                 method: 'POST',
                 headers: {
@@ -403,15 +401,7 @@ class CitySearch {
     getCityFromCard(card) {
         const tableId = card.dataset.tableId;
         const dockNum = card.dataset.dockNum;
-
-        if (!tableId || !dockNum) {
-            console.error('tableId or dockNum is missing on the card.');
-            return;
-        }
-        return this.cities.find(city =>
-            city.table_id === tableId &&
-            city.dock_num === dockNum
-        );
+        return this.cities.find(city => String(city.table_id) === tableId && String(city.dock_num) === dockNum);
     }
 
     /**
