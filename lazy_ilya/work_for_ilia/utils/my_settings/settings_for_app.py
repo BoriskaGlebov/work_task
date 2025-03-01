@@ -59,10 +59,11 @@ logger.add(
     sys.stdout,
     level="DEBUG",
     format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> - "
-    "<level>{level:^8}</level> - "
-    "<cyan>{name}</cyan>:<magenta>{line}</magenta> - "
-    "<yellow>{function}</yellow> - "
-    "<white>{message}</white> <magenta>{extra[filename]:^10}</magenta>",
+           "<level>{level:^8}</level> - "
+           "<cyan>{name}</cyan>:<magenta>{line}</magenta> - "
+           "<yellow>{function}</yellow> - "
+           "<white>{message}</white> <magenta>{extra[filename]:^10}</magenta>"
+           "<magenta>{extra[user]:^10}</magenta>",
     filter=filename_filter,
     catch=True,
     diagnose=True,
@@ -97,4 +98,4 @@ if __name__ == "__main__":
     s = ProjectSettings()
     print(s.tlg_dir)
     logger.error("Сообщение об ошибке")
-    logger.bind(filename="имя_файла").error("Сообщение об ошибке с именем файла")
+    logger.bind(filename="имя_файла",user="boris").error("Сообщение об ошибке с именем файла")

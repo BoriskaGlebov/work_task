@@ -1,8 +1,9 @@
-from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth.views import LoginView, LogoutView, PasswordResetCompleteView
 from django.urls import path
 from work_for_ilia.views import (Cities, Greater, Statistic,
                                  check_record_exists, city_form_view,
-                                 download_file, get_next_dock_num, track_city)
+                                 download_file, get_next_dock_num, track_city, register,
+                                 custom_password_reset)
 
 app_name = "work_for_ilia"
 urlpatterns = [
@@ -32,7 +33,13 @@ urlpatterns = [
     ),
     path(
         "logout",
-        LogoutView.as_view(template_name="work_for_ilia/index.html"),
+        LogoutView.as_view(next_page="work_for_ilia:login"),
         name="logout",
     ),
+    path('register/', register, name='register'),
+    path('password_reset/', custom_password_reset, name='password_reset'),
+    path('password_reset_complete/',
+         PasswordResetCompleteView.as_view(template_name='work_for_ilia/password_reset_complete.html'),
+         name='password_reset_complete'),
+    # Другие URL-шаблоны...
 ]

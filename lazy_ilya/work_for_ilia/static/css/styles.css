@@ -875,3 +875,16 @@ a {
 a:hover {
     text-decoration: none; /* Убирает подчеркивание при наведении */
 }
+.success-message-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.success-message-container p {
+    margin-bottom: 20px;
+}
+
+.success-message-container .primary-btn {
+    width: fit-content; /* Чтобы кнопка не была слишком широкой */
+}

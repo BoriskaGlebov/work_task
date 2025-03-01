@@ -5,18 +5,28 @@ import traceback
 from pprint import pprint
 from typing import Any, Callable, Dict, List, Optional
 
+from django import forms
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.forms import UserCreationForm, PasswordResetForm
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.views import PasswordResetView
+from django.contrib.sites.shortcuts import get_current_site
 from django.core import serializers
 from django.db.models import Max, Q, Sum, F
 from django.db.models.functions import TruncDate
 from django.http import FileResponse, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from django.views import View
 from django.views.generic import CreateView
-from work_for_ilia.forms import CitiesForm
+from work_for_ilia.forms import CitiesForm, CustomUserCreationForm, CustomPasswordResetForm
 from work_for_ilia.models import Counter, SomeDataFromSomeTables, SomeTables, CounterCities
 from work_for_ilia.utils.custom_converter.converter_to_docx import Converter
 from work_for_ilia.utils.my_settings.settings_for_app import (ProjectSettings,
@@ -28,13 +38,14 @@ from work_for_ilia.utils.storage import OverwritingFileSystemStorage
 
 
 # Create your views here.
-class Greater(View):
+class Greater(LoginRequiredMixin, View):
     """
     Класс для обработки загрузки документов и их парсинга.
 
     Этот класс обрабатывает HTTP-запросы для загрузки файлов,
     их конвертации в нужный формат и парсинга содержимого.
     """
+    login_url = reverse_lazy('work_for_ilia:login')
 
     def get(self, request: HttpRequest) -> HttpResponse:
         """
@@ -46,7 +57,7 @@ class Greater(View):
         Returns:
             HttpResponse: Ответ с загруженной формой.
         """
-        logger.debug("Загрузил страницу")
+        logger.bind(user=request.user.username).debug("Загрузил страницу")
         return render(request=request, template_name="work_for_ilia/index.html")
 
     def post(self, request: HttpRequest) -> JsonResponse:
@@ -94,19 +105,19 @@ class Greater(View):
                 file_path = os.path.join(ProjectSettings.tlg_dir, file)
                 if os.path.isfile(file_path) and not file_path.endswith(".txt"):
                     os.remove(file_path)
-            logger.debug(f"{new_files} - отправил названние новых файлов")
+            logger.bind(user=request.user.username).debug(f"{new_files} - отправил названние новых файлов")
             return JsonResponse({"content": content, "new_files": new_files})
 
         except ValueError as ve:
-            logger.error(f"ValueError: {str(ve)}")
+            logger.bind(user=request.user.username).error(f"ValueError: {str(ve)}")
             return JsonResponse({"error": "Неверный номер документа."}, status=400)
 
         except FileNotFoundError as fnfe:
-            logger.error(f"FileNotFoundError: {str(fnfe)}")
+            logger.bind(user=request.user.username).error(f"FileNotFoundError: {str(fnfe)}")
             return JsonResponse({"error": "Файл не найден."}, status=404)
 
         except Exception as e:
-            logger.error(str(e))
+            logger.bind(user=request.user.username).error(str(e))
             return JsonResponse({"error": str(e)}, status=500)
 
     def put(self, request: HttpRequest) -> JsonResponse:
@@ -141,7 +152,7 @@ class Greater(View):
                     file.write(new_content)
 
                 counter += 1
-                logger.info(f"Сохранил файл {new_file_name}")
+                logger.bind(user=request.user.username,filename=new_file_name).info(f"Сохранил файл ")
 
             res = Counter.objects.create(num_files=counter)
             res.save()
@@ -150,13 +161,13 @@ class Greater(View):
             )
 
         except json.JSONDecodeError:
-            logger.error(str("error") + "Неверный формат данных")
+            logger.bind(user=request.user.username).error(str("error") + "Неверный формат данных")
             return JsonResponse(
                 {"status": "error", "message": "Неверный формат данных."}, status=400
             )
 
         except Exception as e:
-            logger.error(str(e))
+            logger.bind(user=request.user.username).error(str(e))
             return JsonResponse({"error": str(e)}, status=500)
 
 
@@ -189,14 +200,14 @@ def group_or_superuser_required(group_name: str) -> Callable:
     return user_passes_test(check_user)
 
 
-class Cities(View):
+class Cities(LoginRequiredMixin,View):
     """
     Класс для обработки запросов, связанных с городами.
 
     Этот класс обрабатывает загрузку файлов с данными о городах, получение списка городов,
     обновление и удаление информации о городах.
     """
-
+    login_url = reverse_lazy("work_for_ilia:login")
     def post(self, request: HttpRequest) -> JsonResponse:
         """
         Обрабатывает загрузку файла с данными о городах.
@@ -210,8 +221,8 @@ class Cities(View):
         try:
             uploaded_file = request.FILES.get("cityFile")
             if not uploaded_file:
-                logger.error("Файл не загружен")
-                logger.error(f"FILES: {request.FILES}")
+                logger.bind(user=request.user.username).error("Файл не загружен")
+                logger.bind(user=request.user.username).error(f"FILES: {request.FILES}")
                 return JsonResponse({"error": "Файл не загружен"}, status=400)
 
             fs = OverwritingFileSystemStorage(
@@ -219,7 +230,7 @@ class Cities(View):
             )
             file_path = fs.save(uploaded_file.name, uploaded_file)
 
-            logger.info("Запуск обработки файла в отдельном потоке")
+            logger.bind(user=request.user.username).info("Запуск обработки файла в отдельном потоке")
 
             # Запускаем обработку файла в отдельном потоке
             threading.Thread(
@@ -231,7 +242,7 @@ class Cities(View):
         except Exception as e:
             # Если возникает исключение, логируем его и возвращаем сообщение об ошибке
             traceback_str = traceback.format_exc()  # Получаем полный traceback
-            logger.error(
+            logger.bind(user=request.user.username).error(
                 f"Ошибка при загрузке или обработке файла: {e}\n{traceback_str}"
             )
             return JsonResponse(
@@ -316,7 +327,7 @@ class Cities(View):
             )
 
         except Exception as e:
-            logger.error(f"Ошибка при обновлении города: {e}")
+            logger.bind(user=request.user.username).error(f"Ошибка при обновлении города: {e}")
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
     def delete(
@@ -366,7 +377,7 @@ class Cities(View):
             )
 
         except Exception as e:
-            logger.error(f"Ошибка при удалении города: {e}")
+            logger.bind(user=request.user.username).error(f"Ошибка при удалении города: {e}")
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
 
@@ -432,14 +443,14 @@ def city_form_view(request: HttpRequest) -> HttpResponse:
             form = CitiesForm(request.POST, instance=instance)
             button_text = "Обновить"
         except SomeDataFromSomeTables.DoesNotExist:
-            logger.info("Запись не существует, форма для создания новой записи")
+            logger.bind(user=request.user.username).info("Запись не существует, форма для создания новой записи")
 
         if form.is_valid():
             form.save()
-            logger.info("Форма успешно сохранена")
+            logger.bind(user=request.user.username).info("Форма успешно сохранена")
             return redirect(reverse_lazy("work_for_ilia:cities"))
         else:
-            logger.error(f"Форма не валидна. Ошибки: {form.errors}")
+            logger.bind(user=request.user.username).error(f"Форма не валидна. Ошибки: {form.errors}")
     else:
         # Если это GET-запрос, проверяем параметры
         table_id: Optional[str] = request.GET.get("table_id")
@@ -453,7 +464,7 @@ def city_form_view(request: HttpRequest) -> HttpResponse:
                 form = CitiesForm(instance=instance)
                 button_text = "Обновить"
             except SomeDataFromSomeTables.DoesNotExist:
-                logger.info("Запись не существует")
+                logger.bind(user=request.user.username).info("Запись не существует")
 
     tables: SomeTables = SomeTables.objects.all()
 
@@ -482,7 +493,7 @@ def city_form_view(request: HttpRequest) -> HttpResponse:
                 }
             )
         else:
-            logger.warning("Отправка пустого JSON ответа, т.к. instance не найден")
+            logger.bind(user=request.user.username).warning("Отправка пустого JSON ответа, т.к. instance не найден")
             return JsonResponse({})
 
     return render(request, "work_for_ilia/city_create_or_update.html", context)
@@ -580,7 +591,7 @@ def track_city(request: HttpRequest) -> JsonResponse:
         return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 
-class Statistic(View):
+class Statistic(LoginRequiredMixin,View):
     """
     Класс для обработки запросов статистики.
 
@@ -588,7 +599,7 @@ class Statistic(View):
     включая общее количество файлов, количество кофе, выпитого на основе статистики,
     и день с максимальным количеством обработанных файлов.
     """
-
+    login_url = reverse_lazy("work_for_ilia:login")
     def get(self, request: HttpRequest) -> HttpResponse:
         """
         Получает статистику по обработанным файлам.
@@ -644,11 +655,42 @@ class Statistic(View):
                                    enumerate(popular_city)} if popular_city else ""
             })
         }
-        pprint(context)
 
-        logger.info(f"Контекст для статистики {context}")
+        logger.bind(user=request.user.username).info(f"Контекст для статистики {context}")
         return render(
             request=request,
             template_name="work_for_ilia/statistics.html",
             context=context,
         )
+
+
+def register(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            logger.bind(user=request.user.username).info(f"Создал нового пользователя {request.user.username}")
+            return redirect(reverse_lazy("work_for_ilia:index"))
+    else:
+        logger.bind(user=request.user.username).warning(f"Попытка создать нового пользователя {request.user.username}")
+        form = CustomUserCreationForm()
+    return render(request, 'work_for_ilia/register.html', {'form': form})
+
+
+def custom_password_reset(request):
+    if request.method == 'POST':
+        form = CustomPasswordResetForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            user = User.objects.get(username=username)
+            new_password1 = form.cleaned_data['new_password1']
+            user.set_password(new_password1)
+            user.save()
+            logger.bind(user=request.user.username).info(f"Сброс пароля для пользователя {request.user.username}")
+            return redirect(reverse_lazy('work_for_ilia:password_reset_complete'))
+
+    else:
+        logger.bind(user=request.user.username).warning(f"Попытка Сброса пароля для пользователя {request.user.username}")
+        form = CustomPasswordResetForm()
+    return render(request, 'work_for_ilia/password_reset.html', {'form': form})
