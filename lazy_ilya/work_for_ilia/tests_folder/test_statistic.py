@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from django.contrib.auth.models import User
 from django.db.models import Sum
 from django.db.models.functions import TruncDate
 from django.http import HttpRequest, HttpResponse
@@ -13,12 +14,16 @@ class TestStatisticView(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.view = Statistic.as_view()
+        self.user = User.objects.create(username="admin", password="12345")
+        self.user.is_superuser = True
+        self.user.save()
 
     def test_get_request(self):
         # Создаем запрос
         request = self.factory.get(
             reverse("work_for_ilia:statistics")
         )  # Укажите правильное имя URL
+        request.user=self.user
         response = self.view(request)
 
         # Проверяем статус ответа
@@ -35,6 +40,7 @@ class TestStatisticView(TestCase):
         request = self.factory.get(
             reverse("work_for_ilia:statistics")
         )  # Укажите правильное имя URL
+        request.user=self.user
         response = self.view(request)
         self.assertIsInstance(response, HttpResponse)  # Проверка типа ответа
         content = response.content.decode("utf-8")  # Прочитать содержимое ответа
@@ -55,12 +61,13 @@ class TestStatisticView(TestCase):
         request = self.factory.get(
             reverse("work_for_ilia:statistics")
         )  # Укажите правильное имя URL
+        request.user=self.user
         response = self.view(request)
         self.assertIsInstance(response, HttpResponse)  # Проверка типа ответа
         content = response.content.decode("utf-8")  # Прочитать содержимое ответа
         # Проверяем общее количество файлов
         total_files = Counter.objects.aggregate(total=Sum("num_files"))["total"] or 0
-        self.assertIn('"converted_files": "15"', content)
+        self.assertIn('&quot;converted_files&quot;: &quot;15&quot', content)
 
     def test_max_day(self):
         # Создаем тестовые данные
@@ -73,6 +80,7 @@ class TestStatisticView(TestCase):
         request = self.factory.get(
             reverse("work_for_ilia:statistics")
         )  # Укажите правильное имя URL
+        request.user=self.user
         response = self.view(request)
         self.assertIsInstance(response, HttpResponse)
         content = response.content.decode("utf-8")
@@ -93,8 +101,8 @@ class TestStatisticView(TestCase):
         # Предположим, что max_date — это объект datetime.date
         max_date = datetime.now().date()  # или любая другая дата
         formatted_date = max_date.strftime("%d - %m - %Y")
-        self.assertIn('"max_day_files": "15"', content)
-        self.assertIn(f'"max_date": "{formatted_date}"', content)
+        self.assertIn(f'&quot;max_day_files&quot;: &quot;{max_total_files}&quot', content)
+        self.assertIn(f'&quot;max_date&quot;: &quot;{formatted_date}&quot', content)
 
     def test_coffee(self):
         # Создаем тестовые данные
@@ -103,14 +111,17 @@ class TestStatisticView(TestCase):
             num_files=5, processed_at=datetime.now() - timedelta(days=1)
         )
 
+
+
         # Создаем запрос
         request = self.factory.get(
             reverse("work_for_ilia:statistics")
         )  # Укажите правильное имя URL
+        request.user=self.user
         response = self.view(request)
         self.assertIsInstance(response, HttpResponse)
         content = response.content.decode("utf-8")
         # Проверяем количество кофе
         total_files = Counter.objects.aggregate(total=Sum("num_files"))["total"] or 0
         coffee = total_files // 2
-        self.assertIn(f'"amount": "{coffee}"', content)
+        self.assertIn(f'&quot;amount&quot;: &quot;{coffee}&quot;', content)
