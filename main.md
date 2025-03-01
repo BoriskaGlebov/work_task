@@ -15,6 +15,7 @@
 
 ## Скачать whl файлы согласно списка рекомендаций для оффлайн установки
 
+
 1. `python -m pip wheel -r requirements.txt -w dist`
 2. `python -m pip download -r requirements.txt --dest dist --only-binary :all:`
 3. `python -m pip download -r .\requirements.txt`

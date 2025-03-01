@@ -38,6 +38,10 @@
                 </div>
                 <button type="submit" class="primary-btn">Войти</button>
             </form>
+            <div class="additional-links">
+                <p>Нет аккаунта? <a href="{% url 'work_for_ilia:register' %}">Зарегистрироваться</a></p>
+                <p>Забыли пароль? <a href="{% url 'work_for_ilia:password_reset' %}">Восстановить пароль</a></p>
+            </div>
         </div>
     </div>
 

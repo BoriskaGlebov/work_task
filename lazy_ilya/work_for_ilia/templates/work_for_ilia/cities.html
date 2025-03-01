@@ -109,6 +109,7 @@
     </script>
     <script>
         const uploadUrl = "{% url 'work_for_ilia:cities' %}";
+        const trackCities="{% url 'work_for_ilia:track_cities' %}"
         const csrfToken = '{{ csrf_token }}';
     </script>
     <script src="{% static 'js/cities.js' %}"></script>
