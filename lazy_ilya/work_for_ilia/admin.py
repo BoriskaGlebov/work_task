@@ -2,7 +2,7 @@ from typing import List, Tuple
 
 from django.contrib import admin
 from django.db.models import QuerySet
-from work_for_ilia.models import Counter, SomeDataFromSomeTables, SomeTables
+from work_for_ilia.models import Counter, SomeDataFromSomeTables, SomeTables, CounterCities
 
 
 @admin.register(Counter)
@@ -101,3 +101,30 @@ class SomeDataFromSomeTablesAdmin(admin.ModelAdmin):
     search_fields: Tuple[str] = ("location", "name_organ", "pseudonim")
     list_display_links: Tuple[str] = "id", "location"
     list_filter: Tuple[str] = ("processed_at", "table_id")
+
+
+@admin.register(CounterCities)
+class CounterCitiesAdmin(admin.ModelAdmin):
+    """
+    Административный интерфейс для модели CounterCities.
+
+    Attributes:
+        list_display (Tuple[str]): Список полей, отображаемых в списке объектов модели в
+            административном интерфейсе Django.
+            В данном случае: "id", "dock_num", "count_responses"
+
+        list_display_links (Tuple[str]): Список полей, которые будут отображаться как ссылки на
+            страницу редактирования объекта в административном интерфейсе Django.
+            В данном случае: "id", "dock_num"
+
+        list_filter (Tuple[str]): Список полей, по которым можно фильтровать список объектов
+            модели в административном интерфейсе Django.
+            В данном случае: ("processed_at", "dock_num","count_responses")
+    """
+    list_display: Tuple[str] = (
+        "id",
+        "dock_num",
+        "count_responses"
+    )
+    list_display_links: Tuple[str] = "id", "dock_num"
+    list_filter: Tuple[str] = ("processed_at", "dock_num", "count_responses")

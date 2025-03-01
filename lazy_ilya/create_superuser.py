@@ -99,6 +99,11 @@ class GroupManager:
                     "change_somedatafromsometables",
                     "delete_somedatafromsometables",
                     "view_somedatafromsometables",
+                    "add_countercities",
+                    "change_countercities",
+                    "delete_countercities",
+                    "view_countercities"
+
                 ],
             },
             {
@@ -107,6 +112,7 @@ class GroupManager:
                     "view_counter",
                     "view_sometables",
                     "view_somedatafromsometables",
+                    "view_countercities"
                 ],
             },
         ]
