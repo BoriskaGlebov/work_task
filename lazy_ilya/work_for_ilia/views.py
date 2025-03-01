@@ -664,7 +664,16 @@ class Statistic(LoginRequiredMixin,View):
         )
 
 
-def register(request):
+def register(request: HttpRequest) -> HttpResponse:
+    """
+    Обрабатывает регистрацию нового пользователя.
+
+    Args:
+        request (HttpRequest): Объект запроса.
+
+    Returns:
+        HttpResponse: Ответ с формой регистрации или перенаправление на главную страницу после успешной регистрации.
+    """
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
@@ -673,12 +682,22 @@ def register(request):
             logger.bind(user=request.user.username).info(f"Создал нового пользователя {request.user.username}")
             return redirect(reverse_lazy("work_for_ilia:index"))
     else:
-        logger.bind(user=request.user.username).warning(f"Попытка создать нового пользователя {request.user.username}")
+        # Поскольку пользователь еще не авторизован, логирование попытки регистрации будет без имени пользователя
+        logger.info(f"Попытка создать нового пользователя")
         form = CustomUserCreationForm()
     return render(request, 'work_for_ilia/register.html', {'form': form})
 
 
-def custom_password_reset(request):
+def custom_password_reset(request: HttpRequest) -> HttpResponse:
+    """
+    Обрабатывает сброс пароля для существующего пользователя.
+
+    Args:
+        request (HttpRequest): Объект запроса.
+
+    Returns:
+        HttpResponse: Ответ с формой сброса пароля или перенаправление на страницу подтверждения после успешного сброса.
+    """
     if request.method == 'POST':
         form = CustomPasswordResetForm(request.POST)
         if form.is_valid():
@@ -687,10 +706,9 @@ def custom_password_reset(request):
             new_password1 = form.cleaned_data['new_password1']
             user.set_password(new_password1)
             user.save()
-            logger.bind(user=request.user.username).info(f"Сброс пароля для пользователя {request.user.username}")
+            logger.bind(user=username).info(f"Сброс пароля для пользователя {username}")
             return redirect(reverse_lazy('work_for_ilia:password_reset_complete'))
-
     else:
-        logger.bind(user=request.user.username).warning(f"Попытка Сброса пароля для пользователя {request.user.username}")
+        logger.info(f"Попытка сброса пароля")
         form = CustomPasswordResetForm()
     return render(request, 'work_for_ilia/password_reset.html', {'form': form})
