@@ -2,3 +2,6 @@
 venv
 dist
 requirements.txt
+db.sqlite3
+lazy_ilya/db.sqlite3
+lazy_ilya/file.log

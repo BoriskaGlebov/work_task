@@ -1,9 +1,30 @@
-
 services:
   web:
-    build: .
-    command: python manage.py migrate && python manage.py runserver 0.0.0.0:8000
+    container_name: web
+    build:
+      context: .
+      dockerfile: Dockerfile  # Указываем путь к Dockerfile
     ports:
-      - "8000:8000"
+      - "8000:8000"  # Проброс порта 8000 (Django)
     volumes:
-      - "C:/Users/peopl/Downloads/ad:test_dir"
+      - db_data:/work_task/lazy_ilya/
+      - static_data:/work_task/lazy_ilya/work_for_ilia/static/ # Проброс статических файлов0
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: [ "sh", "-c", "python manage.py runserver 0.0.0.0:8000" ]
+
+  nginx:
+    image: nginx:alpine  # Используем образ Nginx
+    container_name: nginx
+    ports:
+      - "80:80"  # Проброс порта для Nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf  # Монтируем конфигурационный файл для Nginx,mnbv
+      - static_data:/work_task/lazy_ilya/work_for_ilia/static/ # Проброс статических файлов0
+    depends_on:
+      - web  # Указываем, что Nginx зависит от веб-приложения
+#
+volumes:
+  db_data:
+  static_data:  # Volume для статических файлов
+#
