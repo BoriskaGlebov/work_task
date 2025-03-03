@@ -591,7 +591,7 @@ class CitySearch {
             ip_address: editCityIpAddress.value,
             work_time: editCityWorkTime.value
         };
-        const url = `/work/cities/${encodeURIComponent(tableId)}/${encodeURIComponent(dockNum)}/`;
+        const url = `/cities/${encodeURIComponent(tableId)}/${encodeURIComponent(dockNum)}/`;
 
         try {
             const response = await fetch(url, {
@@ -647,7 +647,7 @@ class CitySearch {
 
         if (confirm('Вы уверены, что хотите удалить данные о городе?')) {
             try {
-                const response = await fetch(`/work/cities/${encodeURIComponent(tableId)}/${encodeURIComponent(dockNum)}/`, {
+                const response = await fetch(`/cities/${encodeURIComponent(tableId)}/${encodeURIComponent(dockNum)}/`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',

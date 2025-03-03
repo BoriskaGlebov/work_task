@@ -113,11 +113,28 @@ class DownloadProgressConsumer(AsyncWebsocketConsumer):
         thread: threading.Thread = threading.Thread(target=self.generate_file)
         thread.start()
 
+    def send_error_to_channel(self, error_message: str) -> None:
+        async def send_error_async() -> None:
+            await self.channel_layer.group_send(
+                self.group_name,
+                {
+                    "type": "send_error",
+                    "error": error_message,
+                },
+            )
+
+        loop: asyncio.AbstractEventLoop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(send_error_async())
+
     def generate_file(self) -> None:
         """
         Генерирует файл с использованием `GlobusParser` и отправляет обновления прогресса.
         """
-        GlobusParser.create_globus(send_progress=self.send_progress_to_channel)
+        try:
+            GlobusParser.create_globus(send_progress=self.send_progress_to_channel)
+        except Exception as e:
+            self.send_error_to_channel(str(e))
 
     def send_progress_to_channel(self, progress: int) -> None:
         """
@@ -152,6 +169,12 @@ class DownloadProgressConsumer(AsyncWebsocketConsumer):
 
         await self.send(
             text_data=json.dumps({"progress": progress, "file_url": file_url})
+        )
+
+    async def send_error(self, event: Dict[str, Any]) -> None:
+        error_message: str = event["error"]
+        await self.send(
+            text_data=json.dumps({"error": error_message})
         )
 
     async def disconnect(self, close_code: int) -> None:

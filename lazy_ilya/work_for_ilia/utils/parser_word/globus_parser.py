@@ -272,12 +272,22 @@ class GlobusParser:
         cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
 
     @classmethod
+    # @logger.catch(message="Непредвиденное исключение")
     def create_globus(
-        cls,
-        filename: str = "globus_new.docx",
-        send_progress: Optional[Callable[[int], None]] = None,
+            cls,
+            filename: str = "globus_new.docx",
+            send_progress: Optional[Callable[[int], None]] = None,
     ) -> None:
-        """Создает документ Word с данными о городах."""
+        """
+        Создает документ Word с данными о городах.
+        Args:
+            filename (str): Имя файла для сохранения (по умолчанию: "globus_new.docx").
+            send_progress (Optional[Callable[[int], None]]): Функция для отправки прогресса.
+        Raises:
+
+            ValueError: Если нет данных для добавления в файл.
+
+        """
         document: Document = Document()
 
         # Получение секции документа
@@ -332,80 +342,83 @@ class GlobusParser:
         ]
         table_headers2: List[str] = ["Письма", "Написание", "Сетевой адрес IP"]
         document.add_paragraph("Какой-то текст для начала")
-        for num, name in enumerate(tables_name):
-            paragraph: Any = document.add_paragraph(name[1], style="CustomHeadingStyle")
-            document.add_paragraph()
-            paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT  # Выравнивание по центру
+        if tables_name:
+            for num, name in enumerate(tables_name):
+                paragraph: Any = document.add_paragraph(name[1], style="CustomHeadingStyle")
+                document.add_paragraph()
+                paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT  # Выравнивание по центру
 
-            table_data = SomeDataFromSomeTables.objects.filter(
-                table_id=name[0]
-            ).values_list(
-                "table_id",
-                "dock_num",
-                "location",
-                "name_organ",
-                "pseudonim",
-                "letters",
-                "writing",
-                "ip_address",
-                "some_number",
-                "work_timme",
-            )
-            # Добавление таблицы
-            table: Any = document.add_table(rows=3 + len(table_data), cols=9)
-            table.cell(0, 0).merge(table.cell(2, 0))  # Объединяем ячейки
-            table.cell(0, 1).merge(table.cell(2, 1))  # Объединяем ячейки
-            table.cell(0, 2).merge(table.cell(2, 2))  # Объединяем ячейки
-            table.cell(0, 3).merge(table.cell(2, 3))  # Объединяем ячейки
-            #
-            table.cell(0, 4).merge(table.cell(0, 6))  # Объединяем ячейки
-            table.cell(1, 4).merge(table.cell(2, 4))  # Объединяем ячейки
-            table.cell(1, 5).merge(table.cell(2, 5))  # Объединяем ячейки
-            table.cell(1, 6).merge(table.cell(2, 6))  # Объединяем ячейки
+                table_data = SomeDataFromSomeTables.objects.filter(
+                    table_id=name[0]
+                ).values_list(
+                    "table_id",
+                    "dock_num",
+                    "location",
+                    "name_organ",
+                    "pseudonim",
+                    "letters",
+                    "writing",
+                    "ip_address",
+                    "some_number",
+                    "work_timme",
+                )
+                # Добавление таблицы
+                table: Any = document.add_table(rows=3 + len(table_data), cols=9)
+                table.cell(0, 0).merge(table.cell(2, 0))  # Объединяем ячейки
+                table.cell(0, 1).merge(table.cell(2, 1))  # Объединяем ячейки
+                table.cell(0, 2).merge(table.cell(2, 2))  # Объединяем ячейки
+                table.cell(0, 3).merge(table.cell(2, 3))  # Объединяем ячейки
+                #
+                table.cell(0, 4).merge(table.cell(0, 6))  # Объединяем ячейки
+                table.cell(1, 4).merge(table.cell(2, 4))  # Объединяем ячейки
+                table.cell(1, 5).merge(table.cell(2, 5))  # Объединяем ячейки
+                table.cell(1, 6).merge(table.cell(2, 6))  # Объединяем ячейки
 
-            table.cell(0, 7).merge(table.cell(2, 7))  # Объединяем ячейки
-            table.cell(0, 8).merge(table.cell(2, 8))  # Объединяем ячейки
+                table.cell(0, 7).merge(table.cell(2, 7))  # Объединяем ячейки
+                table.cell(0, 8).merge(table.cell(2, 8))  # Объединяем ячейки
 
-            table.style = "Table Grid"  # Установка стиля таблицы с границами
+                table.style = "Table Grid"  # Установка стиля таблицы с границами
 
-            # Добавление заголовков таблицы
-            hdr_cells: List[Any] = table.rows[0].cells
-            hdr_cells[0].text = table_headers[0]
-            hdr_cells[1].text = table_headers[1]
-            hdr_cells[2].text = table_headers[2]
-            hdr_cells[3].text = table_headers[3]
-            hdr_cells[4].text = table_headers[4]
-            hdr_cells[7].text = table_headers[5]
-            hdr_cells[8].text = table_headers[6]
-            hdr_cells1: List[Any] = table.rows[1].cells
-            for i, header in enumerate(table_headers2):
-                hdr_cells1[i + 4].text = header
-            # Установка стиля для всех ячеек
-            for row_num, row in enumerate(table.rows):
-                for cell_num, cell in enumerate(row.cells):
-                    cls.style_cell_text(cell)
-                    if row_num >= 3:
-                        # Получаем данные для вставки
-                        data_insert: str = str(
-                            table_data[row_num - 3][cell_num + 1]
-                        ).replace("<br>", "\n")
-                        if data_insert == "True":
-                            data_insert = "+"
-                        elif data_insert == "False":
-                            data_insert = "-"
-                        cell.text = data_insert
-                        if cell_num in [0, 1, 3, 4, 5, 7]:
-                            cls.style_cell_text(cell)
-                        else:
-                            cls.style_cell_text(cell, justifu=True)
-            # Отправляем прогресс
-            progress: int = int(((num + 1) / len(tables_name)) * 100)
-            logger.info(f"Прогресс создания документа {progress}%")
-            # Отправляем прогресс
-            if send_progress:
-                progress = int(((num + 1) / len(tables_name)) * 100)
-                send_progress(progress)
-            document.add_page_break()
+                # Добавление заголовков таблицы
+                hdr_cells: List[Any] = table.rows[0].cells
+                hdr_cells[0].text = table_headers[0]
+                hdr_cells[1].text = table_headers[1]
+                hdr_cells[2].text = table_headers[2]
+                hdr_cells[3].text = table_headers[3]
+                hdr_cells[4].text = table_headers[4]
+                hdr_cells[7].text = table_headers[5]
+                hdr_cells[8].text = table_headers[6]
+                hdr_cells1: List[Any] = table.rows[1].cells
+                for i, header in enumerate(table_headers2):
+                    hdr_cells1[i + 4].text = header
+                # Установка стиля для всех ячеек
+                for row_num, row in enumerate(table.rows):
+                    for cell_num, cell in enumerate(row.cells):
+                        cls.style_cell_text(cell)
+                        if row_num >= 3:
+                            # Получаем данные для вставки
+                            data_insert: str = str(
+                                table_data[row_num - 3][cell_num + 1]
+                            ).replace("<br>", "\n")
+                            if data_insert == "True":
+                                data_insert = "+"
+                            elif data_insert == "False":
+                                data_insert = "-"
+                            cell.text = data_insert
+                            if cell_num in [0, 1, 3, 4, 5, 7]:
+                                cls.style_cell_text(cell)
+                            else:
+                                cls.style_cell_text(cell, justifu=True)
+                # Отправляем прогресс
+                progress: int = int(((num + 1) / len(tables_name)) * 100)
+                logger.info(f"Прогресс создания документа {progress}%")
+                # Отправляем прогресс
+                if send_progress:
+                    progress = int(((num + 1) / len(tables_name)) * 100)
+                    send_progress(progress)
+                document.add_page_break()
+        else:
+            raise ValueError("Файл пустой. Нет данных для добавления.")
         document.save(os.path.join(ProjectSettings.tlg_dir, filename))
 
 
