@@ -9,8 +9,8 @@ COPY requirements2.txt .
 COPY dist2 dist2/
 #
 # Устанавливаем зависимости
-#RUN pip install --no-index --find-links dist -r requirements.txt`
-RUN pip install -r requirements2.txt
+#RUN pip install --no-index --find-links dist -r requirements.txt
+RUN pip install --no-index --find-links dist2 -r requirements2.txt
 #
 # Копируем остальные файлы приложения
 COPY . .

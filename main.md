@@ -26,6 +26,24 @@
 
 `python -m pip install --no-index --find-links dist -r requirements.txt`
 
+
+## Скачать docker образ, а потом загрузить для сборки образа на его основе
+
+```bash 
+  docker save python:3.12-slim -o .\dist2\python_3.12_slim.tar 
+  docker save nginx:alpine -o .\dist2\nginx_alpine.tar 
+```
+
+## Сборка из образа 
+
+```bash
+    docker load -i .\dist2\python_3.12_slim.tar
+    docker load -i .\dist2\nginx_alpine.tar
+
+
+```
+
+
 [репка с образами](https://disk.yandex.ru/d/mwNyjrgPqyo8oA)<br>
 [grafana](https://disk.yandex.ru/d/FeRgvtyFiNpXFw)
 
