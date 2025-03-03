@@ -193,7 +193,7 @@ class CounterCities(models.Model):
             Автоматически устанавливается при создании и каждом обновлении записи.
             verbose_name: "Дата создания/обновления"
 
-        dock_num (ForeignKey): Ссылка на запись в таблице `SomeDataFromSomeTables`, представляющую
+        dock_num (OneToOneField): Ссылка на запись в таблице `SomeDataFromSomeTables`, представляющую
             конкретный пункт в таблице документов. Используется для идентификации города.
             on_delete: models.CASCADE - Если связанная запись в `SomeDataFromSomeTables` удалена,
             то и запись в `CounterCities` будет удалена.
@@ -215,9 +215,8 @@ class CounterCities(models.Model):
     processed_at: models.DateTimeField = models.DateTimeField(
         auto_now_add=True, verbose_name="Дата создания/обновления"
     )
-    dock_num: models.ForeignKey = models.ForeignKey(
-        SomeDataFromSomeTables, on_delete=models.CASCADE, verbose_name="Пункт в таблице документов", unique=True
-    )
+    dock_num: models.OneToOneField = models.OneToOneField(SomeDataFromSomeTables, on_delete=models.CASCADE,
+                                                          verbose_name="Пункт в таблице документов")
     count_responses: models.IntegerField = models.IntegerField(
         verbose_name="Количество запросов к этому городу"
     )

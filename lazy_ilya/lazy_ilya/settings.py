@@ -131,7 +131,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = reverse_lazy("work_for_ilia:login")
 
 # URL для перенаправления пользователей после успешного входа.
-LOGIN_REDIRECT_URL = reverse_lazy("work_for_ilia:cities")
+LOGIN_REDIRECT_URL = reverse_lazy("work_for_ilia:index")
 
 # Указание приложения ASGI для проекта Django.
 # ASGI (Asynchronous Server Gateway Interface) — это интерфейс для асинхронных веб-приложений.
@@ -148,5 +148,5 @@ CHANNEL_LAYERS = {
 }
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_COOKIE_AGE = 60  # Время жизни сессии в секундах (например, 30 минут)
+SESSION_COOKIE_AGE = 30*60 # Время жизни сессии в секундах (например, 30 минут)
 SESSION_SAVE_EVERY_REQUEST = True  # Обновляет таймер сессии при каждом запросе

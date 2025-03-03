@@ -12,6 +12,7 @@
     <title>{% block title %}Base title{% endblock %}</title>
 
     <script type="text/javascript" src="{% static 'js/jquery.js' %}"></script>
+    <script type="application/javascript" src="{% static 'js/logout.js' %}"></script>
     <!-- Заголовок страницы, который можно переопределить в дочерних шаблонах -->
 </head>
 <body>
@@ -26,7 +27,11 @@
         <!-- Ссылка на страницу статистики -->
         {% if user.is_authenticated %}
             <!-- Если пользователь авторизован -->
-            <a href="{% url 'work_for_ilia:logout' %}" class="nav-link logout-link">LOGOUT</a>
+            {#            <a href="{% url 'work_for_ilia:logout' %}" class="nav-link logout-link">LOGOUT</a>#}
+            <form action="{% url 'work_for_ilia:logout' %}" method="post" class=" nav-link nav-form">
+                {% csrf_token %}
+                <button type="submit" class="nav-link logout-link">LOGOUT</button>
+            </form>
         {% else %}
             <!-- Если пользователь не авторизован -->
             <a href="{% url 'work_for_ilia:login' %}" class="nav-link active admin-link">Админ панель</a>
