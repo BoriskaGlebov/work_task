@@ -12,6 +12,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
     command: [ "sh", "-c", "python manage.py runserver 0.0.0.0:8000" ]
+    restart: always
 
   nginx:
     image: nginx:alpine  # Используем образ Nginx
@@ -23,6 +24,7 @@ services:
       - static_data:/work_task/lazy_ilya/work_for_ilia/static/ # Проброс статических файлов0
     depends_on:
       - web  # Указываем, что Nginx зависит от веб-приложения
+    restart: always
 #
 volumes:
   db_data:
