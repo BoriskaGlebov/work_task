@@ -1,98 +1,47 @@
 :root {
-    --primary-color: #2b579a;  /* Основной цвет, используемый для фона навигационной панели */
-    --secondary-color: #d83b01;  /* Второстепенный цвет, используемый для кнопок */
-    --text-color: #333;  /* Цвет текста */
-    --bg-color: #f5f5f5;  /* Фоновый цвет страницы */
-    --border-color: #e0e0e0;  /* Цвет границ */
-    --card-bg: #ffffff;  /* Фоновый цвет карточек */
+    --primary-color: #2b579a; /* Основной цвет, используемый для фона навигационной панели */
+    --secondary-color: #d83b01; /* Второстепенный цвет, используемый для кнопок */
+    --text-color: #333; /* Цвет текста */
+    --bg-color: #f5f5f5; /* Фоновый цвет страницы */
+    --border-color: #e0e0e0; /* Цвет границ */
+    --card-bg: #ffffff; /* Фоновый цвет карточек */
 }
 
 * {
     box-sizing: border-box;  /* Включает режим box-sizing для всех элементов */
-    margin: 0;  /* Убирает внешние отступы */
-    padding: 0;  /* Убирает внутренние отступы */
+    /*margin: 0;  !* Убирает внешние отступы *!*/
+    /*padding: 0;  !* Убирает внутренние отступы *!*/
 }
 
 body {
-    font-family: 'Segoe UI', Arial, sans-serif;  /* Устанавливает шрифт для текста */
-    line-height: 1.6;  /* Высота строки текста */
-    background-color: var(--bg-color);  /* Фоновый цвет страницы */
-    color: var(--text-color);  /* Цвет текста */
+    font-family: 'Segoe UI', Arial, sans-serif; /* Устанавливает шрифт для текста */
+    line-height: 1.6; /* Высота строки текста */
+    background-color: var(--bg-color); /* Фоновый цвет страницы */
+    color: var(--text-color); /* Цвет текста */
 }
 
-.nav-bar {
-    background-color: var(--primary-color);  /* Фоновый цвет навигационной панели */
-    padding: 1rem;  /* Внутренние отступы */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);  /* Тень под навигационной панелью */
-}
-
-.nav-container {
-    width: 95%;  /* Ширина контейнера */
-    /*max-width: 1400px;  !* Максимальная ширина контейнера *!*/
-    margin: 0 auto;  /* Выравнивание контейнера по центру */
-    display: flex;  /* Используем Flexbox для расположения элементов */
-    justify-content: flex-start;  /* Выравнивание элементов по горизонтали */
-    align-items: center;  /* Выравнивание элементов по вертикали */
-    gap: 1rem;  /* Промежуток между элементами */
-}
-
-.nav-link {
-    color: white;  /* Цвет текста ссылок */
-    text-decoration: none;  /* Убирает подчеркивание ссылок */
-    padding: 0.5rem 1rem;  /* Внутренние отступы ссылок */
-    border-radius: 4px;  /* Закругленные углы ссылок */
-    transition: background-color 0.3s ease;  /* Анимация перехода фона */
-    display: inline-block;  /* Ссылка ведет себя как inline-блок */
-    text-align: center;  /* Выравнивание текста по центру */
-}
-
-.nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.1);  /* Фон ссылки при наведении */
-}
-
-.nav-link.active {
-    background-color: rgba(255, 255, 255, 0.2);  /* Фон активной ссылки */
-}
-
-.logout-link {
-    background-color: var(--secondary-color);  /* Фоновый цвет кнопки выхода */
-    border: none;  /* Убираем границу кнопки */
-    cursor: pointer;  /* Курсор как у ссылки */
-    font-family: inherit;  /* Наследуем шрифт */
-    font-size: inherit;  /* Наследуем размер шрифта */
-    width: 100%;  /* Занимаем всю ширину формы */
-    height: 100%;  /* Занимаем всю высоту формы */
-}
-
-.nav-form {
-    display: inline-block;  /* Форма ведет себя как inline-элемент */
-    margin: 0;  /* Убираем внешние отступы */
-    padding: 0;  /* Убираем внутренние отступы */
-}
 
 @media (max-width: 480px) {
+
     /* Дополнительные стили для очень маленьких экранов */
 }
 
 @media (max-width: 767px) {
-    .nav-container {
-        flex-direction: column;  /* Изменяем направление на вертикальное */
-        align-items: stretch;  /* Растягиваем элементы на всю ширину */
-    }
+
 }
 
 @media (max-width: 991px) {
+
     /* Дополнительные стили для средних экранов */
 }
 
 @media (max-width: 1199px) {
+
     /* Дополнительные стили для больших экранов */
 }
 
 @media (min-width: 1200px) {
-    .nav-container{
-        width: 80%;
-    }
+
     /* Дополнительные стили для очень больших экранов */
 }
 

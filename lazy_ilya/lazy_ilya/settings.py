@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "daphne",
     "django.contrib.staticfiles",
-    "work_for_ilia.apps.WorkForIliaConfig",
+    # "work_for_ilia.apps.WorkForIliaConfig",
+    "file_creator.apps.FileCreatorConfig",
     "channels",
 ]
 
@@ -58,7 +59,7 @@ ROOT_URLCONF = "lazy_ilya.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(BASE_DIR,"lazy_ilya", "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -87,19 +88,19 @@ DATABASES = {
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    # {
-    #     "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    # },
-    # {
-    #     "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    # },
-    # {
-    #     "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    # },
-    # {
-    #     "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    # },
-    {"NAME": "work_for_ilia.validators.CustomPasswordValidator"}
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
+    # {"NAME": "work_for_ilia.validators.CustomPasswordValidator"}
 ]
 
 # Internationalization
@@ -117,7 +118,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = "static/"
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+STATIC_ROOT = os.path.join(
+    BASE_DIR, "staticfiles"
+)  # Сюда импортируются все файлы статики для всех приложений
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "lazy_ilya","static")]
+
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -128,10 +134,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # URL для перенаправления неавторизованных пользователей при попытке доступа к защищенным страницам.
 # Замените на ваш URL для страницы входа, если он отличается.
-LOGIN_URL = reverse_lazy("work_for_ilia:login")
+# LOGIN_URL = reverse_lazy("work_for_ilia:login")
 
 # URL для перенаправления пользователей после успешного входа.
-LOGIN_REDIRECT_URL = reverse_lazy("work_for_ilia:index")
+# LOGIN_REDIRECT_URL = reverse_lazy("work_for_ilia:index")
 
 # Указание приложения ASGI для проекта Django.
 # ASGI (Asynchronous Server Gateway Interface) — это интерфейс для асинхронных веб-приложений.
