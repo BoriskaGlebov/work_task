@@ -99,3 +99,4 @@ if __name__ == "__main__":
     print(s.tlg_dir)
     logger.error("Сообщение об ошибке")
     logger.bind(filename="имя_файла",user="boris").error("Сообщение об ошибке с именем файла")
+    logger.error('sdf')
