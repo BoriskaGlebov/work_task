@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # "work_for_ilia.apps.WorkForIliaConfig",
     "file_creator.apps.FileCreatorConfig",
+    "myauth.apps.MyauthConfig",
     "channels",
 ]
 
@@ -59,7 +60,7 @@ ROOT_URLCONF = "lazy_ilya.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR,"lazy_ilya", "templates")],
+        "DIRS": [os.path.join(BASE_DIR, "lazy_ilya", "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -121,9 +122,7 @@ STATIC_URL = "static/"
 STATIC_ROOT = os.path.join(
     BASE_DIR, "staticfiles"
 )  # Сюда импортируются все файлы статики для всех приложений
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "lazy_ilya","static")]
-
-
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "lazy_ilya", "static")]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

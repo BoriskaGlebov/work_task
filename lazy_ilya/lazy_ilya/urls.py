@@ -22,6 +22,7 @@ from django.urls import include, path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("",include("file_creator.urls"))
+    path("",include("file_creator.urls")),
+    path("login/",include("myauth.urls"))
     # path("", include("work_for_ilia.urls")),
 ]
