@@ -10,6 +10,7 @@ constantly==23.10.4
 cryptography==44.0.2
 daphne==4.1.2
 Django==5.1.6
+django-phonenumber-field==8.1.0
 hyperlink==21.0.0
 idna==3.10
 incremental==24.7.2
@@ -19,6 +20,7 @@ lxml==5.3.1
 mypy-extensions==1.0.0
 packaging==24.2
 pathspec==0.12.1
+phonenumbers==9.0.3
 platformdirs==4.3.6
 plum-dispatch==1.7.4
 pyasn1==0.6.1
