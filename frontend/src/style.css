@@ -1,12 +1,48 @@
 @import "tailwindcss";
 @import "flowbite/src/themes/default.css";
+
 @plugin "flowbite/plugin";
 @source "../node_modules/flowbite";
 @custom-variant dark (&:where(.dark, .dark *));
 
-
-@layer base {
-  body {
-    transition: background-color 0.3s, color 0.3s;
-  }
+@font-face {
+    font-family: 'Press Start 2P';
+    src: url('./fonts/PressStart2P-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
 }
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('./fonts/Roboto-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@theme {
+    --color-body-light: oklch(0.967 0.003 264.542);
+    --color-body-dark: oklch(0.872 0.01 258.338);
+
+    --color-text-light: oklch(0.278 0.033 256.848);
+    --color-text-dark: oklch(0.928 0.006 264.531);
+
+    --color-nav-ligth: oklch(0.809 0.105 251.813);
+    --color-nav-dark: oklch(0.424 0.199 265.638);
+
+    --color-hover-light: oklch(0.882 0.059 254.128);
+    --color-hover-dark: oklch(0.546 0.245 262.881);
+
+    --color-hover-text-light: oklch(0.282 0.091 267.935);
+    --color-hover-text-dark: #fff;
+
+    --font-logo: "Press Start 2P", sans-serif;
+    --font-roboto: "Roboto", sans-serif;
+
+}
+/*!* Кастомные стили *!*/
+/*@layer base {*/
+/*  body {*/
+/*    @apply bg-body-light dark:bg-body-dark transition-all duration-300;*/
+/*    font-family: 'Inter', sans-serif;*/
+/*  }*/
+/*}*/

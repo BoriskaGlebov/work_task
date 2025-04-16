@@ -1,27 +1,23 @@
-{% load static %}
-
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
-    <title>{% block title %}Base title{% endblock %}</title>
-    <script type="module" crossorigin src="{% static 'js/main.js' %}"></script>
-    <link rel="stylesheet" crossorigin href="{% static 'css/styles.css' %}">
+    <link rel="icon" type="image/x-icon" href="/assets/banana-r8WDt7cH.ico">
+
+
+    <title>Офисное приложение</title>
+  <script type="module" crossorigin src="/assets/index-DV3raNC0.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-HLBNHTYt.css">
 </head>
 <body class="bg-body-light dark:bg-body-dark transition-all duration-300 font-roboto">
-
-<header></header>
-
 <!-- Навигация -->
 <nav class="bg-nav-ligth dark:bg-nav-dark p-5 shadow-xl transition-colors duration-300">
 
     <div class="flex justify-between items-center">
         <!-- Левая часть -->
         <div class="flex items-center gap-5 pl-5 ">
-            <img src="{% static 'images/eating.ico' %}" alt="Логотип" class="h-20 w-20">
+            <img src="/assets/eating-DK2RvpTC.ico" alt="Логотип" class="h-20 w-20">
             <h1 class="text-text-light dark:text-text-dark text-5xl font-semibold font-logo">Lazy Ilia</h1>
         </div>
 
@@ -82,19 +78,14 @@
 
 </nav>
 
-
 <!-- Контент -->
 <main class="p-4 text-gray-800 dark:text-gray-900 rounded shadow-inner">
+
     <h1 class="text-2xl font-semibold">Работа с документами</h1>
     <p>Здесь будет отображаться текст документа Word.</p>
-    {% block body %}
-        Base Body
-    {% endblock %}
 </main>
-<!-- Информация в футере -->
-<footer></footer>
-{% block extra_js %}
-    <!-- Блок для подключения дополнительных JavaScript-файлов, который можно переопределить в дочерних шаблонах -->
-{% endblock %}
+
 </body>
+
+
 </html>
