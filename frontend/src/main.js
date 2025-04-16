@@ -25,16 +25,4 @@
         }
     });
 
-    // Бургер-меню
-    const burgerMenuBtn = document.getElementById('burger-menu');
-    const navMenu = document.getElementById('nav-menu');
 
-    burgerMenuBtn.addEventListener('click', () => {
-        if (navMenu.classList.contains('max-h-0')) {
-            navMenu.classList.remove('max-h-0');
-            navMenu.classList.add('max-h-60');
-        } else {
-            navMenu.classList.remove('max-h-60');
-            navMenu.classList.add('max-h-0');
-        }
-    });

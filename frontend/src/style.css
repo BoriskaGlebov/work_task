@@ -38,6 +38,9 @@
     --font-logo: "Press Start 2P", sans-serif;
     --font-roboto: "Roboto", sans-serif;
 
+    --color-button: oklch(0.623 0.214 259.815);
+    --color-hover-button: oklch(0.546 0.245 262.881);
+
 }
 /*!* Кастомные стили *!*/
 /*@layer base {*/
