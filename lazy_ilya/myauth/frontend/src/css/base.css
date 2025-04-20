@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "../../node_modules/flowbite/src/themes/default.css";
+
 @plugin "flowbite/plugin";
 @source "../node_modules/flowbite";
 
@@ -42,4 +43,21 @@
     --color-button: oklch(0.623 0.214 259.815);
     --color-hover-button: oklch(0.546 0.245 262.881);
 
+}
+.theme-toggle {
+    @apply absolute top-4 right-4 text-yellow-500 dark:text-yellow-400
+    transform transition duration-200 ease-in-out
+    hover:scale-120 active:scale-95;
+}
+
+.btn-submit {
+    @apply w-50 p-3 text-text-light dark:text-text-dark bg-button
+    hover:bg-hover-button rounded font-semibold transition-colors duration-300 active:scale-95;
+}
+
+.btn-cancel {
+    @apply w-50 p-3 text-text-light dark:text-text-dark
+    bg-red-400 dark:bg-red-600 hover:bg-red-900
+    rounded font-semibold transition-colors
+    duration-300 active:scale-95;
 }
