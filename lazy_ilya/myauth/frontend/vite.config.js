@@ -1,0 +1,21 @@
+import {defineConfig} from 'vite'
+import {resolve} from 'path'
+import tailwindcss from '@tailwindcss/vite'
+
+export default defineConfig({
+    root: './', // корень проекта (где лежит base.html)
+    plugins: [
+        tailwindcss(),
+    ],
+    build: {
+        rollupOptions: {
+            input: {
+                base: resolve(__dirname, 'base.html'), // это твой входной HTML-файл
+                registration: resolve(__dirname, 'registration.html'),
+                login: resolve(__dirname, 'login.html'),
+            },
+        },
+        outDir: 'dist',      // куда собирать билд
+        assetsDir: 'assets', // куда положит JS, CSS и прочее
+    },
+})

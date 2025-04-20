@@ -1,3 +1,5 @@
+import '../css/base.css'
+
     // Переключение темы
     const themeToggleBtn = document.getElementById('theme-toggle');
     const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
