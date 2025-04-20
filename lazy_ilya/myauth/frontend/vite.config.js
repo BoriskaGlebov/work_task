@@ -15,19 +15,19 @@ export default defineConfig({
                 login: resolve(__dirname, 'login.html'),
             },
             output: {
-                entryFileNames: 'assets/js/[name]-[hash].js',
-                chunkFileNames: 'assets/js/[name]-[hash].js',
+                entryFileNames: 'myauth/js/[name].js',
+                chunkFileNames: 'myauth/js/[name].js',
                 assetFileNames: ({name}) => {
                     if (/\.(gif|jpe?g|png|svg)$/.test(name ?? '')) {
-                        return 'assets/img/[name]-[hash][extname]';
+                        return 'myauth/img/[name][extname]';
                     }
                     if (/\.(woff2?|ttf|otf|eot)$/.test(name ?? '')) {
-                        return 'assets/fonts/[name]-[hash][extname]';
+                        return 'myauth/fonts/[name][extname]';
                     }
                     if (/\.css$/.test(name ?? '')) {
-                        return 'assets/css/[name]-[hash][extname]';
+                        return 'myauth/css/[name][extname]';
                     }
-                    return 'assets/[name]-[hash][extname]';
+                    return 'myauth/[name][extname]';
                 }
             }
         },
