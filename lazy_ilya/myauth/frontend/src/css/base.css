@@ -52,12 +52,12 @@
 
 .btn-submit {
     @apply w-50 p-3 text-text-light dark:text-text-dark bg-button
-    hover:bg-hover-button rounded font-semibold transition-colors duration-300 active:scale-95;
+    hover:bg-hover-button rounded-lg font-semibold transition-colors duration-300 active:scale-95;
 }
 
 .btn-cancel {
     @apply w-50 p-3 text-text-light dark:text-text-dark
     bg-red-400 dark:bg-red-600 hover:bg-red-900
-    rounded font-semibold transition-colors
+    rounded-lg font-semibold transition-colors
     duration-300 active:scale-95;
 }

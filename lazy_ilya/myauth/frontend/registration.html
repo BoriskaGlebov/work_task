@@ -29,13 +29,12 @@
 
         <h2 class="text-3xl font-logo text-center text-text-light dark:text-white">Регистрация</h2>
 
-        <div id="login-field">
-            <label for="email-address-icon"
+        <div>
+            <label for="login-input"
                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                    id="login-label">
                 Логин
             </label>
-
             <div class="relative">
                 <div class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -49,8 +48,8 @@
                     </svg>
                 </div>
 
-                <input type="text" id="email-address-icon"
-                       class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-12 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                <input type="text" id="login-input"
+                       class="w-full ps-12 p-2.5 border border-gray-300 dark:border-gray-700 text-text-light rounded-lg bg-body-light dark:bg-body-dark focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
                        placeholder="Придумайте логин">
             </div>
 
@@ -61,35 +60,53 @@
 
 
         <div>
-            <label for="first_name" class="block mb-2 font-medium text-text-light dark:text-text-dark">Имя</label>
-            <input type="text" id="first_name" name="first_name"
-                   class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 text-text-light rounded-lg bg-body-light dark:bg-body-dark focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+            <label for="first-name"
+                   class="block mb-2 font-medium text-text-light dark:text-text-dark"
+                   id="first-name-label">
+                Имя
+            </label>
+
+            <input type="text" id="first-name" name="first-name"
+                   class="w-full ps-4 p-2.5 border border-gray-300 dark:border-gray-700 text-text-light rounded-lg bg-body-light dark:bg-body-dark focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
                    placeholder="Имя"
             >
+
+            <p id="first-name-error-msg" class="hidden mt-2 text-sm text-red-600 dark:text-red-500">
+                <span class="font-medium">Ошибка!</span> Поле не должно быть пустым.
+            </p>
         </div>
 
         <div>
-            <label for="last_name" class="block mb-2 font-medium text-text-light dark:text-text-dark">Фамилия</label>
-            <input type="text" id="last_name" name="last_name"
-                   class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 text-text-light rounded-lg  bg-body-light dark:bg-body-dark focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+            <label for="last-name"
+                   class="block mb-2 font-medium text-text-light dark:text-text-dark"
+                   id="last-name-label">
+                Фамилия
+            </label>
+
+            <input type="text" id="last-name" name="last-name"
+                   class="w-full ps-4 p-2.5 border border-gray-300 dark:border-gray-700 text-text-light rounded-lg bg-body-light dark:bg-body-dark focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
                    placeholder="Фамилия"
             >
+
+            <p id="last-name-error-msg" class="hidden mt-2 text-sm text-red-600 dark:text-red-500">
+                <span class="font-medium">Ошибка!</span> Поле не должно быть пустым.
+            </p>
         </div>
 
         <div class="mb-4">
-            <label for="phone" class="block mb-2 font-medium text-text-light dark:text-text-dark">
+            <label id="phone-label" for="phone" class="block mb-2 font-medium text-text-light dark:text-text-dark">
                 <div class="flex items-center justify-between">
                     <span>Телефон</span>
                     <div class="relative group">
                         <svg xmlns="http://www.w3.org/2000/svg"
                              fill="none" viewBox="0 0 24 24"
                              stroke-width="1.5" stroke="currentColor"
-                             class="w-5 h-5 text-gray-400 cursor-pointer">
+                             class="size-6 text-gray-500 dark:text-gray-400 cursor-pointer">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                   d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0
-                 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442
-                 -.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0
-                 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"></path>
+                     1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442
+                     -.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0
+                     9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"></path>
                         </svg>
 
                         <!-- Tooltip -->
@@ -100,14 +117,24 @@
                     </div>
                 </div>
             </label>
+            <div class="relative">
+                <div class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                         stroke="currentColor" class="size-6 text-gray-500 dark:text-gray-400">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"></path>
+                    </svg>
+                </div>
 
-            <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    placeholder="+7 (___) ___-__-__"
-                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 text-text-light rounded-lg  bg-body-light dark:bg-body-dark focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-            >
+                <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        placeholder="+7 (___) ___-__-__"
+                        class="w-full ps-12 p-2.5 border border-gray-300 dark:border-gray-700 text-text-light rounded-lg bg-body-light dark:bg-body-dark focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                >
+            </div>
+
 
             <!-- блок ошибки -->
             <p id="phone-error" class="mt-1 text-sm text-red-500 hidden">
@@ -115,21 +142,48 @@
             </p>
         </div>
 
+
         <div>
-            <label for="password" class="block mb-2 font-medium text-text-light dark:text-text-dark">Пароль</label>
-            <input type="password" id="password" name="password"
-                   class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 text-text-light rounded-lg  bg-body-light dark:bg-body-dark focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-                   placeholder="Пароль"
-            >
+            <label id="password-label" for="password" class="block mb-2 font-medium text-text-light dark:text-text-dark">Пароль</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                         stroke="currentColor" class="size-6 text-gray-500 dark:text-gray-400">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"></path>
+                    </svg>
+                </div>
+                <input type="password" id="password" name="password"
+                       class="w-full ps-12 p-2.5 border border-gray-300 dark:border-gray-700 text-text-light rounded-lg bg-body-light dark:bg-body-dark focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                       placeholder="Пароль"
+                >
+            </div>
+            <!-- блок ошибки -->
+            <p id="password-error" class="mt-1 text-sm text-red-500 hidden">
+                Придумайте пароль длиннее 5 символов.
+            </p>
         </div>
 
         <div>
-            <label for="confirm_password" class="block mb-2 font-medium text-text-light dark:text-text-dark">Подтверждение
+            <label id="confirm-password-label" for="confirm-password" class="block mb-2 font-medium text-text-light dark:text-text-dark">Подтверждение
                 пароля</label>
-            <input type="password" id="confirm_password" name="confirm_password"
-                   class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 text-text-light rounded-lg  bg-body-light dark:bg-body-dark focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-                   placeholder="Подтвердите пароль"
-            >
+            <div class="relative">
+                <div class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                         stroke="currentColor" class="size-6 text-gray-500 dark:text-gray-400">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"></path>
+                    </svg>
+                </div>
+                <input type="password" id="confirm-password" name="confirm-password"
+                       class="w-full ps-12 p-2.5 border border-gray-300 dark:border-gray-700 text-text-light rounded-lg bg-body-light dark:bg-body-dark focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                       placeholder="Повторить ввод пароля"
+                >
+            </div>
+            <!-- блок ошибки -->
+            <p id="confirm-password-error" class="mt-1 text-sm text-red-500 hidden">
+                Кожаный, будь внимательнее! Пароли не совпали.
+            </p>
         </div>
 
         <div class="flex justify-center items-center space-x-4">
