@@ -7,9 +7,9 @@
 
 {% block body %}
     <main class="flex justify-center items-center min-h-screen py-6">
-        <form id="registration-form"
-              class="relative bg-nav-ligth dark:bg-nav-dark p-8 rounded-lg shadow-lg w-full max-w-md space-y-6 overflow-y-auto">
-
+        <form method="POST" id="registration-form"
+              class="relative bg-nav-ligth dark:bg-nav-dark p-8 rounded-lg shadow-lg w-full max-w-md space-y-6 overflow-y-auto animate-fade-in">
+            {% csrf_token %}
             <!-- Переключатель темы внутри формы -->
             <button id="theme-toggle" type="button" class="theme-toggle">
                 <svg id="theme-toggle-dark-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -190,7 +190,7 @@
                         class="btn-submit">
                     Зарегистрироваться
                 </button>
-                <button type="button" onclick="window.location.href='/'"
+                <button type="button" onclick="window.location.href='{% url 'myauth:login' %}'"
                         class="btn-cancel">
                     Отменить
                 </button>
@@ -198,7 +198,7 @@
 
             <p class="text-center text-sm text-text-light dark:text-text-dark">
                 Уже есть аккаунт?
-                <a href="/login" class="text-blue-500 hover:underline dark:text-blue-400">Войти</a>
+                <a href="{% url 'myauth:login' %}" class="text-blue-500 hover:underline dark:text-blue-400">Войти</a>
             </p>
         </form>
     </main>

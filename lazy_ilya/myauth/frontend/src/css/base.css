@@ -61,3 +61,23 @@
     rounded-lg font-semibold transition-colors
     duration-300 active:scale-95;
 }
+
+@keyframes fade-in {
+    0% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(1.1);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.animate-fade-in {
+    animation: fade-in 1s ease-in-out forwards;
+    animation-delay: 0.2s; /* небольшая задержка перед началом анимации */
+}

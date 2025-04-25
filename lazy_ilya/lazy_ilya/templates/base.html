@@ -33,8 +33,14 @@
                class="text-text-light dark:text-text-dark py-3 w-30 text-center text-xl font-medium rounded transition-colors duration-200 hover:bg-hover-light dark:hover:bg-hover-dark hover:text-hover-text-light dark:hover:text-hover-text-dark">Города</a>
             <a href="#"
                class="text-text-light dark:text-text-dark py-3 w-30 text-center text-xl font-medium rounded transition-colors duration-200 hover:bg-hover-light dark:hover:bg-hover-dark hover:text-hover-text-light dark:hover:text-hover-text-dark">Статистика</a>
-            <a href="#"
-               class="text-text-light dark:text-text-dark py-3 w-30 text-center text-xl font-medium rounded transition-colors duration-200 hover:bg-red-200 dark:hover:bg-red-600 hover:text-red-900 dark:hover:text-hover-text-dark">Выход</a>
+            <!-- Форма для выхода -->
+            <form action="{% url 'myauth:logout' %}" method="POST" class="inline">
+                {% csrf_token %}
+                <button type="submit"
+                        class="text-text-light dark:text-text-dark py-3 w-30 text-center text-xl font-medium rounded transition-colors duration-200 hover:bg-red-200 dark:hover:bg-red-600 hover:text-red-900 dark:hover:text-hover-text-dark">
+                    Выход
+                </button>
+            </form>
         </div>
 
 
@@ -69,7 +75,7 @@
 
     <!-- Мобильное меню -->
     <div id="nav-menu"
-         class="flex-col space-y-2 mt-4 lg:hidden max-h-0 overflow-hidden transition-all duration-300 block ">
+         class="flex-col space-y-2 mt-8 lg:hidden max-h-0 overflow-hidden transition-all duration-300 block ">
         <a href="#"
            class="text-gray-800 dark:text-gray-200 pl-5 py-2  text-xl font-medium  rounded hover:bg-blue-200 dark:hover:bg-blue-600 hover:text-blue-900 dark:hover:text-white transition-colors block">Главная</a>
         <a href="#"
@@ -78,6 +84,15 @@
            class="text-gray-800 dark:text-gray-200 pl-15 py-2 text-xl font-medium  rounded hover:bg-blue-200 dark:hover:bg-blue-600 hover:text-blue-900 dark:hover:text-white transition-colors block">Статистика</a>
         <a href="#"
            class="text-gray-800 dark:text-gray-200 pl-30 py-2 text-xl font-medium  rounded hover:bg-red-200 dark:hover:bg-red-600 hover:text-red-900 dark:hover:text-white transition-colors block">Выход</a>
+        <!-- Форма для выхода -->
+        <form action="{% url 'myauth:logout' %}" method="POST" class="block">
+            {% csrf_token %}
+            <button type="submit"
+                    class=" blocktext-gray-800 dark:text-gray-200 pl-10 py-2 text-xl font-medium  rounded hover:bg-red-200 dark:hover:bg-red-600 hover:text-red-900 dark:hover:text-white transition-colors">
+                Выход
+            </button>
+        </form>
+
     </div>
 
 </nav>

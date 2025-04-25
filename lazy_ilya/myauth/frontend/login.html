@@ -10,7 +10,7 @@
 <body class="bg-body-light dark:bg-body-dark transition-all duration-300 font-roboto">
 
 <main class="flex justify-center items-center h-screen">
-    <form class="relative bg-nav-ligth dark:bg-nav-dark p-8 rounded-lg shadow-lg w-full max-w-md space-y-6 transition-colors duration-300">
+    <form class="relative bg-nav-ligth dark:bg-nav-dark p-8 rounded-lg shadow-lg w-full max-w-md space-y-6 animate-fade-in">
 
         <!-- Переключатель темы внутри формы -->
         <button id="theme-toggle" type="button"
@@ -37,7 +37,6 @@
         </button>
 
         <h2 class="text-3xl font-logo text-center text-text-light dark:text-white">Вход</h2>
-
         <div>
             <label for="username" class="block mb-2  font-medium text-text-light dark:text-text-dark">Логин</label>
             <div class="relative">
@@ -57,6 +56,10 @@
                        placeholder="Имя пользователя"
                 >
             </div>
+            <!-- Сообщение об ошибке прямо под полем -->
+            <p id="login-error" class="text-red-900 dark:text-red-400 text-sm mt-1 hidden">
+                Логин обязателен
+            </p>
         </div>
         <div>
             <div class="flex justify-between items-center mb-2">
@@ -78,6 +81,10 @@
                        placeholder="Пароль"
                 >
             </div>
+            <!-- Сообщение об ошибке прямо под полем -->
+            <p id="password-error" class="text-red-900 dark:text-red-400 text-sm mt-1 hidden">
+                Пароль обязателен
+            </p>
 
 
         </div>
@@ -89,12 +96,13 @@
         </div>
         <p class="text-center text-sm text-text-light dark:text-text-dark">
             Нет аккаунта?
-            <a href="#" class="text-blue-500 hover:underline dark:text-blue-400">Зарегистрироваться</a>
+            <a href="http://localhost:5173/registration.html" class="text-blue-500 hover:underline dark:text-blue-400">Зарегистрироваться</a>
         </p>
     </form>
 </main>
 
 <script type="module" src="src/js/base.js"></script>
+<script type="module" src="src/js/login.js"></script>
 <script src="node_modules/flowbite/dist/flowbite.min.js"></script>
 </body>
 </html>

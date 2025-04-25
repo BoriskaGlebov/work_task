@@ -2,12 +2,11 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 
 
-# Create your views here.
-def login_template(request: HttpRequest) -> HttpResponse:
-    context = {}
-    return render(request, "myauth/login.html", context)
+def registration_form(request: HttpRequest) -> HttpResponse:
+    if request.method=="POST":
+        print('ТУТ')
+        return None
 
-
-def registration_template(request: HttpRequest) -> HttpResponse:
-    context = {}
-    return render(request, "myauth/registration.html", context)
+    else:
+        context = {}
+        return render(request, "myauth/registration.html", context)

@@ -133,10 +133,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # URL для перенаправления неавторизованных пользователей при попытке доступа к защищенным страницам.
 # Замените на ваш URL для страницы входа, если он отличается.
-# LOGIN_URL = reverse_lazy("work_for_ilia:login")
+LOGIN_URL = reverse_lazy("myauth:login")
 
 # URL для перенаправления пользователей после успешного входа.
-# LOGIN_REDIRECT_URL = reverse_lazy("work_for_ilia:index")
+LOGIN_REDIRECT_URL = reverse_lazy("file_creator:file-creator-start")
 
 # Указание приложения ASGI для проекта Django.
 # ASGI (Asynchronous Server Gateway Interface) — это интерфейс для асинхронных веб-приложений.
