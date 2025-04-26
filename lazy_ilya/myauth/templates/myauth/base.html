@@ -6,10 +6,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="{% static 'myauth/images/favicon.ico' %}">
     <title>{% block title %}Базовый шаблон{% endblock %}</title>
-    <script type="module" crossorigin src="{% static 'myauth/js/base2.js' %}"></script>
-    <link rel="stylesheet" crossorigin href="{% static 'myauth/css/base.css' %}">
+    {% if VITE_DEV_MODE %}
+        <script type="module" src="http://localhost:5173/@vite/client"></script>
+        <script type="module" src="http://localhost:5173/src/js/base.js"></script>
+        <link rel="stylesheet" href="http://localhost:5173/src/css/base.css">
+        <link rel="icon" type="image/x-icon" href="http://localhost:5173/src/img/favicon.ico">
+    {% else %}
+        <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+        <script type="module" crossorigin src="{% static 'myauth/js/base.js' %}"></script>
+        <link rel="stylesheet" crossorigin href="{% static 'myauth/css/base.css' %}">
+    {% endif %}
 </head>
 <body class="bg-body-light dark:bg-body-dark transition-all duration-300 font-roboto">
 {% block body %}

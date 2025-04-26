@@ -1,4 +1,5 @@
 import '../css/base.css'
+import '../img/favicon.ico'
 
     // Переключение темы
     const themeToggleBtn = document.getElementById('theme-toggle');
