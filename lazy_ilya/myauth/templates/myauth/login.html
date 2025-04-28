@@ -34,13 +34,10 @@
 
             <h2 class="text-3xl font-logo text-center text-text-light dark:text-white">Вход</h2>
             <!-- Ошибка авторизации -->
-            {% if form.non_field_errors %}
-                <div id="non-field-errors"  class="text-red-600 text-sm text-center">
-                    {% for error in form.non_field_errors %}
-                        {{ error }}
-                    {% endfor %}
-                </div>
-            {% endif %}
+            <div id="non-field-errors"
+                 class="text-red-800 text-sm shadow-lg  shadow-red-500/50 text-center hidden border border-red-300 rounded-lg p-3 bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800">
+                <p>Ошибка авторизации</p>
+            </div>
 
             <div>
                 <label for="username" class="block mb-2  font-medium text-text-light dark:text-text-dark">Логин</label>
@@ -62,7 +59,8 @@
                     >
                 </div>
                 <!-- Сообщение об ошибке прямо под полем -->
-                <p id="login-error" class="text-red-600 dark:text-red-400 text-sm mt-1 hidden">
+                <p id="login-error"
+                   class="text-red-800 dark:text-red-400 text-sm pt-2 pl-5  hidden shadow-lg  shadow-red-500/50">
                     Логин обязателен
                 </p>
             </div>
@@ -87,7 +85,8 @@
                     >
                 </div>
                 <!-- Сообщение об ошибке прямо под полем -->
-                <p id="password-error" class="text-red-600 dark:text-red-400 text-sm mt-1 hidden">
+                <p id="password-error"
+                   class="text-red-800 dark:text-red-400 text-sm pt-2 pl-5  hidden shadow-lg  shadow-red-500/50">
                     Пароль обязателен
                 </p>
 
