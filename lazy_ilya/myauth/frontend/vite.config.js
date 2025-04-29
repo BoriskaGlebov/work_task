@@ -33,6 +33,7 @@ export default defineConfig({
                 }
             }
         },
+        target: 'modules', // или 'modules' для поддержки новых модулей
         // outDir: 'dist',      // куда собирать билд
         // assetsDir: 'assets', // куда положит JS, CSS и прочее
     },

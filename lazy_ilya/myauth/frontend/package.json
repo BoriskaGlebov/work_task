@@ -15,6 +15,7 @@
     "@tailwindcss/vite": "^4.1.4",
     "flowbite": "^3.1.2",
     "imask": "^7.6.1",
+    "inputmask": "^5.0.9",
     "tailwindcss": "^4.1.4"
   }
 }

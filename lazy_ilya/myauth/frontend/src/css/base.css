@@ -63,6 +63,47 @@
     duration-300 active:scale-95;
 }
 
+.correct_label {
+    @apply text-text-light dark:text-text-dark;
+}
+
+.error_label {
+    @apply text-red-700
+}
+
+.correct_input {
+    @apply border-gray-300 dark:border-gray-700
+    text-text-light
+    bg-body-light dark:bg-body-dark
+    focus:ring-blue-400
+
+}
+
+.error_input {
+    @apply bg-red-50 border-red-500 text-red-700 placeholder-red-700
+    focus:ring-red-500 focus:border-red-500
+}
+
+.correct_icon {
+    @apply text-gray-400;
+}
+
+.error_icon {
+    @apply text-red-700
+}
+
+.error_message {
+    @apply text-red-800 dark:text-red-400
+    shadow-red-500/50;
+
+}
+
+.common_error {
+    @apply text-red-800 shadow-red-500/50 border-red-300
+    bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800
+}
+
+
 @keyframes fade-in {
     0% {
         opacity: 0;
@@ -79,6 +120,6 @@
 }
 
 .animate-fade-in {
-    animation: fade-in 1s ease-in-out forwards;
+    animation: fade-in 1.5s ease-in-out forwards;
     animation-delay: 0.2s; /* небольшая задержка перед началом анимации */
 }
