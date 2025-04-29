@@ -1,4 +1,5 @@
 from django.contrib.auth import login
+from django.contrib.auth.models import Group
 from django.contrib.auth.views import LoginView
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -87,6 +88,12 @@ class RegisterView(CreateView):
             JsonResponse
         """
         self.object = form.save()
+        group = Group.objects.filter(name="ilia-group").first()
+        if group:
+            self.object.groups.add(group)
+
+        login(self.request, self.object)
+
         return JsonResponse({'success': True, 'redirect_url': self.get_success_url()})
 
     def form_invalid(self, form) -> JsonResponse:
