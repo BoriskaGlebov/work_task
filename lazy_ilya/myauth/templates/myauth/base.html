@@ -9,9 +9,9 @@
     <title>{% block title %}Базовый шаблон{% endblock %}</title>
     {% if VITE_DEV_MODE %}
         <script type="module" src="http://localhost:5173/@vite/client"></script>
-        <script type="module" src="http://localhost:5173/src/js/base.js"></script>
+        <script type="module" src="http://localhost:5173/src/myauth/js/base.js"></script>
         <link rel="stylesheet" href="http://localhost:5173/src/css/base.css">
-        <link rel="icon" type="image/x-icon" href="http://localhost:5173/src/img/favicon.ico">
+        <link rel="icon" type="image/x-icon" href="http://localhost:5173/favicon.ico">
     {% else %}
         <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
         <script type="module" crossorigin src="{% static 'myauth/js/base.js' %}"></script>
