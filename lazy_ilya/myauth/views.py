@@ -1,12 +1,15 @@
+from pprint import pprint
+
 from django.contrib.auth import login
 from django.contrib.auth.models import Group
 from django.contrib.auth.views import LoginView
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse_lazy
-from django.views.generic import CreateView
+from django.views import View
+from django.views.generic import CreateView, TemplateView, FormView
 
-from myauth.forms import CustomUserCreationForm
+from myauth.forms import CustomUserCreationForm, PasswordResetForm
 from myauth.models import CustomUser
 
 
@@ -87,14 +90,15 @@ class RegisterView(CreateView):
         Returns:
             JsonResponse
         """
-        self.object = form.save()
+        response = super().form_valid(form)
         group = Group.objects.filter(name="ilia-group").first()
         if group:
             self.object.groups.add(group)
 
         login(self.request, self.object)
-
-        return JsonResponse({'success': True, 'redirect_url': self.get_success_url()})
+        if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'success': True, 'redirect_url': self.get_success_url()})
+        return response
 
     def form_invalid(self, form) -> JsonResponse:
         """
@@ -109,4 +113,33 @@ class RegisterView(CreateView):
             JsonResponse
         """
         errors = {field: error[0] for field, error in form.errors.items()}
-        return JsonResponse({'success': False, 'errors': errors}, status=400)
+        if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': errors}, status=400)
+        return super().form_invalid(form)
+
+
+class CustomPasswordResetView(FormView):
+    template_name = 'myauth/reset_password.html'
+    form_class = PasswordResetForm
+    success_url = reverse_lazy('myauth:login')
+
+    def form_valid(self, form):
+        # Устанавливаем новый пароль
+        user = form.user
+        user.set_password(form.cleaned_data['password1'])
+        user.save()
+
+        # # Входим автоматически (если нужно)
+        # login(self.request, user)
+        # AJAX или обычный ответ
+        if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'success': True, 'redirect_url': str(self.get_success_url())})
+
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+
+        if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            print(form.errors.as_json())
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+        return super().form_invalid(form)

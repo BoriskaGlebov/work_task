@@ -1,10 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     const form = document.querySelector('form');
     const usernameLabel = document.getElementById('username-label');
     const usernameInput = document.getElementById('username');
     const passwordLabel = document.getElementById('password-label');
     const passwordInput = document.getElementById('password');
-    const nonFieldErrors = document.getElementById('non-field-errors');
     const usernameError = document.getElementById('login-error');
     const passwordError = document.getElementById('password-error');
     const loginIcon = document.getElementById('login-icon');
@@ -36,8 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Сброс всех ошибок и стилей
         resetField(usernameLabel, usernameInput, loginIcon, usernameError);
-        resetField(passwordLabel,passwordInput, passwordIcon, passwordError);
-        nonFieldErrors.classList.add("hidden");
+        resetField(passwordLabel, passwordInput, passwordIcon, passwordError);
 
         const formData = new FormData(form);
 
@@ -46,7 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken,  // 👈 правильно
+                    'X-Requested-With': 'XMLHttpRequest',  // 👈 желательно: сообщает серверу, что это AJAX
                 }
             });
 
@@ -58,11 +58,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const errors = data.errors;
 
                 if (errors.username) {
-                    setFieldError(usernameLabel,usernameInput, loginIcon, usernameError, errors.username[0].message);
+                    setFieldError(usernameLabel, usernameInput, loginIcon, usernameError, errors.username[0].message);
                 }
 
                 if (errors.password) {
-                    setFieldError(passwordLabel,passwordInput, passwordIcon, passwordError, errors.password[0].message);
+                    setFieldError(passwordLabel, passwordInput, passwordIcon, passwordError, errors.password[0].message);
                 }
 
                 if (errors.__all__) {

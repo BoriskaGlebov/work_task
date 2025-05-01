@@ -1,10 +1,10 @@
 import Inputmask from "inputmask";
 
 document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('reset-password-form');
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-    const form = document.getElementById('registration-form');
-
     const fields = ['username', 'phone_number', 'password1', 'password2'];
+    const nonFieldErrors = document.getElementById('non-field-errors');
 
     const getFieldElements = (fieldName) => ({
         label: document.getElementById(`${fieldName}-label`),
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Сброс состояния всех полей
         fields.forEach(field => resetField(getFieldElements(field)));
-
+        nonFieldErrors.classList.add("hidden");
         // Сбор данных из формы
         const formData = new FormData(form);
 

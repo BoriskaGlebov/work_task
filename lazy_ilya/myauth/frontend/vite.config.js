@@ -15,6 +15,7 @@ export default defineConfig({
                 base: resolve(__dirname, 'src/js/base.js'), // это твой входной HTML-файл
                 registration: resolve(__dirname, 'src/js/registration.js'),
                 login: resolve(__dirname, 'src/js/login.js'),
+                resetpassword: resolve(__dirname, 'src/js/resetpassword.js'),
             },
             output: {
                 entryFileNames: 'myauth/js/[name].js',
