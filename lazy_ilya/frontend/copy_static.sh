@@ -8,7 +8,7 @@ BUILD_DIR='../collected_static'
 
 # Пути к статике в приложениях
 MYAUTH_STATIC="../myauth/static/myauth"
-FILECREATOR_STATIC="../file_creator/static/filecreator"
+FILECREATOR_STATIC="../file_creator/static/file_creator"
 SHARED_STATIC="../lazy_ilya/static"
 
 ## Покажи текущую директорию
@@ -25,7 +25,7 @@ rm -rf "$SHARED_STATIC" && mkdir -p "$SHARED_STATIC"
 #
 ## Копируем ассеты
 cp -r "$BUILD_DIR/myauth/"* "$MYAUTH_STATIC/"
-cp -r "$BUILD_DIR/filecreator/"* "$FILECREATOR_STATIC/"
+cp -r "$BUILD_DIR/file_creator/"* "$FILECREATOR_STATIC/"
 cp -r "$BUILD_DIR/static/"* "$SHARED_STATIC/"
 #
 echo "Assets copied to app static folders."

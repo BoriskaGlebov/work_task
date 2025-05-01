@@ -1,0 +1,115 @@
+{% load static %}
+
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    <title>{% block title %}Base title{% endblock %}</title>
+    <script type="module" crossorigin src="{% static 'file_creator/js/uploader.js' %}"></script>
+    <link rel="stylesheet" crossorigin href="{% static 'css/base.css' %}">
+</head>
+<body class="bg-body-light dark:bg-body-dark transition-all duration-300 font-roboto">
+
+<header></header>
+
+<!-- Навигация -->
+<nav class="bg-nav-ligth dark:bg-nav-dark p-5 shadow-xl transition-colors duration-300">
+
+    <div class="flex justify-between items-center">
+        <!-- Левая часть -->
+        <div class="flex items-center gap-5 pl-5 ">
+            <img src="{% static 'images/eating.ico' %}" alt="Логотип" class="h-20 w-20">
+            <h1 class="text-text-light dark:text-text-dark text-5xl font-semibold font-logo">Lazy Ilia</h1>
+        </div>
+
+        <!-- Меню (десктоп) -->
+        <div class="hidden lg:flex items-center gap-5">
+            <a href="#"
+               class="text-text-light dark:text-text-dark py-3 w-30 text-center text-xl font-medium rounded transition-colors duration-200 hover:bg-hover-light dark:hover:bg-hover-dark hover:text-hover-text-light dark:hover:text-hover-text-dark">Главная</a>
+            <a href="#"
+               class="text-text-light dark:text-text-dark py-3 w-30 text-center text-xl font-medium rounded transition-colors duration-200 hover:bg-hover-light dark:hover:bg-hover-dark hover:text-hover-text-light dark:hover:text-hover-text-dark">Города</a>
+            <a href="#"
+               class="text-text-light dark:text-text-dark py-3 w-30 text-center text-xl font-medium rounded transition-colors duration-200 hover:bg-hover-light dark:hover:bg-hover-dark hover:text-hover-text-light dark:hover:text-hover-text-dark">Статистика</a>
+            <!-- Форма для выхода -->
+            <form action="{% url 'myauth:logout' %}" method="POST" class="inline">
+                {% csrf_token %}
+                <button type="submit"
+                        class="text-text-light dark:text-text-dark py-3 w-30 text-center text-xl font-medium rounded transition-colors duration-200 hover:bg-red-200 dark:hover:bg-red-600 hover:text-red-900 dark:hover:text-hover-text-dark">
+                    Выход
+                </button>
+            </form>
+        </div>
+
+
+        <!-- Кнопки справа -->
+        <div class="flex items-center">
+            <!-- Переключатель темы -->
+            <button id="theme-toggle" class="text-yellow-500 dark:text-yellow-400 p-4 h-20 w-20">
+                <svg id="theme-toggle-dark-icon" xmlns="http://www.w3.org/2000/svg"
+                     fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                     stroke="currentColor" class="w-10 h-10 hidden">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"></path>
+                </svg>
+                <svg id="theme-toggle-light-icon" class="w-10 h-10 hidden" xmlns="http://www.w3.org/2000/svg"
+                     fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"></path>
+                </svg>
+            </button>
+
+            <!-- Бургер (моб) -->
+            <button id="burger-menu" class="text-gray-700 dark:text-white p-4 h-20 w-20 lg:hidden">
+
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                     xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Мобильное меню -->
+    <div id="nav-menu"
+         class="flex-col space-y-2 mt-8 lg:hidden max-h-0 overflow-hidden transition-all duration-300 block ">
+        <a href="#"
+           class="text-gray-800 dark:text-gray-200 pl-5 py-2  text-xl font-medium  rounded hover:bg-blue-200 dark:hover:bg-blue-600 hover:text-blue-900 dark:hover:text-white transition-colors block">Главная</a>
+        <a href="#"
+           class="text-gray-800 dark:text-gray-200 pl-10 py-2 text-xl font-medium  rounded hover:bg-blue-200 dark:hover:bg-blue-600 hover:text-blue-900 dark:hover:text-white transition-colors block">Города</a>
+        <a href="#"
+           class="text-gray-800 dark:text-gray-200 pl-15 py-2 text-xl font-medium  rounded hover:bg-blue-200 dark:hover:bg-blue-600 hover:text-blue-900 dark:hover:text-white transition-colors block">Статистика</a>
+        <a href="#"
+           class="text-gray-800 dark:text-gray-200 pl-30 py-2 text-xl font-medium  rounded hover:bg-red-200 dark:hover:bg-red-600 hover:text-red-900 dark:hover:text-white transition-colors block">Выход</a>
+        <!-- Форма для выхода -->
+        <form action="{% url 'myauth:logout' %}" method="POST" class="block">
+            {% csrf_token %}
+            <button type="submit"
+                    class=" blocktext-gray-800 dark:text-gray-200 pl-10 py-2 text-xl font-medium  rounded hover:bg-red-200 dark:hover:bg-red-600 hover:text-red-900 dark:hover:text-white transition-colors">
+                Выход
+            </button>
+        </form>
+
+    </div>
+
+</nav>
+
+
+<!-- Контент -->
+<main class="p-4 text-gray-800 dark:text-gray-900 rounded shadow-inner">
+    <h1 class="text-2xl font-semibold">Работа с документами</h1>
+    <p>Здесь будет отображаться текст документа Word.</p>
+    {% block body %}
+        Base Body
+    {% endblock %}
+</main>
+<!-- Информация в футере -->
+<footer></footer>
+{% block extra_js %}
+    <!-- Блок для подключения дополнительных JavaScript-файлов, который можно переопределить в дочерних шаблонах -->
+{% endblock %}
+</body>
+</html>

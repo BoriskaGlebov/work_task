@@ -7,4 +7,4 @@ from django.shortcuts import render
 @login_required
 def base_template(request: HttpRequest) -> HttpResponse:
     context={}
-    return render(request, "file_creator/index.html",context )
+    return render(request, "file_creator/base.html",context )

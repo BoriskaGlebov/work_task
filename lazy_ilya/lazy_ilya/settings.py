@@ -68,7 +68,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "myauth.context_processors.vite_mode",
+                "lazy_ilya.context_processors.vite_mode",
             ],
         },
     },
