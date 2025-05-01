@@ -53,6 +53,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "myauth.middleware.myauth_logging.UserActionLoggingMiddleware",
 ]
 
 ROOT_URLCONF = "lazy_ilya.urls"
@@ -160,7 +161,6 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 30 * 60  # Время жизни сессии в секундах (например, 30 минут)
 SESSION_SAVE_EVERY_REQUEST = True  # Обновляет таймер сессии при каждом запросе
 AUTH_USER_MODEL = 'myauth.CustomUser'
-
 
 if __name__ == '__main__':
     print(BASE_DIR)

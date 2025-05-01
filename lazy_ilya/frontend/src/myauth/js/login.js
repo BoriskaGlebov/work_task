@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Сброс всех ошибок и стилей
         resetField(usernameLabel, usernameInput, loginIcon, usernameError);
         resetField(passwordLabel, passwordInput, passwordIcon, passwordError);
+        nonFieldErrors.classList.add("hidden")
 
         // Сбор данных из формы
         const formData = new FormData(form);

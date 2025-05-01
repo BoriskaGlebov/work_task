@@ -6,22 +6,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
     <title>{% block title %}Base title{% endblock %}</title>
-    <script type="module" crossorigin src="{% static 'file_creator/js/uploader.js' %}"></script>
-    <link rel="stylesheet" crossorigin href="{% static 'css/base.css' %}">
+    {% if VITE_DEV_MODE %}
+        <script type="module" src="http://localhost:5173/@vite/client"></script>
+        <script type="module" src="http://localhost:5173/src/file_creator/js/uploader.js"></script>
+        <link rel="stylesheet" href="http://localhost:5173/src/css/base.css">
+        <link rel="icon" type="image/x-icon" href="http://localhost:5173/favicon.ico">
+    {% else %}
+        <script type="module" crossorigin src="{% static 'file_creator/js/uploader.js' %}"></script>
+        <link rel="stylesheet" crossorigin href="{% static 'css/base.css' %}">
+        <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    {% endif %}
 </head>
 <body class="bg-body-light dark:bg-body-dark transition-all duration-300 font-roboto">
 
 <header></header>
-
+<!-- Элемент с иконкой загрузки (крутящийся логотип) -->
+<div id="loader" class="fixed inset-0 flex justify-center items-center bg-white z-50 opacity-100 transition-opacity duration-2000">
+    <img src="
+{% if VITE_DEV_MODE %}
+http://localhost:5173/src/file_creator/img/file_creator_eating.ico
+{% else %}
+{% static 'file_creator/img/file_creator_eating.ico' %}
+{% endif %}"
+         alt="Loading Logo" class="w-50 h-50 animate-bounce">
+</div>
 <!-- Навигация -->
 <nav class="bg-nav-ligth dark:bg-nav-dark p-5 shadow-xl transition-colors duration-300">
 
     <div class="flex justify-between items-center">
         <!-- Левая часть -->
         <div class="flex items-center gap-5 pl-5 ">
-            <img src="{% static 'images/eating.ico' %}" alt="Логотип" class="h-20 w-20">
+            {% if VITE_DEV_MODE %}
+                <img src="http://localhost:5173/src/file_creator/img/file_creator_eating.ico" alt="Логотип"
+                     class="h-30 w-30 animate-bounce">
+            {% else %}
+                <img src="{% static 'file_creator/img/file_creator_eating.ico' %}" alt="Логотип" class="h-30 w-30 animate-bounce">
+            {% endif %}
+
             <h1 class="text-text-light dark:text-text-dark text-5xl font-semibold font-logo">Lazy Ilia</h1>
         </div>
 
@@ -75,20 +97,18 @@
 
     <!-- Мобильное меню -->
     <div id="nav-menu"
-         class="flex-col space-y-2 mt-8 lg:hidden max-h-0 overflow-hidden transition-all duration-300 block ">
+         class="flex-col space-y-2 mt-8 lg:hidden max-h-0 overflow-hidden transition-all duration-400 block ">
         <a href="#"
            class="text-gray-800 dark:text-gray-200 pl-5 py-2  text-xl font-medium  rounded hover:bg-blue-200 dark:hover:bg-blue-600 hover:text-blue-900 dark:hover:text-white transition-colors block">Главная</a>
         <a href="#"
            class="text-gray-800 dark:text-gray-200 pl-10 py-2 text-xl font-medium  rounded hover:bg-blue-200 dark:hover:bg-blue-600 hover:text-blue-900 dark:hover:text-white transition-colors block">Города</a>
         <a href="#"
            class="text-gray-800 dark:text-gray-200 pl-15 py-2 text-xl font-medium  rounded hover:bg-blue-200 dark:hover:bg-blue-600 hover:text-blue-900 dark:hover:text-white transition-colors block">Статистика</a>
-        <a href="#"
-           class="text-gray-800 dark:text-gray-200 pl-30 py-2 text-xl font-medium  rounded hover:bg-red-200 dark:hover:bg-red-600 hover:text-red-900 dark:hover:text-white transition-colors block">Выход</a>
         <!-- Форма для выхода -->
         <form action="{% url 'myauth:logout' %}" method="POST" class="block">
             {% csrf_token %}
             <button type="submit"
-                    class=" blocktext-gray-800 dark:text-gray-200 pl-10 py-2 text-xl font-medium  rounded hover:bg-red-200 dark:hover:bg-red-600 hover:text-red-900 dark:hover:text-white transition-colors">
+                    class=" block w-full h-full text-left pl-30 py-2 text-gray-800 dark:text-gray-200 text-xl font-medium  rounded hover:bg-red-200 dark:hover:bg-red-600 hover:text-red-900 dark:hover:text-white transition-colors">
                 Выход
             </button>
         </form>

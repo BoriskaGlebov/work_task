@@ -4,7 +4,7 @@
 @plugin "flowbite/plugin";
 @source "../../node_modules/flowbite";
 @source "../../../myauth/templates/**/*.html";
-/*@source "../../../templates!**!*.html";*/
+@source "../../../file_creator//templates/**/*.html";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -44,6 +44,19 @@
 
     --color-button: oklch(0.623 0.214 259.815);
     --color-hover-button: oklch(0.546 0.245 262.881);
+
+    --animate-bounce: bounce 1s ease-in-out infinite;
+    @keyframes bounce {
+        0%, 100% {
+            transform: translateY(-25%);
+            animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+        }
+        50% {
+            transform: none;
+            animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+        }
+    }
+
 
 }
 .theme-toggle {
@@ -90,7 +103,7 @@
 }
 
 .error_icon {
-    @apply text-red-700
+    @apply text-red-700;
 }
 
 .error_message {
@@ -124,3 +137,6 @@
     animation: fade-in 1.5s ease-in-out forwards;
     animation-delay: 0.2s; /* небольшая задержка перед началом анимации */
 }
+
+
+

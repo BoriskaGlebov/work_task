@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite';
-import { resolve } from 'path';
+import {defineConfig} from 'vite';
+import {resolve} from 'path';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
@@ -20,10 +20,18 @@ export default defineConfig({
             output: {
                 entryFileNames: '[name].js',
                 chunkFileNames: '[name].js',
-                assetFileNames: ({ name = '' }) => {
+                assetFileNames: ({name = ''}) => {
                     if (/\.css$/.test(name)) return 'static/css/[name][extname]';
                     if (/\.(woff2?|ttf|otf|eot)$/.test(name)) return 'static/fonts/[name][extname]';
-                    if (/\.(png|jpe?g|gif|svg|ico)$/.test(name)) return 'static/img/[name][extname]';
+                    if (/\.(png|jpe?g|gif|svg|ico)$/.test(name)) {
+                        if (name.startsWith('file_creator_')) {
+                            return 'file_creator/img/[name][extname]';
+                        }
+                        if (name.includes('myauth')) {
+                            return 'myauth/img/[name][extname]';
+                        }
+                        return 'static/img/[name][extname]';
+                    }
                     return 'assets/[name][extname]';
                 },
             },

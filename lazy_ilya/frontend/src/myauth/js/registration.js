@@ -109,10 +109,9 @@ export async function submitForm({
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    if (window.location.pathname !== '/registration/') {
+    if (window.location.pathname !== '/login/registration/') {
         return; // Если это не страница регистрации, ничего не делаем
     }
-    // Получаем CSRF токен из формы
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
     // Получаем форму и поля

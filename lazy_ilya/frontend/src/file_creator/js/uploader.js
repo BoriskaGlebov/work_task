@@ -1,58 +1,68 @@
+// Импортируем иконку для использования в проекте
+import "../img/file_creator_eating.ico"
+// Когда вся страница загружена, убираем индикатор загрузки и показываем контент
+// Когда вся страница загружена, убираем индикатор загрузки и показываем контент
+window.addEventListener('load', () => {
+    // Получаем элемент загрузки
+    const loader = document.getElementById('loader');
 
+    // После 2 секунд начнем плавное скрытие элемента
+    setTimeout(() => {
+        // Плавно меняем прозрачность на 0
+        loader.style.opacity = '0';
 
-/**
- * Получает DOM-элемент по ID.
- * @param {string} id - Идентификатор элемента.
- * @returns {HTMLElement|null} DOM-элемент или null, если не найден.
- */
-function getEl(id) {
-    return document.getElementById(id);
+        // После завершения анимации, полностью скрываем элемент
+        setTimeout(() => {
+            loader.style.display = 'none'; // Скрываем элемент
+        }, 2000); // Задержка до полного исчезновения
+    }, 2000); // Время ожидания перед началом исчезновения
+});
+
+// Переключение темы
+// Получаем элементы на странице для кнопки и иконок, которые будут переключаться
+const themeToggleBtn = document.getElementById('theme-toggle'); // Кнопка переключения темы
+const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon'); // Иконка тёмной темы
+const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon'); // Иконка светлой темы
+
+// Проверяем, какая тема установлена в localStorage, или используем системные предпочтения
+if (localStorage.getItem('color-theme') === 'dark' // Если в localStorage сохранена тёмная тема
+    || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) { // Или если системное предпочтение — тёмная тема
+    document.body.classList.add('dark'); // Добавляем класс 'dark' на body, чтобы применить тёмную тему
+    themeToggleLightIcon.classList.remove('hidden'); // Показываем иконку для светлой темы
+} else {
+    document.body.classList.remove('dark'); // Убираем класс 'dark' с body, чтобы применить светлую тему
+    themeToggleDarkIcon.classList.remove('hidden'); // Показываем иконку для тёмной темы
 }
 
-// Элементы управления темой
-const themeToggleBtn = getEl('theme-toggle');
-const themeToggleDarkIcon = getEl('theme-toggle-dark-icon');
-const themeToggleLightIcon = getEl('theme-toggle-light-icon');
+// Слушаем событие клика на кнопку переключения темы
+themeToggleBtn.addEventListener('click', () => {
+    // Переключаем видимость иконок
+    themeToggleDarkIcon.classList.toggle('hidden'); // Скрываем или показываем иконку тёмной темы
+    themeToggleLightIcon.classList.toggle('hidden'); // Скрываем или показываем иконку светлой темы
 
-/**
- * Инициализирует тему при загрузке страницы:
- * если сохранена "dark" — включается тёмная тема,
- * иначе используется светлая или системная.
- */
-function initTheme() {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const savedTheme = localStorage.getItem('color-theme');
-
-    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-        document.body.classList.add('dark');
-        themeToggleLightIcon?.classList.remove('hidden');
+    // Переключаем тему на основе текущего состояния
+    if (localStorage.getItem('color-theme') === 'dark') { // Если текущая тема — тёмная
+        document.body.classList.remove('dark'); // Убираем класс 'dark' для светлой темы
+        localStorage.setItem('color-theme', 'light'); // Сохраняем выбор светлой темы в localStorage
     } else {
-        document.body.classList.remove('dark');
-        themeToggleDarkIcon?.classList.remove('hidden');
+        document.body.classList.add('dark'); // Добавляем класс 'dark' для тёмной темы
+        localStorage.setItem('color-theme', 'dark'); // Сохраняем выбор тёмной темы в localStorage
     }
-}
+});
 
-/**
- * Обработчик переключения темы: переключает классы body и иконки,
- * сохраняет выбранную тему в localStorage.
- */
-function toggleTheme() {
-    themeToggleDarkIcon?.classList.toggle('hidden');
-    themeToggleLightIcon?.classList.toggle('hidden');
+// Бургер-меню
+// Получаем элементы на странице для кнопки бургер-меню и самого меню
+const burgerMenuBtn = document.getElementById('burger-menu'); // Кнопка для открытия/закрытия бургер-меню
+const navMenu = document.getElementById('nav-menu'); // Элемент меню, которое будет скрываться и показываться
 
-    const currentTheme = localStorage.getItem('color-theme');
-
-    if (currentTheme === 'dark') {
-        document.body.classList.remove('dark');
-        localStorage.setItem('color-theme', 'light');
+// Слушаем событие клика на кнопку бургер-меню
+burgerMenuBtn.addEventListener('click', () => {
+    // Если меню скрыто (имеет класс 'max-h-0'), то раскрываем его
+    if (navMenu.classList.contains('max-h-0')) {
+        navMenu.classList.remove('max-h-0'); // Убираем класс 'max-h-0', чтобы показать меню
+        navMenu.classList.add('max-h-60'); // Добавляем класс 'max-h-60', чтобы дать меню максимальную высоту
     } else {
-        document.body.classList.add('dark');
-        localStorage.setItem('color-theme', 'dark');
+        navMenu.classList.remove('max-h-60'); // Убираем класс 'max-h-60', чтобы скрыть меню
+        navMenu.classList.add('max-h-0'); // Добавляем класс 'max-h-0', чтобы меню было скрыто
     }
-}
-
-// Проверка на наличие всех нужных элементов перед инициализацией
-if (themeToggleBtn && themeToggleDarkIcon && themeToggleLightIcon) {
-    initTheme();
-    themeToggleBtn.addEventListener('click', toggleTheme);
-}
+});
