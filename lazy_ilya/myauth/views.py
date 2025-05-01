@@ -119,27 +119,55 @@ class RegisterView(CreateView):
 
 
 class CustomPasswordResetView(FormView):
-    template_name = 'myauth/reset_password.html'
+    """
+    Кастомное представление для сброса пароля пользователя.
+
+    Атрибуты:
+        template_name (str): Путь к шаблону HTML.
+        form_class (Form): Класс формы, используемой для валидации данных.
+        success_url (str): URL, на который будет перенаправлен пользователь после успешного сброса пароля.
+
+    Методы:
+        form_valid(form): Обрабатывает успешную валидацию формы. Устанавливает новый пароль и возвращает JSON-ответ при AJAX-запросе.
+        form_invalid(form): Обрабатывает неуспешную валидацию формы. Возвращает ошибки в JSON-формате при AJAX-запросе.
+    """
+
+    template_name: str = 'myauth/reset_password.html'
     form_class = PasswordResetForm
     success_url = reverse_lazy('myauth:login')
 
-    def form_valid(self, form):
-        # Устанавливаем новый пароль
+    def form_valid(self, form: PasswordResetForm) -> HttpResponse:
+        """
+        Вызывается, если форма прошла валидацию. Устанавливает новый пароль для пользователя.
+
+        Args:
+            form (PasswordResetForm): Валидная форма.
+
+        Returns:
+            HttpResponse: JSON-ответ при AJAX-запросе или стандартный редирект.
+        """
         user = form.user
         user.set_password(form.cleaned_data['password1'])
         user.save()
 
-        # # Входим автоматически (если нужно)
-        # login(self.request, user)
-        # AJAX или обычный ответ
+        # login(self.request, user)  # Автоматический вход (если нужен)
+
         if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return JsonResponse({'success': True, 'redirect_url': str(self.get_success_url())})
 
         return super().form_valid(form)
 
-    def form_invalid(self, form):
+    def form_invalid(self, form: PasswordResetForm) -> HttpResponse:
+        """
+        Вызывается, если форма не прошла валидацию. Возвращает ошибки в формате JSON при AJAX-запросе.
 
+        Args:
+            form (PasswordResetForm): Невалидная форма.
+
+        Returns:
+            HttpResponse: JSON с ошибками или стандартный ответ.
+        """
         if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
-            print(form.errors.as_json())
             return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+
         return super().form_invalid(form)

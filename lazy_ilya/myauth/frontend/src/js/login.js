@@ -1,6 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Получаем CSRF токен из скрытого поля в форме
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    // Получаем элементы формы
     const form = document.querySelector('form');
+    const nonFieldErrors = document.getElementById('non-field-errors');
     const usernameLabel = document.getElementById('username-label');
     const usernameInput = document.getElementById('username');
     const passwordLabel = document.getElementById('password-label');
@@ -10,6 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginIcon = document.getElementById('login-icon');
     const passwordIcon = document.getElementById('password-icon');
 
+    /**
+     * Сбрасывает стили и ошибки для поля формы.
+     * @param {HTMLElement} label - Элемент лейбла поля
+     * @param {HTMLElement} input - Элемент ввода (поле)
+     * @param {HTMLElement} icon - Иконка ошибки/успеха
+     * @param {HTMLElement} errorElement - Элемент с ошибкой
+     */
     const resetField = (label, input, icon, errorElement) => {
         errorElement.classList.add("hidden");
         label.classList.remove("error_label");
@@ -20,6 +31,14 @@ document.addEventListener('DOMContentLoaded', () => {
         icon.classList.add("correct_icon");
     };
 
+    /**
+     * Устанавливает ошибку для поля формы.
+     * @param {HTMLElement} label - Элемент лейбла поля
+     * @param {HTMLElement} input - Элемент ввода (поле)
+     * @param {HTMLElement} icon - Иконка ошибки/успеха
+     * @param {HTMLElement} errorElement - Элемент с ошибкой
+     * @param {string} message - Сообщение об ошибке
+     */
     const setFieldError = (label, input, icon, errorElement, message) => {
         errorElement.textContent = message;
         errorElement.classList.remove("hidden");
@@ -31,6 +50,10 @@ document.addEventListener('DOMContentLoaded', () => {
         icon.classList.remove("correct_icon");
     };
 
+    /**
+     * Обработчик отправки формы
+     * @param {Event} event - Событие отправки формы
+     */
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
 
@@ -38,43 +61,52 @@ document.addEventListener('DOMContentLoaded', () => {
         resetField(usernameLabel, usernameInput, loginIcon, usernameError);
         resetField(passwordLabel, passwordInput, passwordIcon, passwordError);
 
+        // Сбор данных из формы
         const formData = new FormData(form);
 
         try {
+            // Отправляем форму с помощью fetch (AJAX запрос)
             const response = await fetch(form.action, {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-CSRFToken': csrfToken,  // 👈 правильно
-                    'X-Requested-With': 'XMLHttpRequest',  // 👈 желательно: сообщает серверу, что это AJAX
+                    'X-CSRFToken': csrfToken,  // Отправляем CSRF токен
+                    'X-Requested-With': 'XMLHttpRequest',  // Указываем, что это AJAX запрос
                 }
             });
 
+            // Преобразуем ответ в JSON
             const data = await response.json();
 
             if (response.ok) {
+                // Если форма успешно отправлена, редиректим на другую страницу
                 window.location.href = data.redirect_url;
             } else {
+                // Обработка ошибок, если они есть
                 const errors = data.errors;
 
+                // Обработка ошибки для поля "username"
                 if (errors.username) {
                     setFieldError(usernameLabel, usernameInput, loginIcon, usernameError, errors.username[0].message);
                 }
 
+                // Обработка ошибки для поля "password"
                 if (errors.password) {
                     setFieldError(passwordLabel, passwordInput, passwordIcon, passwordError, errors.password[0].message);
                 }
 
+                // Обработка общей ошибки (например, если оба поля некорректны)
                 if (errors.__all__) {
                     nonFieldErrors.querySelector('p').textContent = errors.__all__[0].message;
                     nonFieldErrors.classList.remove("hidden");
 
                     // Подсвечиваем оба поля на общий фейл
-                    setFieldError(usernameInput, loginIcon, usernameError, '');
-                    setFieldError(passwordInput, passwordIcon, passwordError, '');
+                    setFieldError(usernameLabel, usernameInput, loginIcon, usernameError, '');
+                    setFieldError(passwordLabel, passwordInput, passwordIcon, passwordError, '');
                 }
             }
         } catch (error) {
+            // Логирование ошибки при отправке формы
             console.error('Ошибка при отправке формы:', error);
         }
     });

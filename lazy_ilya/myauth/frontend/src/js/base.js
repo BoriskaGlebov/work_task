@@ -1,31 +1,59 @@
-import '../css/base.css'
-import '../img/favicon.ico'
+import '../css/base.css';
+import '../img/favicon.ico';
 
-    // Переключение темы
-    const themeToggleBtn = document.getElementById('theme-toggle');
-    const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
-    const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+/**
+ * Получает DOM-элемент по ID.
+ * @param {string} id - Идентификатор элемента.
+ * @returns {HTMLElement|null} DOM-элемент или null, если не найден.
+ */
+function getEl(id) {
+    return document.getElementById(id);
+}
 
-    if (localStorage.getItem('color-theme') === 'dark'
-        || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+// Элементы управления темой
+const themeToggleBtn = getEl('theme-toggle');
+const themeToggleDarkIcon = getEl('theme-toggle-dark-icon');
+const themeToggleLightIcon = getEl('theme-toggle-light-icon');
+
+/**
+ * Инициализирует тему при загрузке страницы:
+ * если сохранена "dark" — включается тёмная тема,
+ * иначе используется светлая или системная.
+ */
+function initTheme() {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('color-theme');
+
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
         document.body.classList.add('dark');
-        themeToggleLightIcon.classList.remove('hidden');
+        themeToggleLightIcon?.classList.remove('hidden');
     } else {
         document.body.classList.remove('dark');
-        themeToggleDarkIcon.classList.remove('hidden');
+        themeToggleDarkIcon?.classList.remove('hidden');
     }
+}
 
-    themeToggleBtn.addEventListener('click', () => {
-        themeToggleDarkIcon.classList.toggle('hidden');
-        themeToggleLightIcon.classList.toggle('hidden');
+/**
+ * Обработчик переключения темы: переключает классы body и иконки,
+ * сохраняет выбранную тему в localStorage.
+ */
+function toggleTheme() {
+    themeToggleDarkIcon?.classList.toggle('hidden');
+    themeToggleLightIcon?.classList.toggle('hidden');
 
-        if (localStorage.getItem('color-theme') === 'dark') {
-            document.body.classList.remove('dark');
-            localStorage.setItem('color-theme', 'light');
-        } else {
-            document.body.classList.add('dark');
-            localStorage.setItem('color-theme', 'dark');
-        }
-    });
+    const currentTheme = localStorage.getItem('color-theme');
 
+    if (currentTheme === 'dark') {
+        document.body.classList.remove('dark');
+        localStorage.setItem('color-theme', 'light');
+    } else {
+        document.body.classList.add('dark');
+        localStorage.setItem('color-theme', 'dark');
+    }
+}
 
+// Проверка на наличие всех нужных элементов перед инициализацией
+if (themeToggleBtn && themeToggleDarkIcon && themeToggleLightIcon) {
+    initTheme();
+    themeToggleBtn.addEventListener('click', toggleTheme);
+}

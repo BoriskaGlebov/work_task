@@ -53,19 +53,50 @@ class CustomUserCreationForm(UserCreationForm):
         return cleaned_data
 
 
-class PasswordResetForm(Form):
-    username = forms.CharField(label="Логин", max_length=150)
-    phone_number = PhoneNumberField(label="Телефон", region="RU", error_messages={
-        "invalid": "Введите корректный номер телефона в формате +7 (985) 200-03-38.",
-    })
-    password1 = forms.CharField(label="Новый пароль", widget=forms.PasswordInput)
-    password2 = forms.CharField(label="Повтор пароля", widget=forms.PasswordInput)
+class PasswordResetForm(forms.Form):
+    """
+    Форма для сброса пароля пользователя по логину и номеру телефона.
 
-    # class Meta:
-    #     model = CustomUser
-    #     fields = ["username", "phone_number"]
+    Поля:
+        username (str): Логин пользователя.
+        phone_number (PhoneNumber): Телефонный номер пользователя (в формате +7).
+        password1 (str): Новый пароль.
+        password2 (str): Повтор нового пароля.
 
-    def clean(self):
+    Методы:
+        clean(): Переопределяет общую валидацию формы. Проверяет совпадение паролей
+                 и существование пользователя с заданными логином и телефоном.
+    """
+
+    username: str = forms.CharField(
+        label="Логин",
+        max_length=150
+    )
+    phone_number = PhoneNumberField(
+        label="Телефон",
+        region="RU",
+        error_messages={
+            "invalid": "Введите корректный номер телефона в формате +7 (985) 200-03-38.",
+        }
+    )
+    password1: str = forms.CharField(
+        label="Новый пароль",
+        widget=forms.PasswordInput
+    )
+    password2: str = forms.CharField(
+        label="Повтор пароля",
+        widget=forms.PasswordInput
+    )
+
+    def clean(self) -> dict:
+        """
+        Проводит общую валидацию формы:
+        - Проверяет, что пароли совпадают.
+        - Проверяет, что пользователь с указанным логином и телефоном существует.
+
+        Returns:
+            dict: Очищенные данные формы (cleaned_data).
+        """
 
         username = self.cleaned_data.get('username')
         phone_number = self.cleaned_data.get('phone_number')
@@ -73,13 +104,13 @@ class PasswordResetForm(Form):
         password2 = self.cleaned_data.get('password2')
 
         if password1 and password2 and password1 != password2:
-            self.add_error('password2', 'Пароли не совпадают')
+            self.add_error('password2', 'Кожаный, будь внимателен, пароли должны совпадать!!!')
 
         if username and phone_number:
             try:
                 self.user = CustomUser.objects.get(username=username, phone_number=phone_number)
             except CustomUser.DoesNotExist:
-                self.add_error("username","Пользователь с такими данными не найдет")
-                # raise forms.ValidationError("Пользователь с такими данными не найден")
+                self.add_error("username", "Пользователь с такими данными не найдет")
+
         cleaned_data = super().clean()
         return cleaned_data
