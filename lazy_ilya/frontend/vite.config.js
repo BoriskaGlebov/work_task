@@ -21,9 +21,9 @@ export default defineConfig({
                 entryFileNames: '[name].js',
                 chunkFileNames: '[name].js',
                 assetFileNames: ({ name = '' }) => {
-                    if (/\.css$/.test(name)) return 'shared_static/css/[name][extname]';
-                    if (/\.(woff2?|ttf|otf|eot)$/.test(name)) return 'shared_static/fonts/[name][extname]';
-                    if (/\.(png|jpe?g|gif|svg|ico)$/.test(name)) return 'shared_static/img/[name][extname]';
+                    if (/\.css$/.test(name)) return 'static/css/[name][extname]';
+                    if (/\.(woff2?|ttf|otf|eot)$/.test(name)) return 'static/fonts/[name][extname]';
+                    if (/\.(png|jpe?g|gif|svg|ico)$/.test(name)) return 'static/img/[name][extname]';
                     return 'assets/[name][extname]';
                 },
             },

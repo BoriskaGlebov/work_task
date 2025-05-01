@@ -123,7 +123,10 @@ STATIC_URL = "static/"
 STATIC_ROOT = os.path.join(
     BASE_DIR, "staticfiles"
 )  # Сюда импортируются все файлы статики для всех приложений
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "lazy_ilya", "static")]
+STATICFILES_DIRS = [
+    BASE_DIR / "lazy_ilya/static",
+
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -157,3 +160,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 30 * 60  # Время жизни сессии в секундах (например, 30 минут)
 SESSION_SAVE_EVERY_REQUEST = True  # Обновляет таймер сессии при каждом запросе
 AUTH_USER_MODEL = 'myauth.CustomUser'
+
+
+if __name__ == '__main__':
+    print(BASE_DIR)
