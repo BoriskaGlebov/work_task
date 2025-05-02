@@ -32,7 +32,7 @@ http://localhost:5173/src/file_creator/img/file_creator_eating.ico
          alt="Loading Logo" class="w-50 h-50 animate-bounce">
 </div>
 <!-- Навигация -->
-<nav class="bg-nav-ligth dark:bg-nav-dark p-5 shadow-xl transition-colors duration-300">
+<nav class="bg-nav-ligth dark:bg-nav-dark p-5 shadow-xl shadow-nav-ligth/50 dark:shadow-nav-dark:50 transition-colors duration-300">
 
     <div class="flex justify-between items-center">
         <!-- Левая часть -->
@@ -49,7 +49,7 @@ http://localhost:5173/src/file_creator/img/file_creator_eating.ico
 
         <!-- Меню (десктоп) -->
         <div class="hidden lg:flex items-center gap-5">
-            <a href="#"
+            <a href="{% url 'file_creator:file-creator-start' %}"
                class="text-text-light dark:text-text-dark py-3 w-30 text-center text-xl font-medium rounded transition-colors duration-200 hover:bg-hover-light dark:hover:bg-hover-dark hover:text-hover-text-light dark:hover:text-hover-text-dark">Главная</a>
             <a href="#"
                class="text-text-light dark:text-text-dark py-3 w-30 text-center text-xl font-medium rounded transition-colors duration-200 hover:bg-hover-light dark:hover:bg-hover-dark hover:text-hover-text-light dark:hover:text-hover-text-dark">Города</a>
@@ -98,7 +98,7 @@ http://localhost:5173/src/file_creator/img/file_creator_eating.ico
     <!-- Мобильное меню -->
     <div id="nav-menu"
          class="flex-col space-y-2 mt-8 lg:hidden max-h-0 overflow-hidden transition-all duration-400 block ">
-        <a href="#"
+        <a href="{% url 'file_creator:file-creator-start' %}"
            class="text-gray-800 dark:text-gray-200 pl-5 py-2  text-xl font-medium  rounded hover:bg-blue-200 dark:hover:bg-blue-600 hover:text-blue-900 dark:hover:text-white transition-colors block">Главная</a>
         <a href="#"
            class="text-gray-800 dark:text-gray-200 pl-10 py-2 text-xl font-medium  rounded hover:bg-blue-200 dark:hover:bg-blue-600 hover:text-blue-900 dark:hover:text-white transition-colors block">Города</a>
@@ -120,8 +120,8 @@ http://localhost:5173/src/file_creator/img/file_creator_eating.ico
 
 <!-- Контент -->
 <main class="p-4 text-gray-800 dark:text-gray-900 rounded shadow-inner">
-    <h1 class="text-2xl font-semibold">Работа с документами</h1>
-    <p>Здесь будет отображаться текст документа Word.</p>
+{#    <h1 class="text-2xl font-semibold">Работа с документами</h1>#}
+{#    <p>Здесь будет отображаться текст документа Word.</p>#}
     {% block body %}
         Base Body
     {% endblock %}

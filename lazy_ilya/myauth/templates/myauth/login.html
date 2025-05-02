@@ -6,7 +6,7 @@
 {% block body %}
     <main class="flex justify-center items-center h-screen">
         <form method="POST" action="{% url 'myauth:login' %}"
-              class="relative bg-nav-ligth dark:bg-nav-dark p-8 rounded-lg shadow-lg w-full max-w-md space-y-6 opacity-0 animate-fade-in">
+              class="relative bg-nav-ligth dark:bg-nav-dark p-8 rounded-lg shadow-lg shadow-nav-ligth/50 dark:shadow-nav-dark:50 w-full max-w-md space-y-6 opacity-0 animate-fade-in">
             {% csrf_token %}
             <!-- Переключатель темы внутри формы -->
             <button id="theme-toggle" type="button"

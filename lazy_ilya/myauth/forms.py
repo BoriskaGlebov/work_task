@@ -105,7 +105,10 @@ class PasswordResetForm(forms.Form):
 
         if password1 and password2 and password1 != password2:
             self.add_error('password2', 'Кожаный, будь внимателен, пароли должны совпадать!!!')
-
+        if password1 and len(password1) < 5:
+            self.add_error('password1', 'Длина пароля от 5 символов!')
+        if password2 and len(password1) < 5:
+            self.add_error('password2', 'Длина пароля от 5 символов!')
         if username and phone_number:
             try:
                 self.user = CustomUser.objects.get(username=username, phone_number=phone_number)

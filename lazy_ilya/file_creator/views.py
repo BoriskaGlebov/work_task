@@ -10,7 +10,7 @@ from django.views import View
 @login_required
 def base_template(request: HttpRequest) -> HttpResponse:
     context = {}
-    return render(request, "file_creator/base.html", context)
+    return render(request, "file_creator/file_creator.html", context)
 
 
 # Create your views here.
