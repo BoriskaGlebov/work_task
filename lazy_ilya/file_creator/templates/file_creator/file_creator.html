@@ -6,84 +6,53 @@
 {% endblock %}
 
 {% block body %}
-
-
-<ol class="flex flex-col md:flex-row md:space-x-6 space-y-4 md:space-y-0 w-full">
-  <!-- Шаг 1 -->
-  <li class="flex-1">
-    <div class="p-4 border rounded-lg bg-green-50 text-green-700 dark:bg-gray-800 dark:text-green-400 dark:border-green-800">
-      <div class="flex items-center justify-between md:justify-start md:space-x-4">
-        <div class="flex items-center space-x-2">
-          <span class="hidden md:inline font-medium">1. Информация о пользователе</span>
-          <span class="inline md:hidden font-bold">1</span>
-          <svg class="w-4 h-4 text-green-600" fill="none" viewBox="0 0 16 12">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5.917 5.724 10.5 15 1.5"/>
-          </svg>
-        </div>
-      </div>
-      <p class="mt-2 text-sm text-gray-700 hidden md:block">Введите имя, почту и контактную информацию.</p>
-    </div>
-  </li>
-
-  <!-- Шаг 2 -->
-  <li class="flex-1">
-    <div class="p-4 border rounded-lg bg-green-50 text-green-700 dark:bg-gray-800 dark:text-green-400 dark:border-green-800">
-      <div class="flex items-center justify-between md:justify-start md:space-x-4">
-        <div class="flex items-center space-x-2">
-          <span class="hidden md:inline font-medium">2. Данные аккаунта</span>
-          <span class="inline md:hidden font-bold">2</span>
-          <svg class="w-4 h-4 text-green-600" fill="none" viewBox="0 0 16 12">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5.917 5.724 10.5 15 1.5"/>
-          </svg>
-        </div>
-      </div>
-      <p class="mt-2 text-sm text-gray-700 hidden md:block">Придумайте пароль и укажите логин.</p>
-    </div>
-  </li>
-
-  <!-- Шаг 3 -->
-  <li class="flex-1">
-    <div class="p-4 border rounded-lg bg-blue-100 text-blue-700 dark:bg-gray-800 dark:text-blue-400 dark:border-blue-800">
-      <div class="flex items-center justify-between md:justify-start md:space-x-4">
-        <div class="flex items-center space-x-2">
-          <span class="hidden md:inline font-medium">3. Связанные соцсети</span>
-          <span class="inline md:hidden font-bold">3</span>
-          <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 14 10">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
-          </svg>
-        </div>
-      </div>
-      <p class="mt-2 text-sm text-gray-700 hidden md:block">Привяжите аккаунты соцсетей для входа.</p>
-    </div>
-  </li>
-
-  <!-- Шаг 4 -->
-  <li class="flex-1">
-    <div class="p-4 border rounded-lg bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700">
-      <div class="flex items-center justify-between md:justify-start md:space-x-4">
-        <div class="flex items-center space-x-2">
-          <span class="hidden md:inline font-medium">4. Проверка данных</span>
-          <span class="inline md:hidden font-bold">4</span>
-        </div>
-      </div>
-      <p class="mt-2 text-sm text-gray-700 hidden md:block">Убедитесь, что вся информация корректна.</p>
-    </div>
-  </li>
-
-  <!-- Шаг 5 -->
-  <li class="flex-1">
-    <div class="p-4 border rounded-lg bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700">
-      <div class="flex items-center justify-between md:justify-start md:space-x-4">
-        <div class="flex items-center space-x-2">
-          <span class="hidden md:inline font-medium">5. Подтверждение</span>
-          <span class="inline md:hidden font-bold">5</span>
-        </div>
-      </div>
-      <p class="mt-2 text-sm text-gray-700 hidden md:block">Подтвердите и завершите регистрацию.</p>
-    </div>
-  </li>
-</ol>
-
+    <ol class="py-6 items-center w-full space-y-4 lg:flex lg:justify-between lg:space-x-8 lg:space-y-0">
+        <li class="flex items-center text-blue-600 dark:text-blue-500 space-x-2.5">
+        <span class="flex items-center justify-center w-8 h-8 border border-blue-600 rounded-full shrink-0 dark:border-blue-500">
+            1
+        </span>
+            <div>
+                <h3 class="font-medium leading-tight">Загрузка файлов</h3>
+                <p class="text-sm">Добавление файлов на обработку</p>
+            </div>
+        </li>
+        <li class="flex items-center text-gray-500 dark:text-gray-400 space-x-2.5">
+        <span class="flex items-center justify-center w-8 h-8 border border-gray-500 rounded-full shrink-0 dark:border-gray-400">
+            2
+        </span>
+            <div>
+                <h3 class="font-medium leading-tight">Подготовка</h3>
+                <p class="text-sm">Добавление нужных реквизитов к документам</p>
+            </div>
+        </li>
+        <li class="flex items-center text-gray-500 dark:text-gray-400 space-x-2.5 ">
+        <span class="flex items-center justify-center w-8 h-8 border border-gray-500 rounded-full shrink-0 dark:border-gray-400">
+            3
+        </span>
+            <div>
+                <h3 class="font-medium leading-tight">Ответ от сервера</h3>
+                <p class="text-sm">Проверка полученных документов от сервера</p>
+            </div>
+        </li>
+        <li class="flex items-center text-gray-500 dark:text-gray-400 space-x-2.5 ">
+        <span class="flex items-center justify-center w-8 h-8 border border-gray-500 rounded-full shrink-0 dark:border-gray-400">
+            4
+        </span>
+            <div>
+                <h3 class="font-medium leading-tight">Сохранение документов</h3>
+                <p class="text-sm">Сохранение документов</p>
+            </div>
+        </li>
+        <li class="flex items-center text-gray-500 dark:text-gray-400 space-x-2.5 ">
+        <span class="flex items-center justify-center w-8 h-8 border border-gray-500 rounded-full shrink-0 dark:border-gray-400">
+            5
+        </span>
+            <div>
+                <h3 class="font-medium leading-tight">Ожидание ответа от сервера</h3>
+                <p class="text-sm">Обработка сообщения от сервера</p>
+            </div>
+        </li>
+    </ol>
 
 
 {% endblock %}

@@ -9,23 +9,29 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @font-face {
-    font-family: 'Press Start 2P';
-    src: url('../fonts/PressStart2P-Regular.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
-}
-
-@font-face {
     font-family: 'Roboto';
     src: url('../fonts/Roboto-Regular.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
 }
 
+@font-face {
+    font-family: 'Audiowide';
+    src: url("../fonts/Audiowide-Regular.ttf") format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'Stalinist';
+    src: url("../fonts/StalinistOne-Regular.ttf") format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
 
 @theme {
-    --color-body-light: oklch(0.967 0.003 264.542);
-    --color-body-dark: oklch(0.872 0.01 258.338);
+    --color-body-light: #f8f9fa;
+    --color-body-dark: #121212;
 
     --color-text-light: oklch(0.278 0.033 256.848);
     --color-text-dark: oklch(0.928 0.006 264.531);
@@ -39,20 +45,20 @@
     --color-hover-text-light: oklch(0.282 0.091 267.935);
     --color-hover-text-dark: #fff;
 
-    --font-logo: "Press Start 2P", sans-serif;
+    --font-logo: "Stalinist", sans-serif;
     --font-roboto: "Roboto", sans-serif;
 
     --color-button: oklch(0.623 0.214 259.815);
     --color-hover-button: oklch(0.546 0.245 262.881);
 
-    --animate-bounce: bounce 1s ease-in-out infinite;
+    --animate-bounce: bounce 1s ease-in-out 10 forwards;
     @keyframes bounce {
         0%, 100% {
-            transform: translateY(-25%);
+            transform: none;
             animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
         }
         50% {
-            transform: none;
+            transform: translateY(25%);
             animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
         }
     }
