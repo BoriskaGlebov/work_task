@@ -6,14 +6,14 @@
 {% block body %}
     <main class="flex justify-center items-center h-screen">
         <form method="POST" action="{% url 'myauth:login' %}"
-              class="relative bg-nav-ligth dark:bg-nav-dark p-8 rounded-lg shadow-lg shadow-nav-ligth/50 dark:shadow-nav-dark:50 w-full max-w-md space-y-6 opacity-0 animate-fade-in">
+              class="relative form-style  opacity-0 animate-fade-in">
             {% csrf_token %}
             <!-- Переключатель темы внутри формы -->
             <button id="theme-toggle" type="button"
                     class="theme-toggle">
                 <svg id="theme-toggle-dark-icon" xmlns="http://www.w3.org/2000/svg"
                      fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                     stroke="currentColor" class="w-6 h-6 hidden">
+                     stroke="currentColor" class="w-8 h-8 hidden">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75
               c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752
@@ -21,7 +21,7 @@
               C3 16.635 7.365 21 12.75 21
               a9.753 9.753 0 0 0 9.002-5.998Z"></path>
                 </svg>
-                <svg id="theme-toggle-light-icon" class="w-6 h-6 hidden" xmlns="http://www.w3.org/2000/svg"
+                <svg id="theme-toggle-light-icon" class="w-8 h-8 hidden" xmlns="http://www.w3.org/2000/svg"
                      fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21
@@ -31,21 +31,34 @@
               3.75 3.75 0 0 1 7.5 0Z"></path>
                 </svg>
             </button>
-
-            <h2 class="text-3xl font-logo text-center text-text-light dark:text-white">Вход</h2>
+            <h1>Lazy Ilya</h1>
+            <p class="text-center text-text-light dark:text-white">Войдите в свою учетную запись</p>
             <!-- Ошибка авторизации -->
-            <div id="non-field-errors"
-                 class="text-sm shadow-lg text-center hidden border rounded-lg p-3 common_error">
-                <p>Ошибка авторизации</p>
+            <div id="non-field-errors" class="hidden common_error"
+                 role="alert">
+                <svg class="shrink-0 inline w-6 h-6 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                     fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"></path>
+                </svg>
+                <span class="sr-only">Info</span>
+                <div>
+                    <span class="!font-bold">Danger alert!</span>
+                    <p>Change a few things up and try submitting again.</p>
+                </div>
             </div>
 
+{#            <div id="non-field-errors"#}
+{#                 class="hidden common_error">#}
+{#                <p>Ошибка авторизации</p>#}
+{#            </div>#}
+
             <div>
-                <label for="username" id="username-label" class="block mb-2  font-medium correct_label">Логин</label>
+                <label for="username" id="username-label" class="block mb-2 font-medium correct_label">Логин</label>
                 <div class="relative">
                     <div class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none ">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                              viewBox="0 0 24 24" stroke-width="1.5"
-                             stroke="currentColor" class="size-6 correct_icon" id="login-icon">
+                             stroke="currentColor" class="correct_icon" id="login-icon">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                   d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963
                       0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12
@@ -54,53 +67,65 @@
                         </svg>
                     </div>
                     <input type="text" id="username" name="username"
-                           class="w-full ps-12 p-2.5 border rounded-lg focus:outline-none focus:ring-2 transition correct_input"
+                           class="w-full ps-12 p-2.5 correct_input"
                            placeholder="Имя пользователя"
                     >
                 </div>
                 <!-- Сообщение об ошибке прямо под полем -->
                 <p id="login-error"
-                   class="text-sm pt-2 pl-5 hidden shadow-lg error_message">
-                    Логин обязателен
+                   class="hidden error_message">
+                    Сообщение об ошибке для поля ввода
                 </p>
             </div>
             <div>
                 <div class="flex justify-between items-center mb-2">
-                    <label for="password" id="password-label" class="correct_label font-medium">Пароль</label>
-                    <a href="{% url 'myauth:reset-password' %}" class="text-sm text-blue-500 hover:underline dark:text-blue-400">Забыли пароль?</a>
+                    <label for="password" id="password-label"
+                           class="block mb-2 font-medium correct_label">Пароль</label>
+                    <a href="{% url 'myauth:reset-password' %}"
+                       class="text-sm text-primary dark:text-primary-dark hover:underline">Забыли пароль?</a>
                 </div>
 
                 <div class="relative">
                     <div class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                             stroke="currentColor" class="size-6 correct_icon" id="password-icon">
+                             stroke="currentColor" class="correct_icon" id="password-icon">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                   d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"></path>
                         </svg>
                     </div>
 
                     <input type="password" id="password" name="password"
-                           class="w-full ps-12 p-2.5 border light rounded-lg focus:outline-none focus:ring-2 transition correct_input"
+                           class="w-full ps-12 p-2.5 correct_input"
                            placeholder="Пароль"
                     >
                 </div>
                 <!-- Сообщение об ошибке прямо под полем -->
                 <p id="password-error"
-                   class="text-sm pt-2 pl-5  hidden shadow-lg error_message">
-                    Пароль обязателен
+                   class="hidden error_message">
+                    Сообщение об ошибке для поля ввода
                 </p>
 
 
             </div>
-            <div class="flex justify-center items-center">
+            <div class="relative">
+                <div class="absolute inset-y-0 start-4/12 flex items-center ps-3.5 pointer-events-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                         stroke="currentColor" class="correct_icon !text-text-dark">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"></path>
+                    </svg>
+                </div>
                 <button type="submit"
                         class="btn-submit">
                     Войти
                 </button>
+
             </div>
-            <p class="text-center text-sm text-text-light dark:text-text-dark">
+
+            <p class="text-center text-sm text-text-light dark:text-white">
                 Нет аккаунта?
-                <a href="{% url 'myauth:registration' %}" class="text-blue-500 hover:underline dark:text-blue-400">Зарегистрироваться</a>
+                <a href="{% url 'myauth:registration' %}"
+                   class="text-sm text-primary dark:text-primary-dark hover:underline">Зарегистрироваться</a>
             </p>
         </form>
 

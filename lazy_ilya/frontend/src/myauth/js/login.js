@@ -61,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resetField(usernameLabel, usernameInput, loginIcon, usernameError);
         resetField(passwordLabel, passwordInput, passwordIcon, passwordError);
         nonFieldErrors.classList.add("hidden")
+        nonFieldErrors.classList.remove("flex")
 
         // Сбор данных из формы
         const formData = new FormData(form);
@@ -100,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (errors.__all__) {
                     nonFieldErrors.querySelector('p').textContent = errors.__all__[0].message;
                     nonFieldErrors.classList.remove("hidden");
+                    nonFieldErrors.classList.add("flex");
 
                     // Подсвечиваем оба поля на общий фейл
                     setFieldError(usernameLabel, usernameInput, loginIcon, usernameError, '');

@@ -16,41 +16,63 @@
 }
 
 @font-face {
-    font-family: 'Audiowide';
-    src: url("../fonts/Audiowide-Regular.ttf") format('truetype');
+    font-family: 'Orbitron';
+    src: url("../fonts/Orbitron-VariableFont_wght.ttf") format('truetype');
     font-weight: normal;
     font-style: normal;
 }
+
 @font-face {
-    font-family: 'Stalinist';
-    src: url("../fonts/StalinistOne-Regular.ttf") format('truetype');
+    font-family: 'FiraCode';
+    src: url("../fonts/FiraCode-VariableFont_wght.ttf") format('truetype');
     font-weight: normal;
     font-style: normal;
 }
 
 
 @theme {
+    --color-primary: oklch(0.511 0.262 276.966); /*indigo-600*/
+    --color-primary-dark: oklch(0.673 0.182 276.935); /*indigo-400*/
+    --color-secondary: oklch(0.554 0.046 257.417); /*slate-500*/
+    --color-secondary-dark: oklch(0.869 0.022 252.894); /*slate-300*/
+    --color-accent: oklch(0.715 0.143 215.221); /*cyan-500*/
+    --color-accent-dark: oklch(0.715 0.143 215.221); /*cyan-300*/
+    --color-background: oklch(0.967 0.003 264.542); /*gray-100*/
+    --color-background-dark: oklch(0.21 0.034 264.665); /*gray-900*/
+    --color-surface: oklch(0.985 0.002 247.839); /*gray-50*/
+    --color-surface-dark: oklch(0.278 0.033 256.848); /*gray-800*/
+    --color-form-color: oklch(0.928 0.006 264.531); /*gray-200*/
+    --color-form-color-dark: oklch(0.373 0.034 259.733);/*gray-700*/
+    --color-error: oklch(0.645 0.246 16.439); /*rose-500*/
+    --color-error-dark: oklch(0.712 0.194 13.428); /*rose-400*/
+    --color-info: oklch(0.623 0.214 259.815); /*blue-500*/
+    --color-info-dark: oklch(0.707 0.165 254.624); /*blue-400*/
+    --color-success: oklch(0.696 0.17 162.48); /*emerald-500*/
+    --color-success-dark: oklch(0.765 0.177 163.223); /*emerald-400*/
+    --color-warning: oklch(0.769 0.188 70.08); /*amber-500*/
+    --color-warning-dark: oklch(0.828 0.189 84.429); /*amber-400*/
+    --color-text: oklch(0.278 0.033 256.848); /*gray-800*/
+    --color-text-dark: oklch(0.967 0.003 264.542); /*gray-100*/
     --color-body-light: #f8f9fa;
     --color-body-dark: #121212;
 
     --color-text-light: oklch(0.278 0.033 256.848);
-    --color-text-dark: oklch(0.928 0.006 264.531);
-
+    /*!*--color-text-dark: oklch(0.928 0.006 264.531);*!*/
     --color-nav-ligth: oklch(0.809 0.105 251.813);
     --color-nav-dark: oklch(0.424 0.199 265.638);
-
+    /**/
     --color-hover-light: oklch(0.882 0.059 254.128);
     --color-hover-dark: oklch(0.546 0.245 262.881);
-
+    /**/
     --color-hover-text-light: oklch(0.282 0.091 267.935);
     --color-hover-text-dark: #fff;
-
-    --font-logo: "Stalinist", sans-serif;
-    --font-roboto: "Roboto", sans-serif;
-
+    /**/
+    --font-logo: "Orbitron", sans-serif;
+    --font-base: "FiraCode", sans-serif;
+    /**/
     --color-button: oklch(0.623 0.214 259.815);
     --color-hover-button: oklch(0.546 0.245 262.881);
-
+    /**/
     --animate-bounce: bounce 1s ease-in-out 10 forwards;
     @keyframes bounce {
         0%, 100% {
@@ -65,15 +87,31 @@
 
 
 }
-.theme-toggle {
-    @apply absolute top-4 right-4 text-yellow-500 dark:text-yellow-400
-    transform transition duration-200 ease-in-out
-    hover:scale-120 active:scale-95;
+h1 {
+    @apply text-3xl font-logo text-center font-semibold tracking-widest
+    bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
 }
 
+.form-style {
+    @apply bg-surface dark:bg-surface-dark
+    border border-form-color dark:border-form-color-dark
+    p-8 rounded-lg
+    shadow-xl shadow-secondary dark:shadow-2xl dark:shadow-secondary-dark
+    w-full max-w-lg space-y-6;
+}
+
+.theme-toggle {
+    @apply absolute top-1/12 right-1/12 text-warning dark:text-warning-dark
+    transform transition duration-200 ease-in-out
+    hover:scale-120 active:rotate-360;
+}
+
+
 .btn-submit {
-    @apply w-50 p-3 text-text-light dark:text-text-dark bg-button
-    hover:bg-hover-button rounded-lg font-semibold transition-colors duration-300 active:scale-95;
+    @apply w-full p-3 text-text-dark font-semibold rounded-lg
+    bg-primary dark:bg-primary-dark
+    hover:bg-primary-dark dark:hover:bg-primary transition-colors duration-300 active:scale-95
+    focus:outline-none focus:ring-3 focus:ring-primary/50 dark:focus:ring-primary;
 }
 
 .btn-cancel {
@@ -84,43 +122,52 @@
 }
 
 .correct_label {
-    @apply text-text-light dark:text-text-dark;
+    @apply text-text dark:text-text-dark;
 }
 
 .error_label {
-    @apply text-red-700
+    @apply text-error dark:text-error-dark
 }
 
 .correct_input {
-    @apply border-gray-300 dark:border-gray-700
-    text-text-light
-    bg-body-light dark:bg-body-dark
-    focus:ring-blue-400
+    @apply rounded-lg transition-all
+    border border-form-color dark:border-form-color-dark
+    text-text-light dark:text-text-dark
+    bg-background dark:bg-background-dark
+    focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary-dark
+    placeholder:text-secondary dark:placeholder:text-secondary-dark
 
 }
 
 .error_input {
-    @apply bg-red-50 border-red-500 text-red-700 placeholder-red-700
-    focus:ring-red-500 focus:border-red-500
+    @apply rounded-lg transition-all
+    border border-error dark:border-error-dark
+    text-error dark:text-error-dark
+    bg-background dark:bg-background-dark
+    focus:outline-none focus:ring-2 focus:ring-error/50 dark:focus:ring-error-dark/50
+    placeholder:text-error/75 dark:placeholder:text-error-dark/75
 }
 
 .correct_icon {
-    @apply text-gray-400;
+    @apply size-6 text-accent dark:text-accent-dark
 }
 
 .error_icon {
-    @apply text-red-700;
+    @apply size-6 text-error dark:text-error-dark
 }
 
 .error_message {
-    @apply text-red-800 dark:text-red-400
-    shadow-red-500/50;
+    @apply text-base pt-2 pl-5
+    text-error dark:text-error-dark;
 
 }
 
 .common_error {
-    @apply text-red-800 shadow-red-500/50 border-red-300
-    bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800
+    @apply items-center
+    text-base text-start  rounded-lg p-4 mb-4
+    text-error dark:text-error-dark
+    border border-error dark:border-error-dark
+    bg-surface dark:bg-surface-dark  ;
 }
 
 
