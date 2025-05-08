@@ -48,6 +48,17 @@ document.addEventListener('DOMContentLoaded', () => {
         input.classList.remove("correct_input");
         icon.classList.add("error_icon");
         icon.classList.remove("correct_icon");
+        // 🕒 Скрыть ошибку через 4 секунды
+        setTimeout(() => {
+            label.classList.remove('error_label');
+            label.classList.add('correct_label');
+            input.classList.remove('error_input');
+            input.classList.add('correct_input')
+            icon.classList.remove('error_icon');
+            icon.classList.add('correct_icon');
+            errorElement.textContent = '';
+            errorElement.classList.add('hidden');
+        }, 4000);
     };
 
     /**
@@ -100,12 +111,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Обработка общей ошибки (например, если оба поля некорректны)
                 if (errors.__all__) {
                     nonFieldErrors.querySelector('p').textContent = errors.__all__[0].message;
-                    nonFieldErrors.classList.remove("hidden");
-                    nonFieldErrors.classList.add("flex");
+                    nonFieldErrors.classList.remove("hidden", "animate-popup-reverse");
+                    nonFieldErrors.classList.add("flex", "animate-popup");
 
                     // Подсвечиваем оба поля на общий фейл
                     setFieldError(usernameLabel, usernameInput, loginIcon, usernameError, '');
                     setFieldError(passwordLabel, passwordInput, passwordIcon, passwordError, '');
+                    // 🕒 Скрыть через 3 секунды
+                    setTimeout(() => {
+                        nonFieldErrors.classList.remove("animate-popup");
+                        nonFieldErrors.classList.add("animate-popup-reverse");
+
+                        // ⏱️ Скрыть блок только после завершения анимации (через 3 секунды)
+                        setTimeout(() => {
+                            nonFieldErrors.classList.add("hidden");
+                            nonFieldErrors.classList.remove("flex", "animate-popup-reverse");
+                        }, 1000); // должно совпадать с длительностью fade-in-out-reverse
+                    }, 4000); // изначальная задержка перед скрытием
                 }
             }
         } catch (error) {

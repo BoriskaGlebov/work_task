@@ -4,9 +4,9 @@
     Вход
 {% endblock %}
 {% block body %}
-    <main class="flex justify-center items-center h-screen">
+    <main class="flex justify-center items-center min-h-screen py-6">
         <form method="POST" action="{% url 'myauth:login' %}"
-              class="relative form-style  opacity-0 animate-fade-in">
+              class="relative form-style opacity-0 animate-fade-in">
             {% csrf_token %}
             <!-- Переключатель темы внутри формы -->
             <button id="theme-toggle" type="button"
@@ -122,7 +122,7 @@
 
             </div>
 
-            <p class="text-center text-sm text-text-light dark:text-white">
+            <p class="text-center text-sm text-text dark:text-text-dark">
                 Нет аккаунта?
                 <a href="{% url 'myauth:registration' %}"
                    class="text-sm text-primary dark:text-primary-dark hover:underline">Зарегистрироваться</a>

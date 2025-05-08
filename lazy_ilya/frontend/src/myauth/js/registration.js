@@ -52,6 +52,17 @@ export const setFieldError = ({label, input, icon, error}, message) => {
     input.classList.remove("correct_input");
     icon.classList.add("error_icon");
     icon.classList.remove("correct_icon");
+    // 🕒 Скрыть ошибку через 4 секунды
+    setTimeout(() => {
+        label.classList.remove('error_label');
+        label.classList.add('correct_label');
+        input.classList.remove('error_input');
+        input.classList.add('correct_input')
+        icon.classList.remove('error_icon');
+        icon.classList.add('correct_icon');
+        error.textContent = '';
+        error.classList.add('hidden');
+    }, 4000);
 };
 
 /**

@@ -32,16 +32,19 @@ class UserCreator:
         self.username: str = os.getenv("DJANGO_SUPERUSER_USERNAME")
         self.email: str = os.getenv("DJANGO_SUPERUSER_EMAIL")
         self.password: str = os.getenv("DJANGO_SUPERUSER_PASSWORD")
+        self.phone_number: str = os.getenv("DJANGO_SUPERUSER_PHONE")
         self.additional_users: List[Dict[str, str]] = [
             {
                 "username": os.getenv("DJANGO_USER1"),
                 "email": os.getenv("DJANGO_USER1_EMAIL"),
                 "password": os.getenv("DJANGO_USER1_PASSWORD"),
+                "phone": os.getenv("DJANGO_USER1_PHONE"),
             },
             {
                 "username": os.getenv("DJANGO_USER2"),
                 "email": os.getenv("DJANGO_USER2_EMAIL"),
                 "password": os.getenv("DJANGO_USER2_PASSWORD"),
+                "phone": os.getenv("DJANGO_USER2_PHONE"),
             },
         ]
 
@@ -51,7 +54,7 @@ class UserCreator:
         """
         if not User.objects.filter(username=self.username).exists():
             User.objects.create_superuser(
-                username=self.username, email=self.email, password=self.password
+                username=self.username, email=self.email, password=self.password, phone_number=self.phone_number
             )
             logger.info(f"Суперпользователь '{self.username}' создан.")
         else:
@@ -67,6 +70,7 @@ class UserCreator:
                     username=user_data["username"],
                     email=user_data["email"],
                     password=user_data["password"],
+                    phone_number=user_data["phone"],
                     is_staff=True,
                 )
                 logger.info(f"Пользователь '{user_data['username']}' создан.")
