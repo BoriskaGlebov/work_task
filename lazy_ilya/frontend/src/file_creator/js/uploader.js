@@ -61,8 +61,10 @@ burgerMenuBtn.addEventListener('click', () => {
     if (navMenu.classList.contains('max-h-0')) {
         navMenu.classList.remove('max-h-0'); // Убираем класс 'max-h-0', чтобы показать меню
         navMenu.classList.add('max-h-60'); // Добавляем класс 'max-h-60', чтобы дать меню максимальную высоту
+        burgerMenuBtn.classList.add('open')
     } else {
         navMenu.classList.remove('max-h-60'); // Убираем класс 'max-h-60', чтобы скрыть меню
         navMenu.classList.add('max-h-0'); // Добавляем класс 'max-h-0', чтобы меню было скрыто
+        burgerMenuBtn.classList.remove('open')
     }
 });

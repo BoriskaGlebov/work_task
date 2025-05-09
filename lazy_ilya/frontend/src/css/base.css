@@ -76,7 +76,29 @@
 }
 h1 {
     @apply text-3xl font-logo text-center font-semibold tracking-widest
-    bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+    bg-gradient-to-r from-[#FF6B00] to-[#DA00FF]
+    bg-clip-text text-transparent;
+}
+
+.nav-style {
+    @apply bg-primary dark:bg-primary-dark
+    p-5
+    text-surface dark:text-shadow-surface-dark
+    rounded-xl
+    shadow-xl shadow-secondary dark:shadow-2xl dark:shadow-secondary-dark;
+}
+
+.a-style {
+    @apply text-surface dark:text-surface-dark
+    p-3 w-35 text-center text-xl font-medium rounded-xl transition-colors duration-200
+    hover:bg-accent dark:hover:bg-accent-dark;
+
+}
+
+.burger-button {
+    @apply block text-surface dark:text-surface-dark
+    p-3 text-xl w-full text-left font-medium rounded-xl transition-colors duration-200
+    hover:bg-accent dark:hover:bg-accent-dark;
 }
 
 .form-style {
@@ -89,6 +111,12 @@ h1 {
 
 .theme-toggle {
     @apply absolute top-9 right-12 text-warning dark:text-warning-dark
+    transform transition duration-200 ease-in-out
+    hover:scale-120 active:rotate-360;
+}
+
+.theme-toggle-nav {
+    @apply text-warning dark:text-warning-dark
     transform transition duration-200 ease-in-out
     hover:scale-120 active:rotate-360;
 }
@@ -217,6 +245,12 @@ h1 {
 
 .animate-popup-reverse {
     animation: fade-in-out-reverse 1s linear forwards;
+}
+
+.loader {
+    @apply fixed inset-0 flex justify-center items-center
+    bg-background dark:bg-background-dark
+    z-50 opacity-100 transition-opacity duration-2000;
 }
 
 
