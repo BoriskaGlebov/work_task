@@ -53,10 +53,8 @@ class UploadView(LoginRequiredMixin, View):
         Returns:
             JsonResponse: Ответ с информацией о загруженных файлах и их содержимом.
         """
-        print(request.POST.dict())
-        print(request.FILES.getlist("files"))
-        uploaded_files = request.FILES.getlist("file")
-        document_number = int(request.POST.get("document_number", 0))
+        uploaded_files = request.FILES.getlist("files")
+        document_number = int(request.POST.get("start_number", 0))
         fs = OverwritingFileSystemStorage(
             location=ProjectSettings.tlg_dir, allow_overwrite=True
         )

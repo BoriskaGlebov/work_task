@@ -276,7 +276,17 @@ h1 {
     border border-primary dark:border-primary-dark
     rounded-full shrink-0;
 }
+.li-style-complete {
+    @apply flex items-center
+    text-success dark:text-success-dark space-x-2.5 cursor-pointer;
+}
 
+.li-style-complete span {
+    @apply flex items-center justify-center
+    w-8 h-8
+    border border-success dark:border-success-dark
+    rounded-full shrink-0;
+}
 /* Начальное состояние для скрытого блока */
 .transition-transform {
     @apply transform scale-y-0 origin-top overflow-hidden opacity-0 transition-all duration-500 ease-out;

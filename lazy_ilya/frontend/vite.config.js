@@ -16,7 +16,7 @@ export default defineConfig({
                 'myauth/js/registration': resolve(__dirname, 'src/myauth/js/registration.js'),
                 'myauth/js/reset_password': resolve(__dirname, 'src/myauth/js/reset_password.js'),
                 'file_creator/js/base': resolve(__dirname, 'src/file_creator/js/base.js'),
-                'file_creator/js/upload': resolve(__dirname, 'src/file_creator/js/upload.js'),
+                'file_creator/js/main': resolve(__dirname, 'src/file_creator/js/main.js'),
             },
             output: {
                 entryFileNames: '[name].js',
