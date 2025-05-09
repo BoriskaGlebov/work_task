@@ -6,7 +6,8 @@
 {% endblock %}
 
 {% block body %}
-    <ol id="steps-list" class="py-6 items-center w-full space-y-4 lg:flex lg:justify-between lg:space-x-8 lg:space-y-0">
+    <ol id="steps-list"
+        class="py-6 items-center w-full space-y-4 lg:flex lg:justify-between lg:space-x-8 lg:space-y-0 border-b-1 border-accent">
         <li class="step li-style" data-step="1">
             <span>1</span>
             <div>
@@ -21,21 +22,21 @@
                 <p class="text-sm">Добавление нужных реквизитов к документам</p>
             </div>
         </li>
-        <li class="step flex items-center text-blue-600 dark:text-blue-500 space-x-2.5 cursor-pointer" data-step="1">
+        <li class="step flex items-center text-blue-600 dark:text-blue-500 space-x-2.5 cursor-pointer" data-step="3">
             <span class="step-circle flex items-center justify-center w-8 h-8 border border-blue-600 rounded-full shrink-0 dark:border-blue-500">3</span>
             <div>
                 <h3 class="font-medium leading-tight">Ответ от сервера</h3>
                 <p class="text-sm">Проверка полученных документов от сервера</p>
             </div>
         </li>
-        <li class="step flex items-center text-gray-500 dark:text-gray-400 space-x-2.5 cursor-pointer" data-step="2">
+        <li class="step flex items-center text-gray-500 dark:text-gray-400 space-x-2.5 cursor-pointer" data-step="4">
             <span class="step-circle flex items-center justify-center w-8 h-8 border border-gray-500 rounded-full shrink-0 dark:border-gray-400">4</span>
             <div>
                 <h3 class="font-medium leading-tight">Сохранение документов</h3>
                 <p class="text-sm">Сохранение документов</p>
             </div>
         </li>
-        <li class="step flex items-center text-blue-600 dark:text-blue-500 space-x-2.5 cursor-pointer" data-step="1">
+        <li class="step flex items-center text-blue-600 dark:text-blue-500 space-x-2.5 cursor-pointer" data-step="5">
             <span class="step-circle flex items-center justify-center w-8 h-8 border border-blue-600 rounded-full shrink-0 dark:border-blue-500">5</span>
             <div>
                 <h3 class="font-medium leading-tight">Ожидание ответа от сервера</h3>
@@ -45,14 +46,16 @@
 
     </ol>
 
+
     <!-- Блок формы -->
     <div id="step1-form"
-         class="relative flex-col overflow-hidden justify-center !max-w-2xl  mx-auto form-style hidden gap-3">
+         class="relative flex-col overflow-hidden justify-center !max-w-2xl  mx-auto form-style hidden gap-3 transition-transform">
         <h2 class="text-xl text-text dark:text-text-dark font-semibold">Загрузка файлов</h2>
         <p class="text-md text-text dark:text-text-dark font-medium">Сначало нужно выбрать файлы, которые необходимо
             обработать. </p>
         <!-- Форма загрузки файлов сюда -->
-        <form method="post" enctype="multipart/form-data" class="flex flex-col gap-5 ">
+        <form action="{% url 'file_creator:file-creator-start' %}" method="post" enctype="multipart/form-data"
+              class="flex flex-col gap-5 ">
             {% csrf_token %}
             <!-- Загрузка файлов -->
             <div>
@@ -80,12 +83,8 @@
                 <select name="device_type" id="device_type" required
                         class="correct_input">
                     <option value="" disabled selected>Выберите тип оборудования</option>
-                    <option value="notebook">Ноутбук</option>
-                    <option value="monitor">Монитор</option>
-                    <option value="printer">Принтер</option>
-                    <option value="scanner">Сканер</option>
-                    <option value="mfp">МФУ (многофункциональное устройство)</option>
-                    <option value="other">Другое</option>
+                    <option value="space">Космос</option>
+                    <option value="globus">Глобус</option>
                 </select>
             </div>
 

@@ -6,27 +6,29 @@ document.addEventListener('DOMContentLoaded', () => {
         step.addEventListener('click', () => {
             const selectedStep = step.dataset.step;
 
-            // Удалить активность со всех
+            // Удалить активность со всех шагов
             steps.forEach(s => {
                 s.classList.remove('li-style-active');
-                // const circle = s.querySelector('.step-circle');
-                // circle.classList.remove('border-blue-600', 'dark:border-blue-500');
-                // circle.classList.add('border-gray-500', 'dark:border-gray-400');
             });
 
-            // Выделить текущий
+            // Выделить текущий шаг
             step.classList.add('li-style-active');
-            // const circle = step.querySelector('.step-circle');
-            // circle.classList.remove('border-gray-500', 'dark:border-gray-400');
-            // circle.classList.add('border-blue-600', 'dark:border-blue-500');
 
-            // Показать/скрыть форму
+            // Показать/скрыть форму в зависимости от выбранного шага
             if (selectedStep === '1') {
-                form.classList.remove('hidden');
-                form.classList.add('flex');
+                // Задержка для первого отображения формы
+                setTimeout(() => {
+                    form.classList.remove('hidden'); // Убираем hidden
+                    setTimeout(() => {
+                        form.classList.add('show'); // Добавляем show для анимации
+                    }, 10); // Небольшая задержка перед добавлением show
+                }, 200); // Увеличенная задержка для первого отображения
             } else {
-                form.classList.add('hidden');
-                form.classList.remove('flex');
+                // При переходе на другой шаг скрываем форму с анимацией
+                form.classList.remove('show');
+                setTimeout(() => {
+                    form.classList.add('hidden');
+                }, 500); // Задержка для завершения анимации
             }
         });
     });

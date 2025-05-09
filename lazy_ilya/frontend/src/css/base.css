@@ -277,5 +277,15 @@ h1 {
     rounded-full shrink-0;
 }
 
+/* Начальное состояние для скрытого блока */
+.transition-transform {
+    @apply transform scale-y-0 origin-top overflow-hidden opacity-0 transition-all duration-500 ease-out;
+}
+
+/* Когда форма должна быть видимой */
+.transition-transform.show {
+    @apply scale-y-100 opacity-100;
+}
+
 
 
