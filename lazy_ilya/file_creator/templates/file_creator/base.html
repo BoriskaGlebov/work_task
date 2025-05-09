@@ -9,11 +9,11 @@
     <title>{% block title %}Base title{% endblock %}</title>
     {% if VITE_DEV_MODE %}
         <script type="module" src="http://localhost:5173/@vite/client"></script>
-        <script type="module" src="http://localhost:5173/src/file_creator/js/uploader.js"></script>
+        <script type="module" src="http://localhost:5173/src/file_creator/js/base.js"></script>
         <link rel="stylesheet" href="http://localhost:5173/src/css/base.css">
         <link rel="icon" type="image/x-icon" href="http://localhost:5173/favicon.ico">
     {% else %}
-        <script type="module" crossorigin src="{% static 'file_creator/js/uploader.js' %}"></script>
+        <script type="module" crossorigin src="{% static 'file_creator/js/base.js' %}"></script>
         <link rel="stylesheet" crossorigin href="{% static 'css/base.css' %}">
         <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
     {% endif %}
@@ -60,10 +60,10 @@
             <div class="flex items-center gap-5">
                 <!-- Бургер (моб) -->
                 <button id="burger-menu"
-                        class="relative flex flex-col justify-between items-center p-2 h-12 w-16 lg:hidden group hover:scale-110">
-                    <span class="block w-full h-0.5 bg-accent dark:bg-accent-dark transition-all duration-10 ease-in-out group-[.open]:rotate-45  origin-center  group-[.open]:translate-y-[15px]"></span>
-                    <span class="block w-full h-0.5 bg-accent dark:bg-accent-dark transition-all duration-10 ease-in-out group-[.open]:hidden "></span>
-                    <span class="block w-full h-0.5 bg-accent dark:bg-accent-dark transition-all duration-10 ease-in-out group-[.open]:-rotate-45 origin-center  group-[.open]:-translate-y-[15px]"></span>
+                        class="relative flex flex-col justify-between items-center p-2 h-12 w-16 lg:hidden group hover:scale-110 transition-all duration-500 [.open]:rotate-180">
+                    <span class="block w-full h-0.5 bg-accent dark:bg-accent-dark transition-all duration-200 ease-in-out group-[.open]:rotate-45  origin-center  group-[.open]:translate-y-[15px]"></span>
+                    <span class="block w-full h-0.5 bg-accent dark:bg-accent-dark transition-all duration-200 ease-in-out group-[.open]:hidden "></span>
+                    <span class="block w-full h-0.5 bg-accent dark:bg-accent-dark transition-all duration-200 ease-in-out group-[.open]:-rotate-45 origin-center  group-[.open]:-translate-y-[15px]"></span>
 
                 </button>
                 <!-- Переключатель темы -->
@@ -85,7 +85,7 @@
 
         <!-- Мобильное меню -->
         <div id="nav-menu"
-             class="flex-col space-y-2 mt-8 lg:hidden max-h-0 overflow-hidden transition-all duration-400 block ">
+             class="flex-col space-y-2 lg:hidden max-h-0 overflow-hidden transition-all duration-400">
             <a href="{% url 'file_creator:file-creator-start' %}"
                class="burger-button">Главная</a>
             <a href="#"

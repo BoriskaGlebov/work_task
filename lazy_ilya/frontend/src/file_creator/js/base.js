@@ -15,7 +15,7 @@ window.addEventListener('load', () => {
         setTimeout(() => {
             loader.style.display = 'none'; // Скрываем элемент
         }, 2000); // Задержка до полного исчезновения
-    }, 2000); // Время ожидания перед началом исчезновения
+    }, 100); // Время ожидания перед началом исчезновения 2 скекунды
 });
 
 // Переключение темы
@@ -60,10 +60,10 @@ burgerMenuBtn.addEventListener('click', () => {
     // Если меню скрыто (имеет класс 'max-h-0'), то раскрываем его
     if (navMenu.classList.contains('max-h-0')) {
         navMenu.classList.remove('max-h-0'); // Убираем класс 'max-h-0', чтобы показать меню
-        navMenu.classList.add('max-h-60'); // Добавляем класс 'max-h-60', чтобы дать меню максимальную высоту
+        navMenu.classList.add('max-h-60', 'border-t-2', 'border-t-accent'); // Добавляем класс 'max-h-60', чтобы дать меню максимальную высоту
         burgerMenuBtn.classList.add('open')
     } else {
-        navMenu.classList.remove('max-h-60'); // Убираем класс 'max-h-60', чтобы скрыть меню
+        navMenu.classList.remove('max-h-60', 'border-t-2', 'border-t-accent'); // Убираем класс 'max-h-60', чтобы скрыть меню
         navMenu.classList.add('max-h-0'); // Добавляем класс 'max-h-0', чтобы меню было скрыто
         burgerMenuBtn.classList.remove('open')
     }

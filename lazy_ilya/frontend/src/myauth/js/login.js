@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         nonFieldErrors.classList.remove("animate-popup");
                         nonFieldErrors.classList.add("animate-popup-reverse");
 
-                        // ⏱️ Скрыть блок только после завершения анимации (через 3 секунды)
+                        // ⏱️ Скрыть блок только после завершения анимации (через 4 секунды)
                         setTimeout(() => {
                             nonFieldErrors.classList.add("hidden");
                             nonFieldErrors.classList.remove("flex", "animate-popup-reverse");
