@@ -9,39 +9,54 @@ export default function setupStepNavigation() {
     // Получаем все элементы с классом .step, которые будут шагами
     const steps = document.querySelectorAll('.step');
     // Получаем форму, которая будет показываться/скрываться
-    const form = document.getElementById('step1-form');
+    const form1 = document.getElementById('step1-form');
+    const form2 = document.getElementById('step2-form');
 
     // Проходим по всем шагам и добавляем обработчик события на клик
     steps.forEach(step => {
         step.addEventListener('click', () => {
-            // Получаем выбранный шаг из data-атрибута
-            const selectedStep = step.dataset.step;
+                // Получаем выбранный шаг из data-атрибута
+                const selectedStep = step.dataset.step;
 
-            // Удаляем класс активности с всех шагов
-            steps.forEach(s => s.classList.remove('li-style-active'));
+                // Удаляем класс активности с всех шагов
+                steps.forEach(s => s.classList.remove('li-style-active'));
 
-            // Добавляем класс активности для текущего шага
-            step.classList.add('li-style-active');
-
-            // Показать или скрыть форму в зависимости от выбранного шага
-            if (selectedStep === '1') {
-                // Если выбран первый шаг, показываем форму с анимацией
-                setTimeout(() => {
-                    // Убираем класс hidden, чтобы форма стала видимой
-                    form.classList.remove('hidden');
-                    // Добавляем класс show для анимации появления
+                // Добавляем класс активности для текущего шага
+                step.classList.add('li-style-active');
+                if (selectedStep === '1') {
+                    // Показываем form1
+                    form2.classList.remove('show');
                     setTimeout(() => {
-                        form.classList.add('show');
-                    }, 10); // Маленькая задержка для плавности анимации
-                }, 200); // Задержка перед показом формы
-            } else {
-                // Если выбран не первый шаг, скрываем форму с анимацией
-                form.classList.remove('show');
-                setTimeout(() => {
-                    // Добавляем класс hidden, чтобы скрыть форму
-                    form.classList.add('hidden');
-                }, 500); // Задержка для завершения анимации скрытия
+
+                        form1.classList.remove('hidden');
+                        setTimeout(() => {
+                            form2.classList.add('hidden');
+                            form1.classList.add('show');
+                        }, 10);
+                    }, 500);
+                } else if (selectedStep === '2') {
+                    // Показываем form2
+                    form1.classList.remove('show');
+                    setTimeout(() => {
+
+                        form2.classList.remove('hidden');
+                        setTimeout(() => {
+                            form1.classList.add('hidden');
+                            form2.classList.add('show');
+                        }, 10);
+                    }, 500);
+                } else {
+                    // Если выбран не первый шаг, скрываем форму с анимацией
+                    form1.classList.remove('show');
+                    form2.classList.remove('show');
+                    setTimeout(() => {
+                        // Добавляем класс hidden, чтобы скрыть форму
+                        form1.classList.add('hidden');
+                        form2.classList.add('hidden');
+                    }, 500); // Задержка для завершения анимации скрытия
+                }
             }
-        });
+        )
+        ;
     });
 }
