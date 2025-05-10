@@ -11,8 +11,7 @@ const {clearFileList} = setupFileUpload(); // сохранить доступ к
  * - Указан ли тип устройства
  */
 export default function setupFormValidation() {
-    const formDiv = document.getElementById('step1-form')
-    const formDiv2 = document.getElementById('step2-form')
+    const formDiv = document.getElementById('step1-form');
     const form = document.getElementById('file-upload-form');
     const fileLabel = document.getElementById('files-label');
     const fileInput = document.getElementById('files');
@@ -117,7 +116,7 @@ export default function setupFormValidation() {
             validateDeviceType();
 
         if (isValid) {
-            submitFormAsync(form, formDiv, clearFileList, formDiv2); // Асинхронная отправка формы
+            submitFormAsync(form, formDiv, clearFileList); // Асинхронная отправка формы
         }
     });
 }
