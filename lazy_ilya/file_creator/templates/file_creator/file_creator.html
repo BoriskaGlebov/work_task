@@ -8,7 +8,7 @@
 {% block body %}
     <ol id="steps-list"
         class="py-6 items-center w-full space-y-4 lg:flex lg:justify-between lg:space-x-8 lg:space-y-0 border-b-1 border-accent">
-        <li class="step li-style" data-step="1">
+        <li class="step li-style li-style-active" data-step="1">
             <span>1</span>
             <div>
                 <h3 class="font-medium leading-tight">Загрузка файлов</h3>
@@ -49,7 +49,7 @@
 
     <!-- Блок формы -->
     <div id="step1-form"
-         class="relative flex-col overflow-hidden justify-center !max-w-2xl  mx-auto form-style hidden gap-3 transition-transform">
+         class="relative flex-col overflow-hidden justify-center !max-w-2xl  mx-auto form-style show gap-3 transition-transform">
         <div id="server-error" class="hidden common_error"
              role="alert">
             <svg class="shrink-0 inline w-6 h-6 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
