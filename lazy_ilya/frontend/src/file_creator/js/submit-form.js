@@ -38,7 +38,7 @@ export default async function submitFormAsync(form, formDiv, clearFileList) {
         spinner.classList.remove('hidden');
 
         // Имитируем задержку
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // await new Promise(resolve => setTimeout(resolve, 1000));
 
         // Отправка данных формы через fetch
         const response = await fetch(form.action, {
