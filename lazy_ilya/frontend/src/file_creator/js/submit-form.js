@@ -20,6 +20,7 @@ export default async function submitFormAsync(form, formDiv, clearFileList) {
     const saveAllButton = document.getElementById('save-content');
     const step3 = document.querySelector('.step[data-step="3"]');
     const step4 = document.querySelector('.step[data-step="4"]');
+    const divBtn2 = document.getElementById('btn-div2');
     try {
         const formData = new FormData(form);
         spinner.classList.remove('hidden');
@@ -46,7 +47,8 @@ export default async function submitFormAsync(form, formDiv, clearFileList) {
         setTimeout(() => formDiv.classList.add('hidden'), 500);
 
         await runStep1(data);
-        saveAllButton.addEventListener('click', async () => {
+
+        async function handleSaveClick() {
             const result = await saveAllChanges(data.new_files, data.content, '/');
             if (result === true) {
                 spinner3.classList.remove('hidden');
@@ -60,17 +62,17 @@ export default async function submitFormAsync(form, formDiv, clearFileList) {
                 step3.querySelector('span').innerHTML = getCheckIcon();
                 await new Promise(r => setTimeout(r, 1000));
                 step4.classList.add('li-style-active');
-                // 1) Создаем и вставляем заголовок <h2>
+
                 const heading = document.createElement('h2');
                 heading.classList.add('text-xl', 'text-text', 'dark:text-text-dark', 'font-semibold');
-                heading.textContent = 'Я произвел сохранение файлов на сервер';
+                heading.textContent = 'Илья поработал и хочет спать!';
 
-                // 2) Создаем и вставляем абзац <p>
                 const paragraph = document.createElement('p');
                 paragraph.classList.add('text-md', 'text-text', 'dark:text-text-dark', 'font-medium');
-                paragraph.textContent = 'Теперь можно посмотреть, папку с обработанными фалами и отправь это куда следует!';
+                paragraph.textContent = 'Теперь можно посмотреть, ' +
+                    'папку с архивом за сегодняшнее число, туда положил все файлы!';
                 formDiv4.appendChild(heading);
-                formDiv4.appendChild(paragraph)
+                formDiv4.appendChild(paragraph);
 
                 await new Promise(r => setTimeout(r, 500));
                 formDiv4.classList.remove('hidden');
@@ -88,11 +90,14 @@ export default async function submitFormAsync(form, formDiv, clearFileList) {
                 step4.classList.remove('li-style-active');
                 step4.classList.add('li-style-complete', 'pointer-events-none');
                 step4.querySelector('span').innerHTML = getCheckIcon();
-                await new Promise(r => setTimeout(r, 2000));
-
-
+                await new Promise(r => setTimeout(r, 5000));
+                location.reload();
             }
-        });
+        }
+
+        saveAllButton.addEventListener('click', handleSaveClick);
+        saveButton.addEventListener('click', handleSaveClick);
+
     } catch (error) {
         showError(error);
     } finally {
@@ -112,12 +117,13 @@ export default async function submitFormAsync(form, formDiv, clearFileList) {
         // 1) Создаем и вставляем заголовок <h2>
         const heading = document.createElement('h2');
         heading.classList.add('text-xl', 'text-text', 'dark:text-text-dark', 'font-semibold');
-        heading.textContent = 'Получение ответа от сервер';
+        heading.textContent = 'Илья читает,что ты написал';
 
         // 2) Создаем и вставляем абзац <p>
         const paragraph = document.createElement('p');
         paragraph.classList.add('text-md', 'text-text', 'dark:text-text-dark', 'font-medium');
-        paragraph.textContent = 'Получены обработанные файлы, ниже приведены их названия';
+        paragraph.textContent = 'Посмотри правильно ли Илья прочитал. ' +
+            'Получены обработанные файлы, ниже приведены их названия.';
 
 
         if (Array.isArray(data.new_files)) {
@@ -140,7 +146,7 @@ export default async function submitFormAsync(form, formDiv, clearFileList) {
         formDiv2.classList.add('show');
 
         spinner2.classList.remove('hidden');
-        await new Promise(r => setTimeout(r, 3000));
+        await new Promise(r => setTimeout(r, 5000));
         spinner2.classList.add('hidden');
 
         formDiv2.classList.remove('show');
@@ -210,50 +216,77 @@ export default async function submitFormAsync(form, formDiv, clearFileList) {
                 deleteBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
 
-                    const index = data.new_files.indexOf(file);
+                    const serverInfo = document.getElementById('server-info2');
+                    const btnDiv = document.getElementById('btn-div');
+                    serverInfo.classList.remove('hidden');
+                    serverInfo.classList.add('flex', 'animate-popup');
 
-                    // Удаляем файл и его содержимое
-                    if (index !== -1) {
-                        data.new_files.splice(index, 1);
-                        data.content.splice(index, 1);
-                    }
-                    fileContentMap.delete(file);
-                    li.remove();
+                    serverInfo.querySelector('h3').textContent = `Удалить файл "${file}"?`;
+                    serverInfo.querySelector('p').textContent = `Это действие нельзя отменить.`;
 
-                    // Если удаляем текущий активный файл
-                    if (currentFileName === file) {
-                        const fileItems = document.querySelectorAll('.file-item');
+                    // Удаляем старую кнопку подтверждения, если есть
+                    const oldConfirm = document.getElementById('confirm-delete');
+                    if (oldConfirm) oldConfirm.remove();
 
-                        if (fileItems.length > 0) {
-                            // Выбираем следующий элемент, если есть
-                            const newLi = fileItems[Math.min(index, fileItems.length - 1)];
-                            const newFileName = newLi.querySelector('.file-name').textContent;
+                    // Удаляем старую кнопку отмены, если есть
+                    const oldCancel = document.getElementById('cancel-delete');
+                    if (oldCancel) oldCancel.remove();
 
-                            currentFileName = newFileName;
-                            fileContentTextarea.value = fileContentMap.get(newFileName) || '';
-                            fileContentTextarea.disabled = false;
-                            fileContentTextarea.style.height = "auto";
-                            fileContentTextarea.style.height = fileContentTextarea.scrollHeight + "px";
+                    const confirmBtn = document.createElement('button');
+                    confirmBtn.id = 'confirm-delete';
+                    confirmBtn.textContent = 'Да, Нах!';
+                    confirmBtn.classList.add('btn-submit', '!w-4/12', '!p-1', '!font-medium');
 
-                            const saveButton = document.getElementById('save-edited-content');
-                            saveButton.disabled = false;
+                    const cancelBtn = document.createElement('button');
+                    cancelBtn.id = 'cancel-delete';
+                    cancelBtn.textContent = 'Передумал';
+                    cancelBtn.classList.add('btn-cancel', '!w-4/12', '!p-1', '!font-medium');
 
-                            document.querySelectorAll('.file-item').forEach(el => {
-                                el.classList.remove('file-item-selected');
-                            });
-                            newLi.classList.add('file-item-selected');
-                        } else {
-                            // Нет больше файлов — очищаем textarea
-                            currentFileName = null;
-                            fileContentTextarea.value = '';
-                            fileContentTextarea.disabled = true;
-                            fileContentTextarea.style.height = "auto";
-                            fileContentTextarea.style.height = "2.5rem";
+                    divBtn2.appendChild(confirmBtn);
+                    divBtn2.appendChild(cancelBtn);
 
-                            const saveButton = document.getElementById('save-edited-content');
-                            saveButton.disabled = true;
+                    confirmBtn.addEventListener('click', () => {
+                        const index = data.new_files.indexOf(file);
+                        if (index !== -1) {
+                            data.new_files.splice(index, 1);
+                            data.content.splice(index, 1);
                         }
-                    }
+                        fileContentMap.delete(file);
+                        li.remove();
+
+                        if (currentFileName === file) {
+                            const fileItems = document.querySelectorAll('.file-item');
+                            if (fileItems.length > 0) {
+                                const newLi = fileItems[Math.min(index, fileItems.length - 1)];
+                                const newFileName = newLi.querySelector('.file-name').textContent;
+
+                                currentFileName = newFileName;
+                                fileContentTextarea.value = fileContentMap.get(newFileName) || '';
+                                fileContentTextarea.disabled = false;
+                                fileContentTextarea.style.height = "auto";
+                                fileContentTextarea.style.height = fileContentTextarea.scrollHeight + "px";
+
+                                document.querySelectorAll('.file-item').forEach(el => el.classList.remove('file-item-selected'));
+                                newLi.classList.add('file-item-selected');
+                            } else {
+                                currentFileName = null;
+                                fileContentTextarea.value = '';
+                                fileContentTextarea.disabled = true;
+                                fileContentTextarea.style.height = "auto";
+                                fileContentTextarea.style.height = "2.5rem";
+                                saveAllButton.disabled = true;
+                                saveButton.disabled = true;
+                            }
+                        }
+
+                        serverInfo.classList.add('hidden');
+                        btnDiv.innerHTML = '';
+                    });
+
+                    cancelBtn.addEventListener('click', () => {
+                        serverInfo.classList.add('hidden');
+                        btnDiv.innerHTML = '';
+                    });
                 });
 
 
@@ -316,4 +349,6 @@ export default async function submitFormAsync(form, formDiv, clearFileList) {
             '  <path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.631 8.41m5.96 5.96a14.926 14.926 0 0 1-5.841 2.58m-.119-8.54a6 6 0 0 0-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 0 0-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 0 1-2.448-2.448 14.9 14.9 0 0 1 .06-.312m-2.24 2.39a4.493 4.493 0 0 0-1.757 4.306 4.493 4.493 0 0 0 4.306-1.758M16.5 9a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" />\n' +
             '</svg>\n';
     }
+
+
 }

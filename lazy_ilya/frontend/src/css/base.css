@@ -186,6 +186,13 @@ h1 {
     border border-error dark:border-error-dark
     bg-surface dark:bg-surface-dark  ;
 }
+.common_info {
+    @apply items-center
+    text-base text-start  rounded-lg p-4 mb-4
+    text-info dark:text-info-dark
+    border border-info dark:border-info-dark
+    bg-surface dark:bg-surface-dark  ;
+}
 
 
 @keyframes fade-in {

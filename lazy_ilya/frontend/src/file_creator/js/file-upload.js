@@ -8,6 +8,8 @@ export default function setupFileUpload() {
     // Получаем элементы DOM: input для файлов и контейнер для списка файлов
     const fileInput = document.getElementById('files');
     const fileList = document.getElementById('file-list');
+    const serverInfo = document.getElementById('server-info');
+    const divBtn=document.getElementById('btn-div');
     // Массив для хранения выбранных файлов
     let selectedFiles = [];
 
@@ -42,9 +44,55 @@ export default function setupFileUpload() {
 
             // Добавляем обработчик на клик по кнопке удаления
             removeBtn.addEventListener('click', () => {
-                selectedFiles.splice(index, 1);
-                renderFileList(); // Перерисовываем список
+                // Показываем блок server-info с сообщением
+                serverInfo.classList.remove('hidden');
+                serverInfo.classList.add('flex','animate-popup');
+                serverInfo.querySelector('h3').textContent = 'Подтверждение удаления';
+                serverInfo.querySelector('p').textContent = `Вы уверены, что хотите удалить файл "${file.name}"?`;
+
+                // Добавим кнопки Подтвердить и Отмена (если их ещё нет)
+                if (!document.getElementById('confirm-delete')) {
+                    const confirmBtn = document.createElement('button');
+                    confirmBtn.id = 'confirm-delete';
+                    confirmBtn.textContent = 'Да, Нах!';
+                    confirmBtn.classList.add('btn-submit', '!w-4/12','!p-1','!font-medium'  );
+
+                    const cancelBtn = document.createElement('button');
+                    cancelBtn.id = 'cancel-delete';
+                    cancelBtn.textContent = 'Передумал';
+                    cancelBtn.classList.add('btn-cancel', '!w-4/12','!p-1','!font-medium');
+
+                    // Вставим после текста
+                    divBtn.appendChild(confirmBtn);
+                    divBtn.appendChild(cancelBtn);
+
+                    // Обработчик для подтверждения
+                    confirmBtn.addEventListener('click', () => {
+                        selectedFiles.splice(index, 1);
+                        renderFileList();
+                        hideServerInfo();
+                    });
+
+                    // Обработчик для отмены
+                    cancelBtn.addEventListener('click', () => {
+                        hideServerInfo();
+                    });
+                }
             });
+
+            // Вспомогательная функция скрытия блока server-info
+            function hideServerInfo() {
+                const serverInfo = document.getElementById('server-info');
+                serverInfo.classList.add('hidden');
+                serverInfo.querySelector('span').textContent = '';
+                serverInfo.querySelector('p').textContent = '';
+
+                const confirmBtn = document.getElementById('confirm-delete');
+                const cancelBtn = document.getElementById('cancel-delete');
+                if (confirmBtn) confirmBtn.remove();
+                if (cancelBtn) cancelBtn.remove();
+            }
+
             // Добавляем информацию о файле и кнопку удаления в элемент списка
             li.appendChild(fileInfo);
             li.appendChild(removeBtn);

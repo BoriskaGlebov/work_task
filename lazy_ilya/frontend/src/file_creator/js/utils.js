@@ -12,7 +12,7 @@
  * Анимации должны быть определены в CSS:
  * - animate-popup
  * - animate-popup-reverse
- * 
+ *
  * Пример использования:
  * ```js
  * try {
@@ -52,3 +52,4 @@ export function showError(error, elementId = 'server-error') {
         }, 1000);
     }, 4000);
 }
+
