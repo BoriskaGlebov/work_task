@@ -276,6 +276,7 @@ h1 {
     border border-primary dark:border-primary-dark
     rounded-full shrink-0;
 }
+
 .li-style-complete {
     @apply flex items-center
     text-success dark:text-success-dark space-x-2.5 cursor-pointer;
@@ -287,9 +288,10 @@ h1 {
     border border-success dark:border-success-dark
     rounded-full shrink-0;
 }
+
 /* Начальное состояние для скрытого блока */
 .transition-transform {
-    @apply transform scale-y-0 origin-top overflow-hidden opacity-0 transition-all duration-500 ease-out;
+    @apply transform scale-y-0 origin-top opacity-0 transition-all duration-500 ease-out;
 }
 
 /* Когда форма должна быть видимой */
@@ -297,5 +299,33 @@ h1 {
     @apply scale-y-100 opacity-100;
 }
 
+.file-item {
+    @apply relative flex items-center
+    justify-between
+    px-4 py-2 rounded-md transition-colors duration-200
+    gap-3
+    bg-surface dark:bg-surface-dark
+    text-text dark:text-text-dark;
+}
+
+.file-item:hover {
+    @apply bg-primary dark:bg-primary-dark text-surface dark:text-surface-dark;
+}
+.file-item-selected {
+  @apply bg-primary dark:bg-primary-dark text-surface dark:text-surface-dark;
+}
+.file-name {
+    @apply cursor-pointer transition-colors duration-200 gap-3;
+}
+.textarea-custom{
+    @apply w-full p-1 rounded-md
+    bg-form-color dark:bg-form-color-dark
+    text-text dark:text-text-dark
+    resize-none
+    border border-primary dark:border-primary-dark
+    focus:ring-2 focus:ring-accent dark:focus:ring-accent-dark
+    overflow-hidden
+    ;
+}
 
 

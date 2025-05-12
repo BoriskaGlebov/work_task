@@ -147,40 +147,58 @@
     </div>
 
     <div id="step3-form"
-         class="relative flex-col overflow-hidden justify-center !max-w-6xl mx-auto form-style hidden gap-3 transition-transform">
+         class="!max-w-6xl mx-auto form-style hidden gap-3 transition-transform">
         <h2 class="text-xl text-text dark:text-text-dark font-semibold">Проверка и редактирование содержимого</h2>
         <p class="text-md text-text dark:text-text-dark font-medium">
             Выберите файл из списка слева и отредактируйте его содержимое.
         </p>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
 
             <!-- Левая колонка: список файлов -->
-            <div id="left-col" class="bg-surface dark:bg-surface-dark rounded-2xl p-4 shadow-md">
-                <h3 class="text-lg font-semibold text-text dark:text-text-dark mb-2">Список файлов</h3>
-                <ul id="file-names-list" class="space-y-2 text-text dark:text-text-dark">
-                    <!-- Пример элемента списка -->
-                    <li>
-{#                        <button class="file-button text-left w-full px-3 py-2 bg-background hover:bg-accent hover:text-white rounded-md transition"#}
-{#                                data-filename="example.docx">example.docx#}
-{#                        </button>#}
-                    </li>
-                </ul>
-            </div>
+            <div class="col-span-1 ">
+                <div id="left-col" class="sticky top-20 bg-surface dark:bg-surface-dark rounded-2xl p-4 shadow-md ">
+                    <h3 class="text-lg font-semibold text-text dark:text-text-dark mb-2">Список файлов</h3>
+                    <ul id="file-names-list" class="space-y-2 text-text dark:text-text-dark">
+                        <!-- Пример элемента списка -->
+                        {#                    <li class="file-item group">#}
+                        {#                        <span class="file-name cursor-pointer group-hover:text-[--color-accent]">some_file.txt</span>#}
+                        {#                        <button class=" opacity-0 btn-cancel !w-3/10 flex group-hover:opacity-100 justify-center items-center gap-1 !py-1"#}
+                        {#                                title="удалить">#}
+                        {##}
+{#                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"#}
+{#                                                         stroke="currentColor" class="size-4">#}
+{#                                                        <path stroke-linecap="round" stroke-linejoin="round"#}
+{#                                                              d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path>#}
+{#                                                    </svg>#}
+{#                                                    <span>Удалить</span>#}
+                        {##}
+                        {##}
+                        {#                        </button>#}
+                        {#                        <button class="file-button text-left w-full px-3 py-2 bg-background hover:bg-accent hover:text-white rounded-md transition"#}
+                        {#                                data-filename="example.docx">example.docx#}
+                        {#                        </button>#}
+                        {#                    </li>#}
+                    </ul>
+                </div>
 
+            </div >
             <!-- Правая колонка: редактор содержимого -->
-            <div class="bg-surface dark:bg-surface-dark rounded-2xl p-4 shadow-md flex flex-col h-full">
-                <h3 class="text-lg font-semibold text-text dark:text-text-dark mb-2">Содержимое документа</h3>
-                <label for="file-content">ТУт содержимое докумнетоа</label>
-                <textarea id="file-content"
-                          class="w-full h-64 md:h-full p-3 rounded-md bg-form-color dark:bg-form-color-dark text-text dark:text-text-dark resize-none border border-primary focus:ring-2 focus:ring-accent"
-                          placeholder="Содержимое документа..."
-                          disabled></textarea>
-                <button id="save-edited-content"
-                        class="mt-4 self-end bg-primary dark:bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-accent transition disabled:opacity-50"
-                        disabled>
-                    Сохранить изменения
-                </button>
+            <div class="col-span-2 ">
+                <div id="right-col"
+                     class="bg-surface dark:bg-surface-dark rounded-2xl p-4 shadow-md flex flex-col">
+                    <h3 class="text-lg font-semibold text-text dark:text-text-dark mb-2">Содержимое документа</h3>
+                    <label for="file-content"></label>
+                    <textarea id="file-content"
+                              class="textarea-custom"
+                              placeholder="Содержимое документа..."
+                              disabled></textarea>
+                    <button id="save-edited-content"
+                            class="mt-4 self-end bg-primary dark:bg-primary-dark text-white py-2 px-4 rounded-lg hover:bg-accent transition disabled:opacity-50"
+                            disabled>
+                        Сохранить изменения
+                    </button>
+                </div>
             </div>
         </div>
     </div>

@@ -10,6 +10,7 @@ export default async function submitFormAsync(form, formDiv, clearFileList) {
     const formDiv2 = document.getElementById('step2-form');
     const formDiv3 = document.getElementById('step3-form');
     const leftUlForm3 = document.getElementById('file-names-list');
+    const fileContentTextarea = document.getElementById('file-content');
 
     try {
         const formData = new FormData(form);
@@ -108,28 +109,125 @@ export default async function submitFormAsync(form, formDiv, clearFileList) {
         const step3 = document.querySelector('.step[data-step="3"]');
         step3.classList.add('li-style-active');
 
-        if (Array.isArray(data.new_files)) {
-            data.new_files.forEach(file => {
-                const li = document.createElement('li');
-                li.textContent = file;
-                leftUlForm3.appendChild(li);
+        const fileContentMap = new Map();
+        let firstFile = null;
+        let firstLi = null;
+        let currentFileName = null;
+        if (Array.isArray(data.new_files) && Array.isArray(data.content)) {
+            data.new_files.forEach((file, i) => {
+                fileContentMap.set(file, data.content[i]);
             });
+
+
+            data.new_files.forEach((file, i) => {
+                const li = document.createElement('li');
+                li.classList.add('file-item', 'group');
+
+                const fileSpan = document.createElement('span');
+                fileSpan.textContent = file;
+                fileSpan.classList.add('file-name', 'cursor-pointer', 'group-hover:text-[--color-accent]');
+
+                // Обработчик клика на название файла
+                li.addEventListener('click', () => {
+                    const content = fileContentMap.get(file);
+
+                    fileContentTextarea.value = content;
+                    fileContentTextarea.disabled = false;
+                    fileContentTextarea.style.height = "auto";
+                    fileContentTextarea.style.height = fileContentTextarea.scrollHeight + "px";
+
+                    const saveButton = document.getElementById('save-edited-content');
+                    saveButton.disabled = false;
+
+                    // Убираем выделение со всех элементов
+                    document.querySelectorAll('.file-item').forEach(el => {
+                        el.classList.remove('file-item-selected');
+                    });
+
+                    // Добавляем на текущий
+                    li.classList.add('file-item-selected');
+                    currentFileName = file;
+                });
+
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.title = 'Удалить';
+                deleteBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"\n' +
+                    '                                                         stroke="currentColor" class="size-4">\n' +
+                    '                                                        <path stroke-linecap="round" stroke-linejoin="round"\n' +
+                    '                                                              d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path>\n' +
+                    '                                                    </svg>\n' +
+                    '                                                    <span>Удалить</span>'; // SVG и текст как у тебя
+                deleteBtn.classList.add('opacity-0', 'btn-cancel', '!w-3/10', 'flex', 'group-hover:opacity-100', 'justify-center', 'items-center', 'gap-1', '!py-1');
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    li.remove();
+                    fileContentMap.delete(file);
+
+                    const index = data.new_files.indexOf(file);
+                    if (index !== -1) {
+                        data.new_files.splice(index, 1);
+                        data.content.splice(index, 1);
+                    }
+                });
+
+                li.appendChild(fileSpan);
+                li.appendChild(deleteBtn);
+                leftUlForm3.appendChild(li);
+
+                // Сохраняем имя первого файла
+                if (i === 0) {
+                    firstFile = file;
+                    firstLi = li;
+                    currentFileName = file;
+                }
+            });
+
+
         }
 
+
+        // Задержка для плавности перехода
         await new Promise(r => setTimeout(r, 500));
         formDiv3.classList.remove('hidden');
         await new Promise(r => setTimeout(r, 100));
         formDiv3.classList.add('show');
+        // Если есть хотя бы один файл — сразу показываем его содержимое
+        if (firstFile) {
+            const firstContent = fileContentMap.get(firstFile);
+            fileContentTextarea.value = firstContent;
+            fileContentTextarea.disabled = false;
+            fileContentTextarea.style.height = "auto";
+            fileContentTextarea.style.height = fileContentTextarea.scrollHeight + "px";
 
+            const saveButton = document.getElementById('save-edited-content');
+            saveButton.disabled = false;
+
+            // Выделить первый элемент
+            document.querySelectorAll('.file-item').forEach(el => {
+                el.classList.remove('file-item-selected');
+            });
+            firstLi.classList.add('file-item-selected');
+        }
+        fileContentTextarea.addEventListener('input', () => {
+            if (currentFileName) {
+                const newText = fileContentTextarea.value;
+                fileContentMap.set(currentFileName, newText);
+                // Синхронизировать с массивом data.content
+                const index = data.new_files.indexOf(currentFileName);
+                if (index !== -1) {
+                    data.content[index] = newText;
+                }
+                console.log(data)
+            }
+        });
         await new Promise(r => setTimeout(r, 3000));
-        // formDiv3.classList.remove('show');
-        // await new Promise(r => setTimeout(r, 1000));
-        // formDiv3.classList.add('hidden');
 
         step3.classList.remove('li-style-active');
         step3.classList.add('li-style-complete', 'pointer-events-none');
         step3.querySelector('span').innerHTML = getCheckIcon();
     }
+
 
     function getCheckIcon() {
         return '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">\n' +
