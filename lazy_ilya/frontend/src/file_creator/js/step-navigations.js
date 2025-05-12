@@ -29,6 +29,7 @@ export default function setupStepNavigation() {
         1: document.getElementById('step1-form'),
         2: document.getElementById('step2-form'),
         3: document.getElementById('step3-form'),
+        4: document.getElementById('step4-form'),
     };
 
     steps.forEach(step => {

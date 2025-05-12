@@ -1,3 +1,4 @@
+import json
 import os
 from typing import List
 
@@ -8,8 +9,9 @@ from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views import View
 
+from file_creator.models import Counter
 from file_creator.utils.custom_converter.converter_to_docx import Converter
-from file_creator.utils.parser_word.my_parser import Parser
+from file_creator.utils.parser_word.my_parser import Parser, replace_unsupported_characters
 from file_creator.utils.storage import OverwritingFileSystemStorage
 from lazy_ilya.utils.settings_for_app import logger, ProjectSettings
 
@@ -101,54 +103,54 @@ class UploadView(LoginRequiredMixin, View):
 
         except Exception as e:
             logger.bind(user=request.user.username).error(str(e))
-            return JsonResponse({"error": str(e)}, status=500)
+            error_type = type(e).__name__
+            return JsonResponse({"error": f"Произошла какая-то ошибка - {error_type} - {str(e)}"}, status=500)
 
-    # def put(self, request: HttpRequest) -> JsonResponse:
-#         """
-#         Обновляет содержимое документов на основе полученных данных.
-#
-#         Args:
-#             request (HttpRequest): Объект запроса.
-#
-#         Returns:
-#             JsonResponse: Ответ с информацией о статусе операции.
-#         """
-#         counter: int = 0  # Счетчик сохраненных файлов
-#         try:
-#             data = json.loads(request.body)
-#
-#             for file_data in data:
-#                 document_number = file_data.get("document_number")
-#                 new_content = replace_unsupported_characters(file_data.get("content"))
-#                 new_file_name: str = file_data.get(
-#                     "new_file_name"
-#                 )  # Получаем новое имя файла
-#
-#                 if not new_file_name.endswith(".txt"):
-#                     continue
-#
-#                 # Определяем путь к файлу для сохранения
-#                 file_path = os.path.join(ProjectSettings.tlg_dir, new_file_name)
-#
-#                 # Сохраняем новое содержимое в файл
-#                 with open(file_path, "w", encoding="cp866") as file:
-#                     file.write(new_content)
-#
-#                 counter += 1
-#                 logger.bind(user=request.user.username, filename=new_file_name).info(f"Сохранил файл ")
-#
-#             res = Counter.objects.create(num_files=counter)
-#             res.save()
-#             return JsonResponse(
-#                 {"status": "success", "message": "Все файлы успешно сохранены."}
-#             )
-#
-#         except json.JSONDecodeError:
-#             logger.bind(user=request.user.username).error(str("error") + "Неверный формат данных")
-#             return JsonResponse(
-#                 {"status": "error", "message": "Неверный формат данных."}, status=400
-#             )
-#
-#         except Exception as e:
-#             logger.bind(user=request.user.username).error(str(e))
-#             return JsonResponse({"error": str(e)}, status=500)
+    def put(self, request: HttpRequest) -> JsonResponse:
+        """
+        Обновляет содержимое документов на основе полученных данных.
+
+        Args:
+            request (HttpRequest): Объект запроса.
+
+        Returns:
+            JsonResponse: Ответ с информацией о статусе операции.
+        """
+        counter: int = 0  # Счетчик сохраненных файлов
+        try:
+            data = json.loads(request.body)
+
+            for file_name,file_content in zip(data['files'],data['content']):
+
+                new_content = replace_unsupported_characters(file_content)
+                new_file_name: str = file_name
+
+                if not new_file_name.endswith(".txt"):
+                    continue
+
+                # Определяем путь к файлу для сохранения
+                file_path = os.path.join(ProjectSettings.tlg_dir, new_file_name)
+
+                # Сохраняем новое содержимое в файл
+                with open(file_path, "w", encoding="cp866") as file:
+                    file.write(new_content)
+
+                counter += 1
+                logger.bind(user=request.user.username, filename=new_file_name).info(f"Сохранил файл ")
+
+            res = Counter.objects.create(num_files=counter)
+            res.save()
+            return JsonResponse(
+                {"status": "success", "message": "Все файлы успешно сохранены."}
+            )
+
+        except json.JSONDecodeError:
+            logger.bind(user=request.user.username).error(str("error") + "Неверный формат данных")
+            return JsonResponse(
+                {"status": "error", "message": "Неверный формат данных."}, status=400
+            )
+
+        except Exception as e:
+            logger.bind(user=request.user.username).error(str(e))
+            error_type = type(e).__name__
+            return JsonResponse({"error": f"Произошла какая-то ошибка - {error_type} - {str(e)}"}, status=500)

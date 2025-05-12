@@ -1,4 +1,6 @@
 // submit-form.js
+import {saveAllChanges} from './save-all.js';
+import {showError} from "./utils.js";
 
 /**
  * Асинхронная отправка формы через fetch
@@ -7,11 +9,17 @@
 export default async function submitFormAsync(form, formDiv, clearFileList) {
     const spinner = document.getElementById('upload-spinner');
     const spinner2 = document.getElementById('upload-spinner2');
+    const spinner3 = document.getElementById('upload-spinner3');
+    const spinner4 = document.getElementById('upload-spinner4');
     const formDiv2 = document.getElementById('step2-form');
     const formDiv3 = document.getElementById('step3-form');
+    const formDiv4 = document.getElementById('step4-form');
     const leftUlForm3 = document.getElementById('file-names-list');
     const fileContentTextarea = document.getElementById('file-content');
-
+    const saveButton = document.getElementById('save-edited-content');
+    const saveAllButton = document.getElementById('save-content');
+    const step3 = document.querySelector('.step[data-step="3"]');
+    const step4 = document.querySelector('.step[data-step="4"]');
     try {
         const formData = new FormData(form);
         spinner.classList.remove('hidden');
@@ -38,31 +46,59 @@ export default async function submitFormAsync(form, formDiv, clearFileList) {
         setTimeout(() => formDiv.classList.add('hidden'), 500);
 
         await runStep1(data);
+        saveAllButton.addEventListener('click', async () => {
+            const result = await saveAllChanges(data.new_files, data.content, '/');
+            if (result === true) {
+                spinner3.classList.remove('hidden');
+                await new Promise(r => setTimeout(r, 3000));
+                spinner3.classList.add('hidden');
+                formDiv3.classList.remove('show');
+                await new Promise(r => setTimeout(r, 1000));
+                formDiv3.classList.add('hidden');
+                step3.classList.remove('li-style-active');
+                step3.classList.add('li-style-complete', 'pointer-events-none');
+                step3.querySelector('span').innerHTML = getCheckIcon();
+                await new Promise(r => setTimeout(r, 1000));
+                step4.classList.add('li-style-active');
+                // 1) Создаем и вставляем заголовок <h2>
+                const heading = document.createElement('h2');
+                heading.classList.add('text-xl', 'text-text', 'dark:text-text-dark', 'font-semibold');
+                heading.textContent = 'Я произвел сохранение файлов на сервер';
+
+                // 2) Создаем и вставляем абзац <p>
+                const paragraph = document.createElement('p');
+                paragraph.classList.add('text-md', 'text-text', 'dark:text-text-dark', 'font-medium');
+                paragraph.textContent = 'Теперь можно посмотреть, папку с обработанными фалами и отправь это куда следует!';
+                formDiv4.appendChild(heading);
+                formDiv4.appendChild(paragraph)
+
+                await new Promise(r => setTimeout(r, 500));
+                formDiv4.classList.remove('hidden');
+                await new Promise(r => setTimeout(r, 100));
+                formDiv4.classList.add('show');
+
+                spinner4.classList.remove('hidden');
+                await new Promise(r => setTimeout(r, 3000));
+                spinner4.classList.add('hidden');
+
+                formDiv4.classList.remove('show');
+                await new Promise(r => setTimeout(r, 1000));
+                formDiv4.classList.add('hidden');
+
+                step4.classList.remove('li-style-active');
+                step4.classList.add('li-style-complete', 'pointer-events-none');
+                step4.querySelector('span').innerHTML = getCheckIcon();
+                await new Promise(r => setTimeout(r, 2000));
+
+
+            }
+        });
     } catch (error) {
         showError(error);
     } finally {
         spinner.classList.add('hidden');
     }
 
-    function showError(error) {
-        const errorBlock = document.getElementById('server-error');
-        const errorText = errorBlock.querySelector('p');
-        errorBlock.classList.remove('hidden', 'animate-popup-reverse');
-        errorBlock.classList.add("flex", "animate-popup");
-        errorText.textContent = error.message || 'Произошла ошибка при отправке данных';
-
-        console.error('Ошибка запроса:', error);
-
-        setTimeout(() => {
-            errorBlock.classList.remove("animate-popup");
-            errorBlock.classList.add("animate-popup-reverse");
-
-            setTimeout(() => {
-                errorBlock.classList.add("hidden");
-                errorBlock.classList.remove("flex", "animate-popup-reverse");
-            }, 1000);
-        }, 4000);
-    }
 
     async function runStep1(data) {
         const step1 = document.querySelector('.step[data-step="1"]');
@@ -73,6 +109,16 @@ export default async function submitFormAsync(form, formDiv, clearFileList) {
         step1.querySelector('span').innerHTML = getCheckIcon();
 
         step2.classList.add('li-style-active');
+        // 1) Создаем и вставляем заголовок <h2>
+        const heading = document.createElement('h2');
+        heading.classList.add('text-xl', 'text-text', 'dark:text-text-dark', 'font-semibold');
+        heading.textContent = 'Получение ответа от сервер';
+
+        // 2) Создаем и вставляем абзац <p>
+        const paragraph = document.createElement('p');
+        paragraph.classList.add('text-md', 'text-text', 'dark:text-text-dark', 'font-medium');
+        paragraph.textContent = 'Получены обработанные файлы, ниже приведены их названия';
+
 
         if (Array.isArray(data.new_files)) {
             const ul = document.createElement('ul');
@@ -82,6 +128,9 @@ export default async function submitFormAsync(form, formDiv, clearFileList) {
                 li.textContent = file;
                 ul.appendChild(li);
             });
+            // 3) Вставляем их в начало #step2-form (или в любое место)
+            formDiv2.appendChild(heading);
+            formDiv2.appendChild(paragraph);
             formDiv2.appendChild(ul);
         }
 
@@ -106,7 +155,7 @@ export default async function submitFormAsync(form, formDiv, clearFileList) {
     }
 
     async function runStep2(data) {
-        const step3 = document.querySelector('.step[data-step="3"]');
+
         step3.classList.add('li-style-active');
 
         const fileContentMap = new Map();
@@ -129,15 +178,14 @@ export default async function submitFormAsync(form, formDiv, clearFileList) {
 
                 // Обработчик клика на название файла
                 li.addEventListener('click', () => {
-                    const content = fileContentMap.get(file);
-
-                    fileContentTextarea.value = content;
+                    fileContentTextarea.value = fileContentMap.get(file);
                     fileContentTextarea.disabled = false;
                     fileContentTextarea.style.height = "auto";
                     fileContentTextarea.style.height = fileContentTextarea.scrollHeight + "px";
 
-                    const saveButton = document.getElementById('save-edited-content');
+
                     saveButton.disabled = false;
+                    saveAllButton.disabled = false;
 
                     // Убираем выделение со всех элементов
                     document.querySelectorAll('.file-item').forEach(el => {
@@ -161,15 +209,53 @@ export default async function submitFormAsync(form, formDiv, clearFileList) {
                 deleteBtn.classList.add('opacity-0', 'btn-cancel', '!w-3/10', 'flex', 'group-hover:opacity-100', 'justify-center', 'items-center', 'gap-1', '!py-1');
                 deleteBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    li.remove();
-                    fileContentMap.delete(file);
 
                     const index = data.new_files.indexOf(file);
+
+                    // Удаляем файл и его содержимое
                     if (index !== -1) {
                         data.new_files.splice(index, 1);
                         data.content.splice(index, 1);
                     }
+                    fileContentMap.delete(file);
+                    li.remove();
+
+                    // Если удаляем текущий активный файл
+                    if (currentFileName === file) {
+                        const fileItems = document.querySelectorAll('.file-item');
+
+                        if (fileItems.length > 0) {
+                            // Выбираем следующий элемент, если есть
+                            const newLi = fileItems[Math.min(index, fileItems.length - 1)];
+                            const newFileName = newLi.querySelector('.file-name').textContent;
+
+                            currentFileName = newFileName;
+                            fileContentTextarea.value = fileContentMap.get(newFileName) || '';
+                            fileContentTextarea.disabled = false;
+                            fileContentTextarea.style.height = "auto";
+                            fileContentTextarea.style.height = fileContentTextarea.scrollHeight + "px";
+
+                            const saveButton = document.getElementById('save-edited-content');
+                            saveButton.disabled = false;
+
+                            document.querySelectorAll('.file-item').forEach(el => {
+                                el.classList.remove('file-item-selected');
+                            });
+                            newLi.classList.add('file-item-selected');
+                        } else {
+                            // Нет больше файлов — очищаем textarea
+                            currentFileName = null;
+                            fileContentTextarea.value = '';
+                            fileContentTextarea.disabled = true;
+                            fileContentTextarea.style.height = "auto";
+                            fileContentTextarea.style.height = "2.5rem";
+
+                            const saveButton = document.getElementById('save-edited-content');
+                            saveButton.disabled = true;
+                        }
+                    }
                 });
+
 
                 li.appendChild(fileSpan);
                 li.appendChild(deleteBtn);
@@ -194,8 +280,7 @@ export default async function submitFormAsync(form, formDiv, clearFileList) {
         formDiv3.classList.add('show');
         // Если есть хотя бы один файл — сразу показываем его содержимое
         if (firstFile) {
-            const firstContent = fileContentMap.get(firstFile);
-            fileContentTextarea.value = firstContent;
+            fileContentTextarea.value = fileContentMap.get(firstFile);
             fileContentTextarea.disabled = false;
             fileContentTextarea.style.height = "auto";
             fileContentTextarea.style.height = fileContentTextarea.scrollHeight + "px";
@@ -223,9 +308,6 @@ export default async function submitFormAsync(form, formDiv, clearFileList) {
         });
         await new Promise(r => setTimeout(r, 3000));
 
-        step3.classList.remove('li-style-active');
-        step3.classList.add('li-style-complete', 'pointer-events-none');
-        step3.querySelector('span').innerHTML = getCheckIcon();
     }
 
 
