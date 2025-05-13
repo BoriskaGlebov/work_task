@@ -18,11 +18,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-
-
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("",include("file_creator.urls")),
-    path("login/",include("myauth.urls"))
+    path("", include("file_creator.urls")),
+    path("login/", include("myauth.urls")),
+    path("cities/", include("cities.urls"))
+
     # path("", include("work_for_ilia.urls")),
 ]

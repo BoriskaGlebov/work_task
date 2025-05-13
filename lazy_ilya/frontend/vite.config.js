@@ -17,6 +17,7 @@ export default defineConfig({
                 'myauth/js/reset_password': resolve(__dirname, 'src/myauth/js/reset_password.js'),
                 'file_creator/js/base': resolve(__dirname, 'src/file_creator/js/base.js'),
                 'file_creator/js/main': resolve(__dirname, 'src/file_creator/js/main.js'),
+                'cities/js/main': resolve(__dirname, 'src/cities/js/main.js'),
             },
             output: {
                 entryFileNames: '[name].js',
@@ -30,6 +31,9 @@ export default defineConfig({
                         }
                         if (name.includes('myauth')) {
                             return 'myauth/img/[name][extname]';
+                        }
+                        if (name.includes('cities')) {
+                            return 'cities/img/[name][extname]';
                         }
                         return 'static/img/[name][extname]';
                     }

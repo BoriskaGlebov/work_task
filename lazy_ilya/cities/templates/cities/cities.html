@@ -1,0 +1,17 @@
+{% extends "file_creator/base.html" %}
+{% load static %}
+
+{% block title %}
+    Работа с городами
+{% endblock %}
+
+{% block body %}
+
+{% endblock %}
+{% block extra_js %}
+    {% if VITE_DEV_MODE %}
+        <script type="module" src="http://localhost:5173/src/cities/js/main.js"></script>
+    {% else %}
+        <script type="module" crossorigin src="{% static 'cities/js/main.js' %}"></script>
+    {% endif %}
+{% endblock %}

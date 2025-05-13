@@ -41,7 +41,7 @@
             <div class="hidden lg:flex items-center gap-2">
                 <a id="a-main" href="{% url 'file_creator:file-creator-start' %}"
                 class="a-style">Главная</a>
-                <a href="#"
+                <a id="a-cities" href="{% url 'cities:base_template' %}"
                 class="a-style">Города</a>
                 <a href="#"
                 class="a-style">Статистика</a>
@@ -86,9 +86,9 @@
         <!-- Мобильное меню -->
         <div id="nav-menu"
              class="flex-col space-y-2 lg:hidden max-h-0 overflow-hidden transition-all duration-400">
-            <a href="{% url 'file_creator:file-creator-start' %}"
+            <a id="a-main-mob" href="{% url 'file_creator:file-creator-start' %}"
                class="burger-button">Главная</a>
-            <a href="#"
+            <a id="a-cities-mob" href="{% url 'cities:base_template' %}"
                class="burger-button">Города</a>
             <a href="#"
                class="burger-button">Статистика</a>

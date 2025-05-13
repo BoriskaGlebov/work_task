@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     # "work_for_ilia.apps.WorkForIliaConfig",
     "file_creator.apps.FileCreatorConfig",
     "myauth.apps.MyauthConfig",
+    "cities.apps.CitiesConfig",
     "channels",
 ]
 
@@ -62,7 +63,9 @@ ROOT_URLCONF = "lazy_ilya.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, "lazy_ilya", "templates")],
+        "DIRS": [BASE_DIR / "myauth/templates",
+                 BASE_DIR / "file_creator/templates",
+                 BASE_DIR / "cities/templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -127,6 +130,8 @@ STATIC_ROOT = os.path.join(
 )  # Сюда импортируются все файлы статики для всех приложений
 STATICFILES_DIRS = [
     BASE_DIR / "lazy_ilya/static",
+    BASE_DIR / "file_creator/static",
+    BASE_DIR / "cities/static",
 
 ]
 

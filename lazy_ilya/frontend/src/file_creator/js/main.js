@@ -12,6 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const aEl = document.getElementById('a-main')
     aEl.classList.toggle('bg-accent');
     aEl.classList.toggle('dark:bg-accent-dark');
+    const aElMob = document.getElementById('a-main-mob')
+    aElMob.classList.toggle('bg-accent');
+    aElMob.classList.toggle('dark:bg-accent-dark');
 
 
 });

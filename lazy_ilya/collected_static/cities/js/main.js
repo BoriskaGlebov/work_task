@@ -1,0 +1,1 @@
+document.addEventListener("DOMContentLoaded",()=>{const t=document.getElementById("a-cities");t.classList.toggle("bg-accent"),t.classList.toggle("dark:bg-accent-dark");const e=document.getElementById("a-cities-mob");e.classList.toggle("bg-accent"),e.classList.toggle("dark:bg-accent-dark")});
