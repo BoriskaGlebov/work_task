@@ -101,8 +101,8 @@ logger.add(
            "<cyan>{name}</cyan>:<magenta>{line}</magenta> - "
            "<yellow>{function}</yellow> - "
            "<white>{message}</white> - "
-           "<magenta>{extra[user]:^10}</magenta> - "
-           "<magenta>{extra[filename]:^10}</magenta>",
+           "<magenta>{extra[user]:^15}</magenta> - "
+           "<magenta>{extra[filename]:^15}</magenta>",
     filter=lambda record: user_filter(record) or filename_filter(record) or default_filter(record),
     catch=True,
     diagnose=True,
@@ -121,8 +121,8 @@ logger.add(
            "<cyan>{name}</cyan>:<magenta>{line}</magenta> - "
            "<yellow>{function}</yellow> - "
            "<white>{message}</white>"
-           "<magenta>{extra[user]:^10}</magenta> - "
-           "<magenta>{extra[filename]:^10}</magenta>",
+           "<magenta>{extra[user]:^15}</magenta> - "
+           "<magenta>{extra[filename]:^15}</magenta>",
     rotation="1 day",  # Ротация логов
     retention="7 days",  # Хранение логов 7 дней
     catch=True,
