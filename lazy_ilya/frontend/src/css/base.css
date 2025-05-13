@@ -92,7 +92,6 @@ h1 {
     @apply text-surface dark:text-surface-dark
     p-3 w-35 text-center text-xl font-medium rounded-xl transition-colors duration-200
     hover:bg-accent dark:hover:bg-accent-dark;
-
 }
 
 .burger-button {

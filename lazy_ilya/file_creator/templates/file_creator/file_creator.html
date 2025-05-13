@@ -7,7 +7,7 @@
 
 {% block body %}
     <ol id="steps-list"
-        class="py-6 items-center w-full space-y-4 lg:flex lg:justify-between lg:space-x-8 lg:space-y-0 border-b-1 border-accent">
+        class="py-6 items-center w-full space-y-4 lg:flex lg:justify-between lg:space-x-8 lg:space-y-0 border-b-3 border-accent">
         <li class="step li-style li-style-active" data-step="1">
             <span>1</span>
             <div>
@@ -41,7 +41,7 @@
 
     <!-- Блок формы -->
     <div id="step1-form"
-         class="relative flex-col overflow-hidden justify-center !max-w-2xl  mx-auto form-style show gap-3 transition-transform">
+         class="relative flex-col overflow-hidden justify-center !max-w-2xl  mx-auto form-style show gap-3 transition-transform mt-2">
         <div id="server-error" class="hidden common_error"
              role="alert">
             <svg class="shrink-0 inline w-6 h-6 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
@@ -73,6 +73,14 @@
         <h2 class="text-xl text-text dark:text-text-dark font-semibold">Загрузка файлов</h2>
         <p class="text-md text-text dark:text-text-dark font-medium">Сначало нужно выбрать файлы, которые необходимо
             обработать. </p>
+        <div class="flex gap-3 text-warning dark:text-warning-dark font-semibold">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" class="size-12">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"></path>
+            </svg>
+            <p>Не переживай! Если что-то пойдет не так, нужно лишь перезагрузить страницу и попробовать заново!</p>
+        </div>
         <div id="upload-spinner" class="hidden flex items-center justify-center mt-4">
             <div class="w-10 h-10 border-4 border-primary dark:border-primary-dark border-t-transparent  dark:border-t-transparent rounded-full animate-spin"></div>
             <span class="ml-2 text-md text-text dark:text-text-dark">Загрузка файлов...</span>
@@ -143,7 +151,7 @@
     </div>
 
     <div id="step2-form"
-         class="relative flex-col overflow-hidden justify-center !max-w-2xl  mx-auto form-style hidden gap-3 transition-transform">
+         class="relative flex-col overflow-hidden justify-center !max-w-2xl  mx-auto form-style hidden gap-3 transition-transform mt-2">
         <div id="upload-spinner2" class="hidden flex items-center justify-center mt-4">
             <div class="w-10 h-10 border-4 border-primary dark:border-primary-dark border-t-transparent  dark:border-t-transparent rounded-full animate-spin"></div>
             <span class="ml-2 text-md text-text dark:text-text-dark">Загрузка файлов...</span>
@@ -151,7 +159,7 @@
     </div>
 
     <div id="step3-form"
-         class="!max-w-6xl mx-auto form-style hidden gap-3 transition-transform">
+         class="!max-w-6xl mx-auto form-style hidden gap-3 transition-transform mt-2">
         <div id="server-error2" class="hidden common_error"
              role="alert">
             <svg class="shrink-0 inline w-6 h-6 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
@@ -198,9 +206,14 @@
 
             <!-- Левая колонка: список файлов -->
             <div class="col-span-1 ">
-                <div id="left-col" class="sticky top-20 bg-surface dark:bg-surface-dark rounded-2xl p-4 shadow-md ">
-                    <h3 class="text-lg font-semibold text-text dark:text-text-dark mb-2">Список файлов</h3>
-                    <ul id="file-names-list" class="space-y-2 text-text dark:text-text-dark">
+                <div id="left-col"
+                     class="sticky top-20 bg-background dark:bg-background-dark rounded-2xl  shadow-md gap-2">
+
+                    <h3 class="text-lg font-semibold text-text dark:text-text-dark p-4 border-b-3 border-accent">Список
+                        файлов</h3>
+
+
+                    <ul id="file-names-list" class="space-y-2 text-text dark:text-text-dark p-4">
                         <!-- Пример элемента списка -->
                         {#                    <li class="file-item group">#}
                         {#                        <span class="file-name cursor-pointer group-hover:text-[--color-accent]">some_file.txt</span>#}
@@ -227,8 +240,9 @@
             <!-- Правая колонка: редактор содержимого -->
             <div class="col-span-2 ">
                 <div id="right-col"
-                     class="bg-surface dark:bg-surface-dark rounded-2xl p-4 shadow-md flex flex-col">
-                    <h3 class="text-lg font-semibold text-text dark:text-text-dark mb-2">Содержимое документа</h3>
+                     class="bg-background dark:bg-background-dark rounded-2xl shadow-md flex flex-col gap-2">
+                    <h3 class="text-lg font-semibold text-text dark:text-text-dark p-4 border-b-3 border-accent">
+                        Содержимое документа</h3>
                     <label for="file-content"></label>
                     <textarea id="file-content"
                               class="textarea-custom"
@@ -245,7 +259,7 @@
     </div>
 
     <div id="step4-form"
-         class="relative flex-col overflow-hidden justify-center !max-w-2xl  mx-auto form-style hidden gap-3 transition-transform">
+         class="relative flex-col overflow-hidden justify-center !max-w-2xl  mx-auto form-style hidden gap-3 transition-transform mt-2">
         <div id="upload-spinner4" class="hidden flex items-center justify-center mt-4">
             <div class="w-10 h-10 border-4 border-primary dark:border-primary-dark border-t-transparent  dark:border-t-transparent rounded-full animate-spin"></div>
             <span class="ml-2 text-md text-text dark:text-text-dark">Загрузка файлов...</span>

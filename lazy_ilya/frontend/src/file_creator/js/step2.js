@@ -52,13 +52,23 @@ export async function runStep2(data, step3, formDiv3) {
 
         data.new_files.forEach((file, i) => {
             const li = document.createElement('li');
-            li.classList.add('file-item', 'group');
+            li.setAttribute('tabindex', '0');
+            // li.classList.add('focus:outline-none', 'focus:ring-2', 'focus:ring-[--color-accent]');
+            li.classList.add('file-item', 'group', 'group-focus:outline-none', 'group-focus:ring-2', 'group-focus:ring-[--color-accent]');
 
             const fileSpan = document.createElement('span');
             fileSpan.textContent = file;
+
             fileSpan.classList.add('file-name', 'cursor-pointer', 'group-hover:text-[--color-accent]');
+            // fileSpan.classList.add();
+            li.addEventListener('keydown', (e) => {
+                if (e.key === 'Tab') {
+                    li.click();
+                }
+            });
 
             li.addEventListener('click', () => {
+                window.scrollTo({top: 0, behavior: 'smooth'});
                 fileContentTextarea.value = fileContentMap.get(file);
                 fileContentTextarea.disabled = false;
                 fileContentTextarea.style.height = "auto";
@@ -155,7 +165,6 @@ export async function runStep2(data, step3, formDiv3) {
                     btnDiv.innerHTML = '';
                 });
             });
-
             li.appendChild(fileSpan);
             li.appendChild(deleteBtn);
             leftUlForm3.appendChild(li);
@@ -181,6 +190,7 @@ export async function runStep2(data, step3, formDiv3) {
 
         const saveButton = document.getElementById('save-edited-content');
         saveButton.disabled = false;
+        saveAllButton.disabled = false;
 
         document.querySelectorAll('.file-item').forEach(el => el.classList.remove('file-item-selected'));
         firstLi.classList.add('file-item-selected');
@@ -188,6 +198,11 @@ export async function runStep2(data, step3, formDiv3) {
 
     fileContentTextarea.addEventListener('input', () => {
         if (currentFileName) {
+            // Сначала сбрасываем высоту, чтобы scrollHeight был точным
+            fileContentTextarea.style.height = 'auto';
+            // Затем устанавливаем новую высоту по содержимому
+            fileContentTextarea.style.height = fileContentTextarea.scrollHeight + 'px';
+
             const newText = fileContentTextarea.value;
             fileContentMap.set(currentFileName, newText);
             const index = data.new_files.indexOf(currentFileName);
@@ -197,6 +212,7 @@ export async function runStep2(data, step3, formDiv3) {
             console.log(data);
         }
     });
+
 
     await new Promise(r => setTimeout(r, 3000));
 }
