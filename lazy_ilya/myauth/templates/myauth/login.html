@@ -4,7 +4,7 @@
     Вход
 {% endblock %}
 {% block body %}
-    <main class="flex justify-center items-center min-h-screen py-6">
+    <main class="container mx-auto flex justify-center items-center min-h-screen min-w-sm py-6">
         <form method="POST" action="{% url 'myauth:login' %}"
               class="relative form-style opacity-0 animate-fade-in">
             {% csrf_token %}
@@ -47,10 +47,10 @@
                 </div>
             </div>
 
-{#            <div id="non-field-errors"#}
-{#                 class="hidden common_error">#}
-{#                <p>Ошибка авторизации</p>#}
-{#            </div>#}
+            {#            <div id="non-field-errors"#}
+            {#                 class="hidden common_error">#}
+            {#                <p>Ошибка авторизации</p>#}
+            {#            </div>#}
 
             <div>
                 <label for="username" id="username-label" class="block mb-2 font-medium correct_label">Логин</label>
@@ -108,15 +108,13 @@
 
             </div>
             <div class="relative">
-                <div class="absolute inset-y-0 start-4/12 flex items-center ps-3.5 pointer-events-none">
+                <button type="submit"
+                        class="btn-submit ">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                          stroke="currentColor" class="correct_icon !text-text-dark">
                         <path stroke-linecap="round" stroke-linejoin="round"
                               d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"></path>
                     </svg>
-                </div>
-                <button type="submit"
-                        class="btn-submit">
                     Войти
                 </button>
 

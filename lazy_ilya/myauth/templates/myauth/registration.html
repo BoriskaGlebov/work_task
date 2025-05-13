@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block body %}
-    <main class="flex justify-center items-center min-h-screen py-6">
+    <main class="container mx-auto  flex justify-center items-center min-h-screen min-w-sm py-6">
         <form method="POST" id="registration-form" action="{% url 'myauth:registration' %}"
               class="relative form-style opacity-0 animate-fade-in">
             {% csrf_token %}
@@ -45,7 +45,12 @@
                             </svg>
                             <!-- Tooltip -->
                             <div
-                                    class="absolute right-0 bottom-full mb-1 w-sm whitespace-normal p-2 text-justify text-sm text-white bg-gray-700 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-300 z-10">
+                                    class="absolute right-0 bottom-full mb-1 w-xs md:w-sm whitespace-normal p-2
+                                    text-justify text-xs md:text-base text-white
+                                    bg-gray-700 rounded shadow-lg
+                                    opacity-0 pointer-events-none
+                                    group-hover:opacity-100 group-hover:pointer-events-auto
+                                    transition-opacity duration-300 z-10">
                                 <span>Используйте логин одним словом на любом языке,
                                     можно использовать только буквы, цифры и знаки @/./+/-/_. <span
                                             class="text-accent dark:text-accent font-bold"> !!!Пробел нельзя ставить!!!</span>
@@ -130,7 +135,11 @@
 
                             <!-- Tooltip -->
                             <div
-                                    class="absolute right-0 bottom-full mb-1 w-sm whitespace-normal p-2 text-justify text-sm text-white bg-gray-700 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto  transition-opacity duration-300 z-10">
+                                    class="absolute right-0 bottom-full mb-1 w-xs md:w-sm whitespace-normal
+                                    p-2 text-justify text-xs md:text-base text-white bg-gray-700
+                                    rounded shadow-lg opacity-0 pointer-events-none
+                                    group-hover:opacity-100 group-hover:pointer-events-auto
+                                    transition-opacity duration-300 z-10">
                                 Номер телефона нужен для восстановления пароля.
                                 Это не обязательно ваш реальный номер,
                                 но в случае если вы забыли пароль,

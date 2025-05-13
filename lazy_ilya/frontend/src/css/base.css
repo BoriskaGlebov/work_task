@@ -105,7 +105,8 @@ h1 {
     border border-form-color dark:border-form-color-dark
     p-8 rounded-lg
     shadow-xl shadow-secondary dark:shadow-2xl dark:shadow-secondary-dark
-    w-full max-w-lg space-y-6;
+    w-full max-w-lg space-y-6
+    text-sm md:text-base;
 }
 
 .theme-toggle {
@@ -122,19 +123,23 @@ h1 {
 
 
 .btn-submit {
-    @apply w-full p-3 text-text-dark font-semibold rounded-lg
+    @apply flex items-center justify-center gap-2
+    w-full p-3 text-text-dark font-semibold rounded-lg
     bg-primary dark:bg-primary-dark
     hover:bg-primary-dark dark:hover:bg-primary
     transition-colors duration-300 active:scale-95
-    focus:outline-none focus:ring-3 focus:ring-primary/50 dark:focus:ring-primary;
+    focus:outline-none focus:ring-3 focus:ring-primary/50 dark:focus:ring-primary
+    text-sm md:text-base;
 }
 
 .btn-cancel {
-    @apply w-full p-3 text-text-dark font-semibold rounded-lg
+    @apply flex items-center justify-center gap-2
+    w-full p-3 text-text-dark font-semibold rounded-lg
     bg-error dark:bg-error-dark
     hover:bg-error-dark dark:hover:bg-error
     transition-colors duration-300 active:scale-95
-    focus:outline-none focus:ring-3 focus:ring-error/50 dark:focus:ring-error;
+    focus:outline-none focus:ring-3 focus:ring-error/50 dark:focus:ring-error
+    text-sm md:text-base;
 }
 
 .correct_label {
@@ -152,6 +157,7 @@ h1 {
     bg-background dark:bg-background-dark
     focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary-dark
     placeholder:text-secondary dark:placeholder:text-secondary-dark
+    text-sm md:text-base;
 
 }
 
@@ -162,6 +168,7 @@ h1 {
     bg-background dark:bg-background-dark
     focus:outline-none focus:ring-2 focus:ring-error/50 dark:focus:ring-error-dark/50
     placeholder:text-error/75 dark:placeholder:text-error-dark/75
+    text-sm md:text-base;
 }
 
 .correct_icon {
@@ -185,6 +192,7 @@ h1 {
     border border-error dark:border-error-dark
     bg-surface dark:bg-surface-dark  ;
 }
+
 .common_info {
     @apply items-center
     text-base text-start  rounded-lg p-4 mb-4
@@ -317,13 +325,16 @@ h1 {
 .file-item:hover {
     @apply bg-primary dark:bg-primary-dark text-surface dark:text-surface-dark;
 }
+
 .file-item-selected {
-  @apply bg-primary dark:bg-primary-dark text-surface dark:text-surface-dark;
+    @apply bg-primary dark:bg-primary-dark text-surface dark:text-surface-dark;
 }
+
 .file-name {
     @apply cursor-pointer transition-colors duration-200 gap-3;
 }
-.textarea-custom{
+
+.textarea-custom {
     @apply w-full p-1 rounded-md
     bg-form-color dark:bg-form-color-dark
     text-text dark:text-text-dark
