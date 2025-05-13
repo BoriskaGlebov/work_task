@@ -43,9 +43,9 @@ class UserActionLoggingMiddleware:
         ip = request.META.get('REMOTE_ADDR')
 
         # Логируем действия аутентифицированных пользователей
-        if user.is_authenticated:
-            logger.bind(user=user.username).info(f"Пользователь сделал {method} запрос по адресу {path} с IP {ip}")
-        elif 'registration' in path.lower() and method == 'GET':
+        # if user.is_authenticated:
+        #     logger.bind(user=user.username).info(f"Пользователь сделал {method} запрос по адресу {path} с IP {ip}")
+        if 'registration' in path.lower() and method == 'GET':
             logger.info(f"Загрузка формы регистрации в приложение по адресу {path} from IP {ip}")
         elif 'reset-password' in path.lower() and method == 'GET':
             logger.info(f"Загрузка формы сброса пароля в приложение по адресу {path} from IP {ip}")
@@ -61,10 +61,10 @@ class UserActionLoggingMiddleware:
             raise
 
         # Логируем успешные и неуспешные запросы
-        if user.is_authenticated:
-            logger.bind(user=user.username).info(
-                f"✅ Пользователь {user.username} отправил {method}-запрос на {path} с IP {ip} (Статус: {response.status_code})")
-        elif 'registration' in path.lower() and method == 'POST':
+        # if user.is_authenticated:
+        #     logger.bind(user=user.username).info(
+        #         f"✅ Пользователь {user.username} отправил {method}-запрос на {path} с IP {ip} (Статус: {response.status_code})")
+        if 'registration' in path.lower() and method == 'POST':
             logger.info(f"🔐 Анонимная попытка регистрации через {path} с IP {ip} (Статус: {response.status_code})")
             self.custom_message(response, user, method, path, ip)
         elif 'reset-password' in path.lower() and method == 'POST':

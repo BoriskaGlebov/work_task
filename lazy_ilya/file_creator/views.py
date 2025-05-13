@@ -16,13 +16,6 @@ from file_creator.utils.storage import OverwritingFileSystemStorage
 from lazy_ilya.utils.settings_for_app import logger, ProjectSettings
 
 
-# Create your views here.
-@login_required
-def base_template(request: HttpRequest) -> HttpResponse:
-    context = {}
-    return render(request, "file_creator/file_creator.html", context)
-
-
 class UploadView(LoginRequiredMixin, View):
     """
     Класс для обработки загрузки документов и их парсинга.
@@ -42,7 +35,7 @@ class UploadView(LoginRequiredMixin, View):
         Returns:
             HttpResponse: Ответ с загруженной формой.
         """
-        logger.bind(user=request.user.username).debug("Загрузил страницу")
+        # logger.bind(user=request.user.username).debug("Загрузил страницу")
         return render(request=request, template_name="file_creator/file_creator.html")
 
     def post(self, request: HttpRequest) -> JsonResponse:
@@ -90,7 +83,7 @@ class UploadView(LoginRequiredMixin, View):
                 file_path = os.path.join(ProjectSettings.tlg_dir, file)
                 if os.path.isfile(file_path) and not file_path.endswith(".txt"):
                     os.remove(file_path)
-            logger.bind(user=request.user.username).debug(f"{new_files} - отправил названние новых файлов")
+            # logger.bind(user=request.user.username).debug(f"{new_files} - отправил названние новых файлов")
             return JsonResponse({"content": content, "new_files": new_files})
 
         except ValueError as ve:
@@ -120,7 +113,7 @@ class UploadView(LoginRequiredMixin, View):
         try:
             data = json.loads(request.body)
 
-            for file_name,file_content in zip(data['files'],data['content']):
+            for file_name, file_content in zip(data['files'], data['content']):
 
                 new_content = replace_unsupported_characters(file_content)
                 new_file_name: str = file_name
@@ -145,9 +138,9 @@ class UploadView(LoginRequiredMixin, View):
             )
 
         except json.JSONDecodeError:
-            logger.bind(user=request.user.username).error(str("error") + "Неверный формат данных")
+            # logger.bind(user=request.user.username).error(str("error") + "Неверный формат данных")
             return JsonResponse(
-                {"status": "error", "message": "Неверный формат данных."}, status=400
+                {"error": "Неверный формат данных. - JSONDecodeError"}, status=400
             )
 
         except Exception as e:

@@ -29,7 +29,7 @@ class CustomUserCreationForm(UserCreationForm):
         error_messages = {
             "phone_number": {
                 "unique": "Пользователь с таким номером телефона уже зарегистрирован.",
-                "invalid": "Введите корректный номер телефона в формате +7 (985) 200-03-38.",
+                "invalid": "Введите корректный номер телефона в формате +7 (999) 999-99-99.",
             },
         }
 
@@ -76,7 +76,7 @@ class PasswordResetForm(forms.Form):
         label="Телефон",
         region="RU",
         error_messages={
-            "invalid": "Введите корректный номер телефона в формате +7 (985) 200-03-38.",
+            "invalid": "Введите корректный номер телефона в формате +7 (999) 999-99-99.",
         }
     )
     password1: str = forms.CharField(

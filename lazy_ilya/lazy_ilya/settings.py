@@ -54,6 +54,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "myauth.middleware.myauth_logging.UserActionLoggingMiddleware",
+    "file_creator.middleware.file_creator_middleware.FileCreatorActionLoggingMiddleware",
 ]
 
 ROOT_URLCONF = "lazy_ilya.urls"
