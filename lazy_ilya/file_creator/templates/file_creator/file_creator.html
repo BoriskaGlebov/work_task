@@ -7,32 +7,32 @@
 
 {% block body %}
     <ol id="steps-list"
-        class="py-6 items-center w-full space-y-4 lg:flex lg:justify-between lg:space-x-8 lg:space-y-0 border-b-3 border-accent">
+        class="text-sm md:text-base py-6 items-center w-full space-y-4 lg:flex lg:justify-between lg:space-x-8 lg:space-y-0 border-b-3 border-accent">
         <li class="step li-style li-style-active" data-step="1">
             <span>1</span>
             <div>
-                <h3 class="font-medium leading-tight">Загрузка файлов</h3>
+                <h3 class="font-semibold leading-tight">Загрузка файлов</h3>
                 <p class="text-sm">Добавление файлов на обработку</p>
             </div>
         </li>
         <li class="step li-style" data-step="2">
             <span>2</span>
             <div>
-                <h3 class="font-medium leading-tight">Подготовка ответ</h3>
+                <h3 class="font-semibold leading-tight">Подготовка ответ</h3>
                 <p class="text-sm">Анализ ответа от сервера</p>
             </div>
         </li>
         <li class="step li-style" data-step="3">
             <span>3</span>
             <div>
-                <h3 class="font-medium leading-tight">Обработанные файлы</h3>
+                <h3 class="font-semibold leading-tight">Обработанные файлы</h3>
                 <p class="text-sm">Проверка полученных документов от сервера.</p>
             </div>
         </li>
         <li class="step li-style " data-step="4">
             <span>4</span>
             <div>
-                <h3 class="font-medium leading-tight">Сохранение документов</h3>
+                <h3 class="font-semibold leading-tight">Сохранение документов</h3>
                 <p class="text-sm">Сохранение документов</p>
             </div>
         </li>
@@ -44,7 +44,7 @@
          class="relative flex-col overflow-hidden justify-center !max-w-2xl  mx-auto form-style show gap-3 transition-transform mt-2">
         <div id="server-error" class="hidden common_error"
              role="alert">
-            <svg class="shrink-0 inline w-6 h-6 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+            <svg class="shrink-0 inline w-4 h-4 md:w-6 md:h-6 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                  fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"></path>
             </svg>
@@ -56,7 +56,7 @@
         </div>
         <div id="server-info" class="hidden common_info"
              role="info">
-            <svg class="shrink-0 inline w-6 h-6 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+            <svg class="shrink-0 inline w-4 h-4 md:w-6 md:h-6 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                  fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"></path>
             </svg>
@@ -70,8 +70,8 @@
                 </div>
             </div>
         </div>
-        <h2 class="text-xl text-text dark:text-text-dark font-semibold">Загрузка файлов</h2>
-        <p class="text-md text-text dark:text-text-dark font-medium">Сначало нужно выбрать файлы, которые необходимо
+        <h2>Загрузка файлов</h2>
+        <p class="text-sm md:text-md text-text dark:text-text-dark font-medium">Сначало нужно выбрать файлы, которые необходимо
             обработать. </p>
         <div class="flex gap-3 text-warning dark:text-warning-dark font-semibold">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -79,7 +79,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round"
                       d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"></path>
             </svg>
-            <p>Не переживай! Если что-то пойдет не так, нужно лишь перезагрузить страницу и попробовать заново!</p>
+            <p class="text-xs md:text-md">Не переживай! Если что-то пойдет не так, нужно лишь перезагрузить страницу и попробовать заново!</p>
         </div>
         <div id="upload-spinner" class="hidden flex items-center justify-center mt-4">
             <div class="w-10 h-10 border-4 border-primary dark:border-primary-dark border-t-transparent  dark:border-t-transparent rounded-full animate-spin"></div>

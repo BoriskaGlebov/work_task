@@ -75,9 +75,21 @@
 
 }
 h1 {
-    @apply text-3xl font-logo text-center font-semibold tracking-widest
+    @apply text-xl md:text-3xl font-logo text-center font-extrabold tracking-widest
     bg-gradient-to-r from-[#FF6B00] to-[#DA00FF]
     bg-clip-text text-transparent;
+}
+
+h2 {
+    @apply text-lg md:text-2xl font-bold;
+}
+
+h3 {
+    @apply text-sm md:text-xl  font-semibold;
+}
+
+p {
+    @apply text-sm md:text-base;
 }
 
 .nav-style {
@@ -90,13 +102,14 @@ h1 {
 
 .a-style {
     @apply text-surface dark:text-surface-dark
-    p-3 w-35 text-center text-xl font-medium rounded-xl transition-colors duration-200
+    p-2 w-35 text-center text-sm md:text-xl font-medium rounded-xl transition-colors duration-200
     hover:bg-accent dark:hover:bg-accent-dark;
 }
 
 .burger-button {
     @apply block text-surface dark:text-surface-dark
-    p-3 text-xl w-full text-left font-medium rounded-xl transition-colors duration-200
+    p-2 text-sm md:text-xl w-full text-left font-medium
+    rounded-xl transition-colors duration-200
     hover:bg-accent dark:hover:bg-accent-dark;
 }
 
@@ -143,11 +156,13 @@ h1 {
 }
 
 .correct_label {
-    @apply text-text dark:text-text-dark;
+    @apply text-text dark:text-text-dark
+    text-sm md:text-base;
 }
 
 .error_label {
     @apply text-error dark:text-error-dark
+    text-sm md:text-base;
 }
 
 .correct_input {
@@ -180,25 +195,26 @@ h1 {
 }
 
 .error_message {
-    @apply text-base pt-2 pl-5
-    text-error dark:text-error-dark;
+    @apply pt-2 pl-5
+    text-error dark:text-error-dark
+    text-xs md:text-sm;
 
 }
 
 .common_error {
     @apply items-center
-    text-base text-start  rounded-lg p-4 mb-4
+    text-sm md:text-base text-start  rounded-lg p-4 mb-4
     text-error dark:text-error-dark
     border border-error dark:border-error-dark
-    bg-surface dark:bg-surface-dark  ;
+    bg-surface dark:bg-surface-dark;
 }
 
 .common_info {
     @apply items-center
-    text-base text-start  rounded-lg p-4 mb-4
+    text-sm md:text-base text-start  rounded-lg p-4 mb-4
     text-info dark:text-info-dark
     border border-info dark:border-info-dark
-    bg-surface dark:bg-surface-dark  ;
+    bg-surface dark:bg-surface-dark;
 }
 
 
@@ -269,38 +285,44 @@ h1 {
 
 .li-style {
     @apply flex items-center
-    text-secondary dark:text-secondary-dark space-x-2.5 cursor-pointer;
+    text-secondary dark:text-secondary-dark space-x-2.5 cursor-pointer
+    text-sm md:text-base;
 }
 
 .li-style span {
     @apply flex items-center justify-center
     w-8 h-8
     border border-secondary  dark:border-secondary-dark
-    rounded-full shrink-0;
+    rounded-full shrink-0
+    text-sm md:text-base;
 }
 
 .li-style-active {
     @apply flex items-center
-    text-primary dark:text-primary-dark space-x-2.5 cursor-pointer;
+    text-primary dark:text-primary-dark space-x-2.5 cursor-pointer
+    text-sm md:text-base;
 }
 
 .li-style-active span {
     @apply flex items-center justify-center
     w-8 h-8
     border border-primary dark:border-primary-dark
-    rounded-full shrink-0;
+    rounded-full shrink-0
+    text-sm md:text-base;
 }
 
 .li-style-complete {
     @apply flex items-center
-    text-success dark:text-success-dark space-x-2.5 cursor-pointer;
+    text-success dark:text-success-dark space-x-2.5 cursor-pointer
+    text-sm md:text-base;
 }
 
 .li-style-complete span {
     @apply flex items-center justify-center
     w-8 h-8
     border border-success dark:border-success-dark
-    rounded-full shrink-0;
+    rounded-full shrink-0
+    text-sm md:text-base;
 }
 
 /* Начальное состояние для скрытого блока */
@@ -319,7 +341,8 @@ h1 {
     px-4 py-2 rounded-md transition-colors duration-200
     gap-3
     bg-surface dark:bg-surface-dark
-    text-text dark:text-text-dark;
+    text-text dark:text-text-dark
+    text-sm md:text-base;
 }
 
 .file-item:hover {
@@ -342,6 +365,7 @@ h1 {
     border border-primary dark:border-primary-dark
     focus:ring-2 focus:ring-accent dark:focus:ring-accent-dark
     overflow-hidden
+    text-sm md:text-base
     ;
 }
 
