@@ -29,19 +29,19 @@ export async function runStep1(data, formDiv2, spinner2) {
 
     // Создаем и вставляем заголовок
     const heading = document.createElement('h2');
-    heading.classList.add('text-xl', 'text-text', 'dark:text-text-dark', 'font-semibold');
+    // heading.classList.add('text-xl', 'text-text', 'dark:text-text-dark', 'font-semibold');
     heading.textContent = 'Илья читает, что ты написал';
 
     // Создаем и вставляем абзац
     const paragraph = document.createElement('p');
-    paragraph.classList.add('text-md', 'text-text', 'dark:text-text-dark', 'font-medium');
+    // paragraph.classList.add('text-md', 'text-text', 'dark:text-text-dark', 'font-medium');
     paragraph.textContent = 'Посмотри правильно ли Илья прочитал. ' +
         'Получены обработанные файлы, ниже приведены их названия.';
 
     // Если есть файлы, отображаем их в списке
     if (Array.isArray(data.new_files)) {
         const ul = document.createElement('ul');
-        ul.className = 'list-disc pl-5 mt-2 text-md text-text dark:text-text-dark font-medium';
+        ul.className = 'list-disc pl-5 mt-2 text-sm md:text-base text-text dark:text-text-dark font-medium';
         data.new_files.forEach(file => {
             const li = document.createElement('li');
             li.textContent = file;

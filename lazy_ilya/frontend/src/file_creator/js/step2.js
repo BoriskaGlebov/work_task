@@ -53,8 +53,10 @@ export async function runStep2(data, step3, formDiv3) {
         data.new_files.forEach((file, i) => {
             const li = document.createElement('li');
             li.setAttribute('tabindex', '0');
-            // li.classList.add('focus:outline-none', 'focus:ring-2', 'focus:ring-[--color-accent]');
-            li.classList.add('file-item', 'group', 'group-focus:outline-none', 'group-focus:ring-2', 'group-focus:ring-[--color-accent]');
+            li.classList.add('focus:outline-none', 'focus:ring-2', 'focus:ring-[--color-accent]');
+            li.classList.add('file-item', 'group',
+                'group-focus:outline-none', 'group-focus:ring-2',
+                'group-focus:ring-[--color-accent]');
 
             const fileSpan = document.createElement('span');
             fileSpan.textContent = file;
@@ -86,15 +88,16 @@ export async function runStep2(data, step3, formDiv3) {
             deleteBtn.title = 'Удалить';
             deleteBtn.innerHTML = `
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                     stroke="currentColor" class="size-4">
+                     stroke="currentColor" class="shrink-0 inline size-4 md:size-5 me-1">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
                 </svg>
-                <span>Удалить</span>`;
-            deleteBtn.classList.add('opacity-0', 'btn-cancel', '!w-3/10', 'flex', 'group-hover:opacity-100', 'justify-center', 'items-center', 'gap-1', '!py-1');
+                Удалить`;
+            deleteBtn.classList.add('opacity-0', 'btn-delete', '!w-4/10', 'flex', 'group-hover:opacity-100', 'justify-center', 'items-center', '!py-1');
 
             deleteBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                window.scrollTo({top: 0, behavior: 'smooth'});
 
                 const serverInfo = document.getElementById('server-info2');
                 const btnDiv = document.getElementById('btn-div');
@@ -112,12 +115,12 @@ export async function runStep2(data, step3, formDiv3) {
                 const confirmBtn = document.createElement('button');
                 confirmBtn.id = 'confirm-delete';
                 confirmBtn.textContent = 'Да, Нах!';
-                confirmBtn.classList.add('btn-submit', '!w-4/12', '!p-1', '!font-medium');
+                confirmBtn.classList.add('btn-submit', '!p-1', '!font-medium');
 
                 const cancelBtn = document.createElement('button');
                 cancelBtn.id = 'cancel-delete';
                 cancelBtn.textContent = 'Передумал';
-                cancelBtn.classList.add('btn-cancel', '!w-4/12', '!p-1', '!font-medium');
+                cancelBtn.classList.add('btn-cancel', '!p-1', '!font-medium');
 
                 divBtn2.appendChild(confirmBtn);
                 divBtn2.appendChild(cancelBtn);
