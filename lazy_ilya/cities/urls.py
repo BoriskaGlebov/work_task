@@ -1,11 +1,12 @@
 
 from django.urls import path
 
-from cities.views import base_view
+
+from cities.views import base_view, Cities
 
 app_name = "cities"
 urlpatterns = [
-    path("", base_view, name="base_template"),
+    path("", Cities.as_view(), name="base_template"),
     # path("registration/", RegisterView.as_view(), name="registration"),
     # path(
     #     "logout/",

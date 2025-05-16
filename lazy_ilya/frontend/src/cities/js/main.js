@@ -5,4 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const aElMob = document.getElementById('a-cities-mob')
     aElMob.classList.toggle('bg-accent');
     aElMob.classList.toggle('dark:bg-accent-dark');
+    const citiesData = window.citiesData || [];
+    console.log(citiesData);
 });

@@ -6,8 +6,21 @@
 {% endblock %}
 
 {% block body %}
-    <div class="container border-4 bg-orange-600">
-    "aasda
+    <div class="flex justify-center">
+        <div class="form-style ">
+            <h2>Поиск по городам</h2>
+            <label for="searchInput">
+                Вводи инфу
+            </label><input
+                id="searchInput"
+                type="text"
+                placeholder="Введите название города"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        >
+            <ul id="resultsList" class="mt-4 space-y-2">
+                <!-- JS будет рендерить сюда -->
+            </ul>
+        </div>
     </div>
 {% endblock %}
 {% block extra_js %}
@@ -16,4 +29,8 @@
     {% else %}
         <script type="module" crossorigin src="{% static 'cities/js/main.js' %}"></script>
     {% endif %}
+    <script>
+        window.citiesData = JSON.parse('{{ cities_json|escapejs }}');
+    </script>
+
 {% endblock %}

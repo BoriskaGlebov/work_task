@@ -1,4 +1,14 @@
+import json
+from typing import List, Dict, Any
+
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
+from django.urls import reverse_lazy
+from django.views import View
+
+from cities.models import CityData
 
 
 # Create your views here.
@@ -6,189 +16,188 @@ from django.shortcuts import render
 def base_view(request):
     return render(request=request, template_name="cities/cities.html")
 
-#
-# class Cities(LoginRequiredMixin, View):
-#     """
-#     Класс для обработки запросов, связанных с городами.
-#
-#     Этот класс обрабатывает загрузку файлов с данными о городах, получение списка городов,
-#     обновление и удаление информации о городах.
-#     """
-#     login_url = reverse_lazy("work_for_ilia:login")
-#
-#     def post(self, request: HttpRequest) -> JsonResponse:
-#         """
-#         Обрабатывает загрузку файла с данными о городах.
-#
-#         Args:
-#             request (HttpRequest): Объект запроса.
-#
-#         Returns:
-#             JsonResponse: Ответ с сообщением об успешной загрузке файла или ошибкой.
-#         """
-#         try:
-#             uploaded_file = request.FILES.get("cityFile")
-#             if not uploaded_file:
-#                 logger.bind(user=request.user.username).error("Файл не загружен")
-#                 logger.bind(user=request.user.username).error(f"FILES: {request.FILES}")
-#                 return JsonResponse({"error": "Файл не загружен"}, status=400)
-#
-#             fs = OverwritingFileSystemStorage(
-#                 location=ProjectSettings.tlg_dir, allow_overwrite=True
-#             )
-#             file_path = fs.save(uploaded_file.name, uploaded_file)
-#
-#             logger.bind(user=request.user.username).info("Запуск обработки файла в отдельном потоке")
-#
-#             # Запускаем обработку файла в отдельном потоке
-#             threading.Thread(
-#                 target=GlobusParser.process_file, args=(file_path,)
-#             ).start()
-#
-#             return JsonResponse({"message": "Файл загружен успешно"}, status=200)
-#
-#         except Exception as e:
-#             # Если возникает исключение, логируем его и возвращаем сообщение об ошибке
-#             traceback_str = traceback.format_exc()  # Получаем полный traceback
-#             logger.bind(user=request.user.username).error(
-#                 f"Ошибка при загрузке или обработке файла: {e}\n{traceback_str}"
-#             )
-#             return JsonResponse(
-#                 {"error": str(e), "traceback": traceback_str}, status=500
-#             )
-#
-#     def get(self, request: HttpRequest) -> HttpResponse:
-#         """
-#         Получает список всех городов.
-#
-#         Args:
-#             request (HttpRequest): Объект запроса.
-#
-#         Returns:
-#             HttpResponse: Ответ с HTML-шаблоном и данными о городах в формате JSON.
-#         """
-#         is_admin: bool = request.user.is_superuser
-#         is_ilia: bool = False
-#         # Если не администратор, проверяем, состоит ли в группе
-#         if not is_admin:
-#             is_admin = request.user.groups.filter(name="admins").exists()
-#             is_ilia = request.user.groups.filter(name="ilia-group").exists()
-#         all_rows = SomeDataFromSomeTables.objects.select_related("table_id").exclude(
-#             Q(location__isnull=True) | Q(location__exact="")
-#         )
-#
-#         # Преобразуем данные в словарь для каждого города
-#         cities: List[Dict[str, Any]] = [row.to_dict() for row in all_rows]
-#
-#         # Преобразуем данные в JSON
-#         cities_json: str = json.dumps(cities, ensure_ascii=False)
-#
-#         return render(
-#             request=request,
-#             template_name="work_for_ilia/cities.html",
-#             context={
-#                 "cities_json": cities_json,
-#                 "is_admin": is_admin,
-#                 "is_ilia": is_ilia,
-#             },
-#         )
-#
-#     def put(self, request: HttpRequest, table_id: int, dock_num: int) -> JsonResponse:
-#         """
-#         Обновляет информацию о городе.
-#
-#         Args:
-#             request (HttpRequest): Объект запроса.
-#             table_id (int): ID таблицы.
-#             dock_num (int): Номер доки.
-#
-#         Returns:
-#             JsonResponse: Ответ с сообщением об успехе или ошибке.
-#         """
-#         try:
-#             # Получаем город по ID таблицы и номеру доки
-#             city = get_object_or_404(
-#                 SomeDataFromSomeTables, table_id=table_id, dock_num=dock_num
-#             )
-#
-#             # Загружаем данные из тела запроса
-#             data = json.loads(request.body)
-#
-#             # Обновляем поля города
-#             city.location = data.get("location", city.location)
-#             city.name_organ = data.get("name_organ", city.name_organ)
-#             city.pseudonim = data.get("pseudonim", city.pseudonim)
-#             city.ip_address = data.get("ip_address", city.ip_address)
-#             city.work_timme = data.get("work_time", city.work_timme)
-#             city.save()
-#
-#             return JsonResponse({"status": "success"})
-#
-#         except SomeDataFromSomeTables.DoesNotExist:
-#             return JsonResponse(
-#                 {"status": "error", "message": "Город не найден"}, status=404
-#             )
-#
-#         except json.JSONDecodeError:
-#             return JsonResponse(
-#                 {"status": "error", "message": "Неверный формат JSON"}, status=400
-#             )
-#
-#         except Exception as e:
-#             logger.bind(user=request.user.username).error(f"Ошибка при обновлении города: {e}")
-#             return JsonResponse({"status": "error", "message": str(e)}, status=500)
-#
-#     def delete(
-#             self, request: HttpRequest, table_id: int, dock_num: int
-#     ) -> JsonResponse:
-#         """
-#         Удаляет город.
-#
-#         Args:
-#             request (HttpRequest): Объект запроса.
-#             table_id (int): ID таблицы.
-#             dock_num (int): Номер доки.
-#
-#         Returns:
-#             JsonResponse: Ответ с сообщением об успехе или ошибке.
-#         """
-#         try:
-#             # Получаем город по ID таблицы и номеру доки
-#             city = get_object_or_404(
-#                 SomeDataFromSomeTables, table_id=table_id, dock_num=dock_num
-#             )
-#
-#             if city:
-#                 try:
-#                     counter_city = CounterCities.objects.get(
-#                         dock_num=city)  # changed name to the name u have in related model
-#                     counter_city.delete()  # Удаляем запись CounterCities
-#                 except CounterCities.DoesNotExist:
-#                     # Если CounterCities не существует, ничего страшного, продолжаем
-#                     pass
-#                 # Очищаем поля города
-#                 city.location = ""
-#                 city.name_organ = ""
-#                 city.pseudonim = ""
-#                 city.letters = False
-#                 city.writing = False
-#                 city.ip_address = ""
-#                 city.some_number = ""
-#                 city.work_timme = ""
-#                 city.save()
-#
-#             return JsonResponse({"status": "success"})
-#
-#         except SomeDataFromSomeTables.DoesNotExist:
-#             return JsonResponse(
-#                 {"status": "error", "message": "Город не найден"}, status=404
-#             )
-#
-#         except Exception as e:
-#             logger.bind(user=request.user.username).error(f"Ошибка при удалении города: {e}")
-#             return JsonResponse({"status": "error", "message": str(e)}, status=500)
-#
-#
+
+class Cities(LoginRequiredMixin, View):
+    """
+    Класс для обработки запросов, связанных с городами.
+
+    Этот класс обрабатывает загрузку файлов с данными о городах, получение списка городов,
+    обновление и удаление информации о городах.
+    """
+    login_url = reverse_lazy("cities:base_template")
+
+    def get(self, request: HttpRequest) -> HttpResponse:
+        """
+        Получает список всех городов.
+
+        Args:
+            request (HttpRequest): Объект запроса.
+
+        Returns:
+            HttpResponse: Ответ с HTML-шаблоном и данными о городах в формате JSON.
+        """
+        is_admin: bool = request.user.is_superuser
+        is_ilia: bool = False
+        # Если не администратор, проверяем, состоит ли в группе
+        if not is_admin:
+            is_admin = request.user.groups.filter(name="admins").exists()
+            is_ilia = request.user.groups.filter(name="ilia-group").exists()
+        all_rows = CityData.objects.select_related("table_id").exclude(
+            Q(location__isnull=True) | Q(location__exact="")
+        )
+
+        # Преобразуем данные в словарь для каждого города
+        cities: List[Dict[str, Any]] = [row.to_dict() for row in all_rows]
+
+        # Преобразуем данные в JSON
+        cities_json: str = json.dumps(cities, ensure_ascii=False)
+        return render(
+            request=request,
+            template_name="cities/cities.html",
+            context={
+                "cities_json": cities_json,
+                "is_admin": is_admin,
+                "is_ilia": is_ilia,
+            },
+        )
+
+    # def post(self, request: HttpRequest) -> JsonResponse:
+    #     """
+    #     Обрабатывает загрузку файла с данными о городах.
+    #
+    #     Args:
+    #         request (HttpRequest): Объект запроса.
+    #
+    #     Returns:
+    #         JsonResponse: Ответ с сообщением об успешной загрузке файла или ошибкой.
+    #     """
+    #     try:
+    #         uploaded_file = request.FILES.get("cityFile")
+    #         if not uploaded_file:
+    #             logger.bind(user=request.user.username).error("Файл не загружен")
+    #             logger.bind(user=request.user.username).error(f"FILES: {request.FILES}")
+    #             return JsonResponse({"error": "Файл не загружен"}, status=400)
+    #
+    #         fs = OverwritingFileSystemStorage(
+    #             location=ProjectSettings.tlg_dir, allow_overwrite=True
+    #         )
+    #         file_path = fs.save(uploaded_file.name, uploaded_file)
+    #
+    #         logger.bind(user=request.user.username).info("Запуск обработки файла в отдельном потоке")
+    #
+    #         # Запускаем обработку файла в отдельном потоке
+    #         threading.Thread(
+    #             target=GlobusParser.process_file, args=(file_path,)
+    #         ).start()
+    #
+    #         return JsonResponse({"message": "Файл загружен успешно"}, status=200)
+    #
+    #     except Exception as e:
+    #         # Если возникает исключение, логируем его и возвращаем сообщение об ошибке
+    #         traceback_str = traceback.format_exc()  # Получаем полный traceback
+    #         logger.bind(user=request.user.username).error(
+    #             f"Ошибка при загрузке или обработке файла: {e}\n{traceback_str}"
+    #         )
+    #         return JsonResponse(
+    #             {"error": str(e), "traceback": traceback_str}, status=500
+    #         )
+
+    # def put(self, request: HttpRequest, table_id: int, dock_num: int) -> JsonResponse:
+    #     """
+    #     Обновляет информацию о городе.
+    #
+    #     Args:
+    #         request (HttpRequest): Объект запроса.
+    #         table_id (int): ID таблицы.
+    #         dock_num (int): Номер доки.
+    #
+    #     Returns:
+    #         JsonResponse: Ответ с сообщением об успехе или ошибке.
+    #     """
+    #     try:
+    #         # Получаем город по ID таблицы и номеру доки
+    #         city = get_object_or_404(
+    #             SomeDataFromSomeTables, table_id=table_id, dock_num=dock_num
+    #         )
+    #
+    #         # Загружаем данные из тела запроса
+    #         data = json.loads(request.body)
+    #
+    #         # Обновляем поля города
+    #         city.location = data.get("location", city.location)
+    #         city.name_organ = data.get("name_organ", city.name_organ)
+    #         city.pseudonim = data.get("pseudonim", city.pseudonim)
+    #         city.ip_address = data.get("ip_address", city.ip_address)
+    #         city.work_timme = data.get("work_time", city.work_timme)
+    #         city.save()
+    #
+    #         return JsonResponse({"status": "success"})
+    #
+    #     except SomeDataFromSomeTables.DoesNotExist:
+    #         return JsonResponse(
+    #             {"status": "error", "message": "Город не найден"}, status=404
+    #         )
+    #
+    #     except json.JSONDecodeError:
+    #         return JsonResponse(
+    #             {"status": "error", "message": "Неверный формат JSON"}, status=400
+    #         )
+    #
+    #     except Exception as e:
+    #         logger.bind(user=request.user.username).error(f"Ошибка при обновлении города: {e}")
+    #         return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+    # def delete(
+    #         self, request: HttpRequest, table_id: int, dock_num: int
+    # ) -> JsonResponse:
+    #     """
+    #     Удаляет город.
+    #
+    #     Args:
+    #         request (HttpRequest): Объект запроса.
+    #         table_id (int): ID таблицы.
+    #         dock_num (int): Номер доки.
+    #
+    #     Returns:
+    #         JsonResponse: Ответ с сообщением об успехе или ошибке.
+    #     """
+    #     try:
+    #         # Получаем город по ID таблицы и номеру доки
+    #         city = get_object_or_404(
+    #             SomeDataFromSomeTables, table_id=table_id, dock_num=dock_num
+    #         )
+    #
+    #         if city:
+    #             try:
+    #                 counter_city = CounterCities.objects.get(
+    #                     dock_num=city)  # changed name to the name u have in related model
+    #                 counter_city.delete()  # Удаляем запись CounterCities
+    #             except CounterCities.DoesNotExist:
+    #                 # Если CounterCities не существует, ничего страшного, продолжаем
+    #                 pass
+    #             # Очищаем поля города
+    #             city.location = ""
+    #             city.name_organ = ""
+    #             city.pseudonim = ""
+    #             city.letters = False
+    #             city.writing = False
+    #             city.ip_address = ""
+    #             city.some_number = ""
+    #             city.work_timme = ""
+    #             city.save()
+    #
+    #         return JsonResponse({"status": "success"})
+    #
+    #     except SomeDataFromSomeTables.DoesNotExist:
+    #         return JsonResponse(
+    #             {"status": "error", "message": "Город не найден"}, status=404
+    #         )
+    #
+    #     except Exception as e:
+    #         logger.bind(user=request.user.username).error(f"Ошибка при удалении города: {e}")
+    #         return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+
 # def download_file(request: HttpRequest) -> FileResponse:
 #     """
 #     Предоставляет файл для скачивания.
@@ -205,7 +214,7 @@ def base_view(request):
 #         open(file_path, "rb"), as_attachment=True, filename="globus_new.docx"
 #     )
 
-#
+
 # def is_ajax(request: HttpRequest) -> bool:
 #     """
 #     Проверяет, является ли HTTP-запрос AJAX-запросом.

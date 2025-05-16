@@ -41,7 +41,7 @@
 
     <!-- Блок формы -->
     <div id="step1-form"
-         class="relative flex-col overflow-hidden justify-center !max-w-2xl  mx-auto form-style show gap-3 transition-transform mt-2">
+         class="flex-col overflow-hidden justify-center !max-w-2xl  mx-auto form-style show transition-transform mt-2">
         <div id="server-error" class="hidden common_error"
              role="alert">
             <svg class="shrink-0 inline size-5 md:size-7 me-3" aria-hidden="true"
@@ -105,12 +105,13 @@
                     (.doc, .docx, .rtf)</label>
                 <input type="file" name="files" id="files" accept=".doc,.docx,.rtf" multiple
                        class="correct_input">
+                <p id="files-error" class="hidden error_message">Пожалуйста, выберите хотя бы один
+                    файл или файлы с верным расширением</p>
                 <!-- Контейнер для отображения выбранных файлов -->
                 <ul id="file-list" class="mt-2 text-sm text-text dark:text-text-dark list-disc"></ul>
 
             </div>
-            <p id="files-error" class="hidden error_message">Пожалуйста, выберите хотя бы один
-                файл или файлы с верным расширением</p>
+
 
             <!-- Начальный номер -->
             <div>
@@ -119,9 +120,10 @@
                     номер</label>
                 <input type="number" name="start_number" id="start-number" min="1"
                        class="correct_input" placeholder="Номер больше нуля">
+                <p id="start-number-error" class="hidden error_message">Введите число больше
+                    нуля.</p>
             </div>
-            <p id="start-number-error" class="hidden error_message">Введите число больше
-                нуля.</p>
+
 
             <!-- Тип оборудования -->
             <div>
@@ -134,9 +136,10 @@
                     <option value="space">Космос</option>
                     <option value="globus">Глобус</option>
                 </select>
+                <p id="device-type-error" class="hidden error_message">Выберите тип
+                    оборудования.</p>
             </div>
-            <p id="device-type-error" class="hidden error_message">Выберите тип
-                оборудования.</p>
+
             <!-- Чекбокс "одинаковые номера" -->
             <div class="flex justify-start items-center gap-5">
                 <input id="same_number" name="same_number" type="checkbox"
