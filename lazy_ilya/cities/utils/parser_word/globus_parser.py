@@ -463,7 +463,8 @@ class GlobusParser:
             )
 
             for row_num, row in enumerate(doc_table.rows[3:]):
-                cells = [cell.text.strip().replace("\n", "<br>") for cell in row.cells]
+                # cells = [cell.text.strip().replace("\n", "<br>") for cell in row.cells]
+                cells = [cell.text.strip() for cell in row.cells]
                 row_in_db = CityData.objects.select_related("table_id").filter(
                     table_id=table_model.id,
                     dock_num=row_num + 1

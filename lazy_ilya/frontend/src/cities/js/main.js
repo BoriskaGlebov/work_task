@@ -1,12 +1,11 @@
 import '../../css/base.css';
+import {toggleAccentClasses} from "./toggleAccent.js";
+import {CityAutocomplete} from "./city-search.js";
 
 document.addEventListener('DOMContentLoaded', () => {
-    const aEl = document.getElementById('a-cities')
-    aEl.classList.toggle('bg-accent');
-    aEl.classList.toggle('dark:bg-accent-dark');
-    const aElMob = document.getElementById('a-cities-mob')
-    aElMob.classList.toggle('bg-accent');
-    aElMob.classList.toggle('dark:bg-accent-dark');
-    const citiesData = window.citiesData || [];
-    console.log(citiesData);
+    toggleAccentClasses()
+    console.log(citiesData)
+
+    const cities = citiesData;  // массив с данными
+    new CityAutocomplete('default-search', 'suggestions', cities);
 });

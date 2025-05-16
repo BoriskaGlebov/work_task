@@ -393,4 +393,24 @@ p {
     ;
 }
 
+.card-style {
+    @apply border-2 border-primary dark:border-primary-dark
+    rounded-xl
+    p-4 shadow-md shadow-secondary dark:shadow-secondary-dark bg-surface dark:bg-surface-dark
+    text-text dark:text-text-dark
+    mb-4 hover:scale-102 transition-all duration-100
+    break-words whitespace-normal
+    active:scale-95;
+}
+.card-style:hover {
+    @apply scale-102 transition-all duration-500;
+}
+.card-style:active {
+    @apply scale-100 transition-all duration-10 bg-surface-dark/50 dark:bg-surface/50;
+}
+.card-style h3 {
+    @apply border-b-2 border-accent dark:border-accent-dark py-3
+    ;
+}
+
 
