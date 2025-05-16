@@ -26,7 +26,7 @@ class CityDataInline(admin.TabularInline):
         "writing",
         "ip_address",
         "some_number",
-        "work_timme",
+        "work_time",
     )
 
 

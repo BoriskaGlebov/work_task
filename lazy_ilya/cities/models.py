@@ -110,7 +110,7 @@ class CityData(models.Model):
         null=True,
         blank=True,
     )
-    work_timme: models.CharField = models.CharField(
+    work_time: models.CharField = models.CharField(
         max_length=255,
         verbose_name="Рабочее время",
         null=True,
@@ -135,7 +135,7 @@ class CityData(models.Model):
             "writing": self.writing,
             "ip_address": self.ip_address,
             "some_number": self.some_number,
-            "work_time": self.work_timme,
+            "work_time": self.work_time,
         }
 
     def __str__(self):
