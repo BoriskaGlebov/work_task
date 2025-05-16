@@ -24,7 +24,7 @@ class ProjectSettings:
         LOGGER_LEVEL_FILE: Уровень логирования для файлового лога.
     """
     base_dir: Optional[Path] = BASE_DIR
-    tlg_dir: Optional[str] = os.getenv("TLG_PATH")
+    tlg_dir: Optional[str] = Path(os.getenv("TLG_PATH")).resolve()
     log_dir: Optional[Path] = BASE_DIR / "logs"  # Используем Path для лучшей работы с путями
     LOGGER_LEVEL_STDOUT: Optional[str] = os.getenv("LOGGER_LEVEL_STDOUT", "INFO")  # Устанавливаем значение по умолчанию
     LOGGER_LEVEL_FILE: Optional[str] = os.getenv("LOGGER_LEVEL_FILE", "DEBUG")  # Устанавливаем значение по умолчанию

@@ -34,7 +34,7 @@ export async function runStep1(data, formDiv2, spinner2) {
 
     // Создаем и вставляем абзац
     const paragraph = document.createElement('p');
-    // paragraph.classList.add('text-md', 'text-text', 'dark:text-text-dark', 'font-medium');
+    paragraph.classList.add('text-text', 'dark:text-text-dark');
     paragraph.textContent = 'Посмотри правильно ли Илья прочитал. ' +
         'Получены обработанные файлы, ниже приведены их названия.';
 

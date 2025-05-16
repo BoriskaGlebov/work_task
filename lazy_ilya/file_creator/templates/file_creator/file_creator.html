@@ -65,15 +65,15 @@
             <span class="sr-only">Info</span>
             <div>
                 <span class="!font-bold">Info alert!</span>
-                <h3>Сообщение</h3>
-                <p>Change a few things up and try submitting again.</p>
+                <h3 class="text-text dark:text-text-dark">Сообщение</h3>
+                <p class="text-text dark:text-text-dark">Change a few things up and try submitting again.</p>
                 <div id="btn-div" class="flex justify-center gap-3 mt-3">
 
                 </div>
             </div>
         </div>
         <h2>Загрузка файлов</h2>
-        <p>Сначало нужно выбрать файлы, которые
+        <p class="text-text dark:text-text-dark">Сначало нужно выбрать файлы, которые
             необходимо
             обработать. </p>
         <div class="flex gap-2 items-center warning_message">
@@ -96,7 +96,7 @@
               enctype="multipart/form-data"
               novalidate
               id="file-upload-form"
-              class="flex flex-col gap-2 ">
+              class="flex flex-col gap-4 ">
             {% csrf_token %}
             <!-- Загрузка файлов -->
             <div>
@@ -194,7 +194,7 @@
             </div>
         </div>
         <h2>Проверка и редактирование содержимого</h2>
-        <p>
+        <p class="text-text dark:text-text-dark">
             Выберите файл из списка слева и отредактируйте его содержимое.
         </p>
         <button id="save-content"
@@ -214,7 +214,7 @@
                 <div id="left-col"
                      class="sticky top-20 bg-background dark:bg-background-dark rounded-2xl  shadow-md gap-2">
 
-                    <h3 class="p-4 border-b-3 border-accent">Список
+                    <h3 class="p-4 border-b-3 border-accent text-text dark:text-text-dark">Список
                         файлов</h3>
 
 
@@ -246,7 +246,7 @@
             <div class="col-span-2 ">
                 <div id="right-col"
                      class="bg-background dark:bg-background-dark rounded-2xl shadow-md flex flex-col gap-2">
-                    <h3 class="p-4 border-b-3 border-accent">
+                    <h3 class="p-4 border-b-3 border-accent text-text dark:text-text-dark">
                         Содержимое документа</h3>
                     <label for="file-content"></label>
                     <textarea id="file-content"

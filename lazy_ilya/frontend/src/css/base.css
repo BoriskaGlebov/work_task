@@ -81,7 +81,8 @@ h1 {
 }
 
 h2 {
-    @apply text-lg md:text-2xl font-bold;
+    @apply text-lg md:text-2xl font-bold
+    text-accent dark:text-accent-dark;
 }
 
 h3 {
@@ -154,6 +155,7 @@ p {
     focus:outline-none focus:ring-3 focus:ring-error/50 dark:focus:ring-error
     text-sm md:text-base;
 }
+
 .btn-delete {
     @apply flex items-center justify-center gap-1
     w-3/10 py-1 text-text-dark rounded-lg
@@ -176,7 +178,7 @@ p {
 
 .correct_input {
     @apply rounded-lg transition-all
-        w-full
+    w-full
     border border-form-color dark:border-form-color-dark
     text-text dark:text-text-dark
     bg-background dark:bg-background-dark
@@ -207,6 +209,7 @@ p {
 .error_message {
     @apply pt-2 pl-5
     text-error dark:text-error-dark
+    break-words whitespace-pre-line
     text-xs md:text-sm;
 
 }

@@ -42,11 +42,11 @@ export default async function handleSaveClick(data, formDiv3, step3, step4, spin
 
             // Показ текста
             const heading = document.createElement('h2');
-            // heading.classList.add('text-xl', 'text-text', 'dark:text-text-dark', 'font-semibold');
+            heading.classList.add('text-text', 'dark:text-text-dark');
             heading.textContent = 'Илья поработал и хочет спать!';
 
             const paragraph = document.createElement('p');
-            // paragraph.classList.add('text-md', 'text-text', 'dark:text-text-dark', 'font-medium');
+            paragraph.classList.add('dark:text-text-dark', 'font-medium');
             paragraph.textContent = 'Теперь можно посмотреть, папку с архивом за сегодняшнее число, туда положил все файлы!';
 
             formDiv4.appendChild(heading);

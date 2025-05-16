@@ -29,7 +29,7 @@ class CustomUserCreationForm(UserCreationForm):
         error_messages = {
             "phone_number": {
                 "unique": "Пользователь с таким номером телефона уже зарегистрирован.",
-                "invalid": "Введите корректный номер телефона в формате +7 (999) 999-99-99.",
+                "invalid": "Введите корректный номер телефона в формате \n +7 (999) 999-99-99.",
             },
         }
 
@@ -47,7 +47,7 @@ class CustomUserCreationForm(UserCreationForm):
         password1 = self.cleaned_data.get("password1")
         password2 = self.cleaned_data.get("password2")
         if password1 and password2 and password1 != password2:
-            self.add_error(field="password2", error="Кожаный, будь внимателен, пароли должны совпадать!!!")
+            self.add_error(field="password2", error="Кожаный, будь внимателен, пароли должны \nсовпадать!!!")
         # Вызывается позже, что ю сработала моя валидация с кастомным сообщением
         cleaned_data = super().clean()
         return cleaned_data
@@ -76,7 +76,7 @@ class PasswordResetForm(forms.Form):
         label="Телефон",
         region="RU",
         error_messages={
-            "invalid": "Введите корректный номер телефона в формате +7 (999) 999-99-99.",
+            "invalid": "Введите корректный номер телефона в формате \n +7 (999) 999-99-99.",
         }
     )
     password1: str = forms.CharField(
@@ -102,12 +102,11 @@ class PasswordResetForm(forms.Form):
         phone_number = self.cleaned_data.get('phone_number')
         password1 = self.cleaned_data.get('password1')
         password2 = self.cleaned_data.get('password2')
-
         if password1 and password2 and password1 != password2:
-            self.add_error('password2', 'Кожаный, будь внимателен, пароли должны совпадать!!!')
+            self.add_error('password2', 'Кожаный, будь внимателен, пароли должны \nсовпадать!!!')
         if password1 and len(password1) < 5:
             self.add_error('password1', 'Длина пароля от 5 символов!')
-        if password2 and len(password1) < 5:
+        if password2 and len(password2) < 5:
             self.add_error('password2', 'Длина пароля от 5 символов!')
         if username and phone_number:
             try:
