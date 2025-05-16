@@ -1,3 +1,5 @@
+import '../../css/base.css';
+
 document.addEventListener('DOMContentLoaded', () => {
     const aEl = document.getElementById('a-cities')
     aEl.classList.toggle('bg-accent');

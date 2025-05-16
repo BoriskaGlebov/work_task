@@ -4,7 +4,8 @@
 @plugin "flowbite/plugin";
 @source "../../node_modules/flowbite";
 @source "../../../myauth/templates/**/*.html";
-@source "../../../file_creator//templates/**/*.html";
+@source "../../../file_creator/templates/**/*.html";
+@source "../../../cities/templates/**/*.html";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
