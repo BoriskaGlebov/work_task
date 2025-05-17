@@ -100,8 +100,11 @@ export class CityAutocomplete {
         const container = document.getElementById('city-cards');
         if (!container) return;
 
-        const card = document.createElement('a');
+        const card = document.createElement('div');
         card.classList.add('card-style');
+        card.style.cursor = 'pointer'; // ✅ указатель "рука" для визуального отклика
+        // ✅ Добавляем сериализованные данные города в data-атрибут
+        card.dataset.city = JSON.stringify(city);
 
         const props = [
             ['Организация', city.name_organ],
