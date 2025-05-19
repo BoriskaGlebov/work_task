@@ -159,13 +159,30 @@ export async function runStep2(data, step3, formDiv3) {
                         }
                     }
 
-                    serverInfo.classList.add('hidden');
-                    btnDiv.innerHTML = '';
+                    serverInfo.classList.remove('animate-popup');
+                    serverInfo.classList.add('animate-popup-reverse');
+                    setTimeout(() => {
+                        serverInfo.classList.add('hidden');
+                        serverInfo.classList.remove('flex', 'animate-popup-reverse');
+                        serverInfo.querySelector('h3').textContent = '';
+                        serverInfo.querySelector('p').textContent = '';
+                        btnDiv.innerHTML = '';
+                    }, 500);
                 });
 
                 cancelBtn.addEventListener('click', () => {
-                    serverInfo.classList.add('hidden');
-                    btnDiv.innerHTML = '';
+                    // serverInfo.classList.add('hidden');
+                    // btnDiv.innerHTML = '';
+                    serverInfo.classList.remove('animate-popup');
+                    serverInfo.classList.add('animate-popup-reverse');
+                    setTimeout(() => {
+                        serverInfo.classList.add('hidden');
+                        serverInfo.classList.remove('flex', 'animate-popup-reverse');
+                        serverInfo.querySelector('h3').textContent = '';
+                        serverInfo.querySelector('p').textContent = '';
+                        btnDiv.innerHTML = '';
+                    }, 500);
+
                 });
             });
             li.appendChild(fileSpan);

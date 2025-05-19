@@ -79,18 +79,19 @@ class Cities(LoginRequiredMixin, View):
             city = get_object_or_404(
                 CityData, table_id=table_id, dock_num=dock_num
             )
-
             # Загружаем данные из тела запроса
             data = json.loads(request.body)
-
+            logger.info(data)
             # Обновляем поля города
             city.location = data.get("location", city.location)
             city.name_organ = data.get("name_organ", city.name_organ)
             city.pseudonim = data.get("pseudonim", city.pseudonim)
             city.ip_address = data.get("ip_address", city.ip_address)
-            city.work_timme = data.get("work_time", city.work_timme)
+            city.work_time = data.get("work_time", city.work_time)
+            city.some_number = data.get("some_number", city.some_number)
             city.save()
-
+            logger.bind(user=request.user.username).info(
+                f"Произошло обновление города {city.name_organ} - {city.location}")
             return JsonResponse({"status": "success"})
 
         except CityData.DoesNotExist:

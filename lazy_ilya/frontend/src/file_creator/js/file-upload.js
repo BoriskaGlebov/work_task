@@ -118,11 +118,16 @@ export default function setupFileUpload() {
      * Скрывает блок server-info и очищает его содержимое и кнопки.
      */
     function hideServerInfo() {
-        serverInfo.classList.add('hidden');
+        // serverInfo.classList.add('hidden');
         serverInfo.classList.remove('animate-popup');
-        serverInfo.querySelector('h3').textContent = '';
-        serverInfo.querySelector('p').textContent = '';
-        divBtn.innerHTML = '';
+        serverInfo.classList.add('animate-popup-reverse');
+        setTimeout(() => {
+            serverInfo.classList.add('hidden');
+            serverInfo.classList.remove('flex', 'animate-popup-reverse');
+            serverInfo.querySelector('h3').textContent = '';
+            serverInfo.querySelector('p').textContent = '';
+            divBtn.innerHTML = '';
+        }, 500);
     }
 
     /**

@@ -38,7 +38,7 @@ export async function saveAllChanges(files, content, url) {
         console.log('Все изменения успешно сохранены:', result);
         return true;
     } catch (error) {
-        showError(error);
+        showError(error,'server-error2');
         return false;
     } finally {
         saveButton.disabled = false;

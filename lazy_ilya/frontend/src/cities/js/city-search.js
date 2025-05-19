@@ -110,7 +110,7 @@ export class CityAutocomplete {
             ['Организация', city.name_organ],
             ['Псевдоним', city.pseudonim],
             ['Время работы', city.work_time],
-            ['Номер раздела', city.table_id],
+            ['Название раздела', city.table_name],
             ['Номер в таблице', city.some_number],
             ['IP address', city.ip_address]
         ];
