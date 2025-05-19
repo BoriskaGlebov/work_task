@@ -108,55 +108,55 @@ class Cities(LoginRequiredMixin, View):
             logger.bind(user=request.user.username).error(f"Ошибка при обновлении города: {e}")
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
-    # def delete(
-    #         self, request: HttpRequest, table_id: int, dock_num: int
-    # ) -> JsonResponse:
-    #     """
-    #     Удаляет город.
-    #
-    #     Args:
-    #         request (HttpRequest): Объект запроса.
-    #         table_id (int): ID таблицы.
-    #         dock_num (int): Номер доки.
-    #
-    #     Returns:
-    #         JsonResponse: Ответ с сообщением об успехе или ошибке.
-    #     """
-    #     try:
-    #         # Получаем город по ID таблицы и номеру доки
-    #         city = get_object_or_404(
-    #             SomeDataFromSomeTables, table_id=table_id, dock_num=dock_num
-    #         )
-    #
-    #         if city:
-    #             try:
-    #                 counter_city = CounterCities.objects.get(
-    #                     dock_num=city)  # changed name to the name u have in related model
-    #                 counter_city.delete()  # Удаляем запись CounterCities
-    #             except CounterCities.DoesNotExist:
-    #                 # Если CounterCities не существует, ничего страшного, продолжаем
-    #                 pass
-    #             # Очищаем поля города
-    #             city.location = ""
-    #             city.name_organ = ""
-    #             city.pseudonim = ""
-    #             city.letters = False
-    #             city.writing = False
-    #             city.ip_address = ""
-    #             city.some_number = ""
-    #             city.work_timme = ""
-    #             city.save()
-    #
-    #         return JsonResponse({"status": "success"})
-    #
-    #     except SomeDataFromSomeTables.DoesNotExist:
-    #         return JsonResponse(
-    #             {"status": "error", "message": "Город не найден"}, status=404
-    #         )
-    #
-    #     except Exception as e:
-    #         logger.bind(user=request.user.username).error(f"Ошибка при удалении города: {e}")
-    #         return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    def delete(
+            self, request: HttpRequest, table_id: int, dock_num: int
+    ) -> JsonResponse:
+        """
+        Удаляет город.
+
+        Args:
+            request (HttpRequest): Объект запроса.
+            table_id (int): ID таблицы.
+            dock_num (int): Номер доки.
+
+        Returns:
+            JsonResponse: Ответ с сообщением об успехе или ошибке.
+        """
+        try:
+            # Получаем город по ID таблицы и номеру доки
+            city = get_object_or_404(
+                CityData, table_id=table_id, dock_num=dock_num
+            )
+
+            if city:
+                # try:
+                #     counter_city = CounterCities.objects.get(
+                #         dock_num=city)  # changed name to the name u have in related model
+                #     counter_city.delete()  # Удаляем запись CounterCities
+                # except CounterCities.DoesNotExist:
+                #     # Если CounterCities не существует, ничего страшного, продолжаем
+                #     pass
+                # Очищаем поля города
+                city.location = ""
+                city.name_organ = ""
+                city.pseudonim = ""
+                city.letters = False
+                city.writing = False
+                city.ip_address = ""
+                city.some_number = ""
+                city.work_timme = ""
+                city.save()
+
+            return JsonResponse({"status": "success"})
+
+        except CityData.DoesNotExist:
+            return JsonResponse(
+                {"status": "error", "message": "Город не найден"}, status=404
+            )
+
+        except Exception as e:
+            logger.bind(user=request.user.username).error(f"Ошибка при удалении города: {e}")
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
     # def post(self, request: HttpRequest) -> JsonResponse:
     #     """

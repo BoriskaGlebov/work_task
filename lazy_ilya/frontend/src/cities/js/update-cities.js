@@ -1,7 +1,7 @@
 import {showError} from "../../file_creator/js/utils.js";
 
 export class CityModalHandler {
-    constructor(modalId) {
+    constructor(modalId, citiesData = []) {
         this.modal = document.getElementById(modalId);
         this.form = this.modal?.querySelector('form');
         this.saveBtn = this.modal?.querySelector('#save-city');
@@ -29,7 +29,7 @@ export class CityModalHandler {
 
         this.deleteBtn?.addEventListener('click', async () => {
             if (!this.currentCity) return;
-            await this.deleteCity(this.currentCity.id);
+            await this.deleteCity(this.currentCity);
             this.hideModal();
         });
         // 🖱 Закрытие по клику вне формы
@@ -78,6 +78,8 @@ export class CityModalHandler {
             this.modal.querySelector('#modal-some_number').value = city.some_number || '';
             this.modal.querySelector('#modal-ip_address').value = city.ip_address || '';
             this.modal.classList.remove('hidden');
+            this.form.classList.add('animate-popup');
+
         }
     }
 
@@ -185,20 +187,68 @@ export class CityModalHandler {
     }
 
 
-    async deleteCity(cityId) {
+    async deleteCity(currentCity) {
         try {
-            const response = await fetch(`/api/cities/${cityId}`, {
+            const response = await fetch(`cities/${currentCity.table_id}/${currentCity.dock_num}/`, {
                 method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.csrfToken,
+                },
             });
 
             if (!response.ok) {
-                alert('Ошибка при удалении города');
-            } else {
-                alert('Город удалён');
-                document.querySelector(`[data-city-id="${cityId}"]`)?.remove();
+                const errorData = await response.json().catch(() => null);
+                const message = errorData?.message || 'Ошибка при удалении города';
+                showError(message);
+                return;
             }
+
+            const index = this.citiesData.findIndex(city =>
+                city.table_id === currentCity.table_id && city.dock_num === currentCity.dock_num
+            );
+
+            if (index !== -1) {
+                this.citiesData.splice(index, 1); // ✅ удаляем по ссылке
+            }
+
+            // Удаляем карточку из DOM
+            const container = document.getElementById('city-cards');
+            const cards = container.querySelectorAll('.card-style');
+            for (const card of cards) {
+                const cityData = JSON.parse(card.dataset.city || '{}');
+                if (
+                    cityData.table_id === currentCity.table_id &&
+                    cityData.dock_num === currentCity.dock_num
+                ) {
+                    card.remove();
+                    break;
+                }
+            }
+
+            // Показываем сообщение об успешном удалении
+            const serverInfo = document.getElementById('server-info');
+            serverInfo.classList.remove('hidden');
+            serverInfo.classList.add('flex', 'animate-popup');
+            serverInfo.querySelector('p').textContent = `Город "${currentCity.name_organ}" успешно удалён`;
+
+            setTimeout(() => {
+                serverInfo.classList.remove('animate-popup');
+                serverInfo.classList.add('animate-popup-reverse');
+
+                setTimeout(() => {
+                    serverInfo.classList.add('hidden');
+                    serverInfo.classList.remove('flex', 'animate-popup-reverse');
+                }, 1000);
+            }, 4000);
+
+            // Скрываем модалку
+            this.hideModal();
+
         } catch (error) {
             console.error('Ошибка DELETE-запроса:', error);
+            showError(error);
         }
     }
+
 }

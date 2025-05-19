@@ -9,5 +9,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const cities = citiesData;  // массив с данными
     new CityAutocomplete('default-search', 'suggestions', cities);
-    new CityModalHandler('city-modal');
+    new CityModalHandler('city-modal',cities);
 });
