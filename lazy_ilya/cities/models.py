@@ -126,7 +126,7 @@ class CityData(models.Model):
     def to_dict(self) -> dict:
         """Преобразует объект в словарь."""
         return {
-            "table_id": self.table_id.id,
+            "table_id": self.table_id.table_name,
             "dock_num": self.dock_num,
             "location": self.location,
             "name_organ": self.name_organ,

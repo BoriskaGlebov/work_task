@@ -149,11 +149,11 @@ p {
 
 .btn-cancel {
     @apply flex items-center justify-center gap-2
-    w-full p-3 text-text-dark font-semibold rounded-lg
-    bg-error dark:bg-error-dark
-    hover:bg-error-dark dark:hover:bg-error
+    w-full p-3 text-text-dark dark:text-text font-semibold rounded-lg
+    bg-secondary dark:bg-secondary-dark
+    hover:bg-secondary-dark dark:hover:bg-secondary
     transition-colors duration-300 active:scale-95
-    focus:outline-none focus:ring-3 focus:ring-error/50 dark:focus:ring-error
+    focus:outline-none focus:ring-3 focus:ring-secondary/50 dark:focus:ring-secondary
     text-sm md:text-base;
 }
 

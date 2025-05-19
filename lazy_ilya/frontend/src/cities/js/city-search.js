@@ -166,7 +166,7 @@ export class CityAutocomplete {
 
         if (!query) {
             this.suggestions.style.display = 'none';
-            this.counter?.classList.add('hidden');
+            this.counter?.classList.add('opacity-0');
             return;
         }
 
@@ -176,7 +176,7 @@ export class CityAutocomplete {
             (city.pseudonim && city.pseudonim.toLowerCase().includes(query))
         );
 
-        this.counter?.classList.remove('hidden');
+        this.counter?.classList.remove('opacity-0');
         if (this.counter) this.counter.textContent = `Найдено совпадений: ${matches.length}`;
 
         if (!matches.length) {

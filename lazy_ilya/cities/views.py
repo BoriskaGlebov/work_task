@@ -3,12 +3,13 @@ from typing import List, Dict, Any
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
-from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
+from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.shortcuts import render, get_object_or_404
 from django.urls import reverse_lazy
 from django.views import View
 
 from cities.models import CityData
+from lazy_ilya.utils.settings_for_app import logger
 
 
 # Create your views here.
@@ -61,91 +62,50 @@ class Cities(LoginRequiredMixin, View):
             },
         )
 
-    # def post(self, request: HttpRequest) -> JsonResponse:
-    #     """
-    #     Обрабатывает загрузку файла с данными о городах.
-    #
-    #     Args:
-    #         request (HttpRequest): Объект запроса.
-    #
-    #     Returns:
-    #         JsonResponse: Ответ с сообщением об успешной загрузке файла или ошибкой.
-    #     """
-    #     try:
-    #         uploaded_file = request.FILES.get("cityFile")
-    #         if not uploaded_file:
-    #             logger.bind(user=request.user.username).error("Файл не загружен")
-    #             logger.bind(user=request.user.username).error(f"FILES: {request.FILES}")
-    #             return JsonResponse({"error": "Файл не загружен"}, status=400)
-    #
-    #         fs = OverwritingFileSystemStorage(
-    #             location=ProjectSettings.tlg_dir, allow_overwrite=True
-    #         )
-    #         file_path = fs.save(uploaded_file.name, uploaded_file)
-    #
-    #         logger.bind(user=request.user.username).info("Запуск обработки файла в отдельном потоке")
-    #
-    #         # Запускаем обработку файла в отдельном потоке
-    #         threading.Thread(
-    #             target=GlobusParser.process_file, args=(file_path,)
-    #         ).start()
-    #
-    #         return JsonResponse({"message": "Файл загружен успешно"}, status=200)
-    #
-    #     except Exception as e:
-    #         # Если возникает исключение, логируем его и возвращаем сообщение об ошибке
-    #         traceback_str = traceback.format_exc()  # Получаем полный traceback
-    #         logger.bind(user=request.user.username).error(
-    #             f"Ошибка при загрузке или обработке файла: {e}\n{traceback_str}"
-    #         )
-    #         return JsonResponse(
-    #             {"error": str(e), "traceback": traceback_str}, status=500
-    #         )
+    def put(self, request: HttpRequest, table_id: int, dock_num: int) -> JsonResponse:
+        """
+        Обновляет информацию о городе.
 
-    # def put(self, request: HttpRequest, table_id: int, dock_num: int) -> JsonResponse:
-    #     """
-    #     Обновляет информацию о городе.
-    #
-    #     Args:
-    #         request (HttpRequest): Объект запроса.
-    #         table_id (int): ID таблицы.
-    #         dock_num (int): Номер доки.
-    #
-    #     Returns:
-    #         JsonResponse: Ответ с сообщением об успехе или ошибке.
-    #     """
-    #     try:
-    #         # Получаем город по ID таблицы и номеру доки
-    #         city = get_object_or_404(
-    #             SomeDataFromSomeTables, table_id=table_id, dock_num=dock_num
-    #         )
-    #
-    #         # Загружаем данные из тела запроса
-    #         data = json.loads(request.body)
-    #
-    #         # Обновляем поля города
-    #         city.location = data.get("location", city.location)
-    #         city.name_organ = data.get("name_organ", city.name_organ)
-    #         city.pseudonim = data.get("pseudonim", city.pseudonim)
-    #         city.ip_address = data.get("ip_address", city.ip_address)
-    #         city.work_timme = data.get("work_time", city.work_timme)
-    #         city.save()
-    #
-    #         return JsonResponse({"status": "success"})
-    #
-    #     except SomeDataFromSomeTables.DoesNotExist:
-    #         return JsonResponse(
-    #             {"status": "error", "message": "Город не найден"}, status=404
-    #         )
-    #
-    #     except json.JSONDecodeError:
-    #         return JsonResponse(
-    #             {"status": "error", "message": "Неверный формат JSON"}, status=400
-    #         )
-    #
-    #     except Exception as e:
-    #         logger.bind(user=request.user.username).error(f"Ошибка при обновлении города: {e}")
-    #         return JsonResponse({"status": "error", "message": str(e)}, status=500)
+        Args:
+            request (HttpRequest): Объект запроса.
+            table_id (int): ID таблицы.
+            dock_num (int): Номер доки.
+
+        Returns:
+            JsonResponse: Ответ с сообщением об успехе или ошибке.
+        """
+        try:
+            # Получаем город по ID таблицы и номеру доки
+            city = get_object_or_404(
+                CityData, table_id=table_id, dock_num=dock_num
+            )
+
+            # Загружаем данные из тела запроса
+            data = json.loads(request.body)
+
+            # Обновляем поля города
+            city.location = data.get("location", city.location)
+            city.name_organ = data.get("name_organ", city.name_organ)
+            city.pseudonim = data.get("pseudonim", city.pseudonim)
+            city.ip_address = data.get("ip_address", city.ip_address)
+            city.work_timme = data.get("work_time", city.work_timme)
+            city.save()
+
+            return JsonResponse({"status": "success"})
+
+        except CityData.DoesNotExist:
+            return JsonResponse(
+                {"status": "error", "message": "Город не найден"}, status=404
+            )
+
+        except json.JSONDecodeError:
+            return JsonResponse(
+                {"status": "error", "message": "Неверный формат JSON"}, status=400
+            )
+
+        except Exception as e:
+            logger.bind(user=request.user.username).error(f"Ошибка при обновлении города: {e}")
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
     # def delete(
     #         self, request: HttpRequest, table_id: int, dock_num: int
@@ -197,6 +157,46 @@ class Cities(LoginRequiredMixin, View):
     #         logger.bind(user=request.user.username).error(f"Ошибка при удалении города: {e}")
     #         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
+    # def post(self, request: HttpRequest) -> JsonResponse:
+    #     """
+    #     Обрабатывает загрузку файла с данными о городах.
+    #
+    #     Args:
+    #         request (HttpRequest): Объект запроса.
+    #
+    #     Returns:
+    #         JsonResponse: Ответ с сообщением об успешной загрузке файла или ошибкой.
+    #     """
+    #     try:
+    #         uploaded_file = request.FILES.get("cityFile")
+    #         if not uploaded_file:
+    #             logger.bind(user=request.user.username).error("Файл не загружен")
+    #             logger.bind(user=request.user.username).error(f"FILES: {request.FILES}")
+    #             return JsonResponse({"error": "Файл не загружен"}, status=400)
+    #
+    #         fs = OverwritingFileSystemStorage(
+    #             location=ProjectSettings.tlg_dir, allow_overwrite=True
+    #         )
+    #         file_path = fs.save(uploaded_file.name, uploaded_file)
+    #
+    #         logger.bind(user=request.user.username).info("Запуск обработки файла в отдельном потоке")
+    #
+    #         # Запускаем обработку файла в отдельном потоке
+    #         threading.Thread(
+    #             target=GlobusParser.process_file, args=(file_path,)
+    #         ).start()
+    #
+    #         return JsonResponse({"message": "Файл загружен успешно"}, status=200)
+    #
+    #     except Exception as e:
+    #         # Если возникает исключение, логируем его и возвращаем сообщение об ошибке
+    #         traceback_str = traceback.format_exc()  # Получаем полный traceback
+    #         logger.bind(user=request.user.username).error(
+    #             f"Ошибка при загрузке или обработке файла: {e}\n{traceback_str}"
+    #         )
+    #         return JsonResponse(
+    #             {"error": str(e), "traceback": traceback_str}, status=500
+    #         )
 
 # def download_file(request: HttpRequest) -> FileResponse:
 #     """
