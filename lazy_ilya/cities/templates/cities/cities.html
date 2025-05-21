@@ -117,7 +117,12 @@
             </form>
             <div class="flex justify-end gap-3 mt-4">
                 <button id="save-city" class="btn-submit">Сохранить</button>
+                {% if is_admin %}
                 <button id="delete-city" class="btn-delete !w-full !font-semibold">Удалить</button>
+                {% else %}
+                <button id="delete-city" class="btn-delete !hidden !w-full !font-semibold" disabled>Удалить</button>
+                {% endif %}
+{#                <button id="delete-city" class="btn-delete !w-full !font-semibold">Удалить</button>#}
                 <button id="close-modal" class="btn-cancel ">Отмена</button>
             </div>
         </div>

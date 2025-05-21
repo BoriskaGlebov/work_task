@@ -163,7 +163,7 @@ export class CityModalHandler {
             // Обновляем DOM
             const container = document.getElementById('city-cards');
             const cards = container.querySelectorAll('.card-style');
-            const search = document.getElementById('default-search').value = '';
+            document.getElementById('default-search').value = '';
             for (const card of cards) {
                 const cityData = JSON.parse(card.dataset.city || '{}');
                 if (
@@ -229,6 +229,7 @@ export class CityModalHandler {
 
             const container = document.getElementById('city-cards');
             const cards = container.querySelectorAll('.card-style');
+            document.getElementById('default-search').value = '';
 
             for (const card of cards) {
                 const cityData = JSON.parse(card.dataset.city || '{}');

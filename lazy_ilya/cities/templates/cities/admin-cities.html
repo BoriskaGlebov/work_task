@@ -6,19 +6,20 @@
 {% endblock %}
 
 {% block body %}
-
+    <h2>Панель управления Администратора</h2>
 
 
 
 {% endblock %}
 {% block extra_js %}
-    {% if VITE_DEV_MODE %}
-        <script type="module" src="http://localhost:5173/src/cities/js/main.js"></script>
-    {% else %}
-        <script type="module" crossorigin src="{% static 'cities/js/main.js' %}"></script>
-    {% endif %}
+{#    {% if VITE_DEV_MODE %}#}
+{#        <script type="module" src="http://localhost:5173/src/cities/js/main.js"></script>#}
+{#    {% else %}#}
+{#        <script type="module" crossorigin src="{% static 'cities/js/main.js' %}"></script>#}
+{#    {% endif %}#}
     <script>
         window.citiesData = JSON.parse('{{ cities_json|escapejs }}');
+        console.log(citiesData)
     </script>
 
 {% endblock %}

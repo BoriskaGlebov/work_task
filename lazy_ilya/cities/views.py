@@ -42,7 +42,7 @@ class Cities(LoginRequiredMixin, View):
         return render(
             request=request,
             template_name="cities/cities.html",
-            context=context,
+            context={**context},
         )
 
     def put(self, request: HttpRequest, table_id: int, dock_num: int) -> JsonResponse:
@@ -204,7 +204,7 @@ class CitiesAdmin(LoginRequiredMixin, View):
         return render(
             request=request,
             template_name="cities/admin-cities.html",
-            context=context,
+            context={**context},
         )
 
     # def put(self, request: HttpRequest, table_id: int, dock_num: int) -> JsonResponse:
