@@ -204,6 +204,12 @@ export class CityModalHandler {
      * @param {Object} currentCity - Объект текущего города.
      */
     async deleteCity(currentCity) {
+        // Показываем окно подтверждения
+        const confirmed = await this.showDeleteConfirmation(currentCity);
+        if (!confirmed) {
+            return; // Пользователь отменил удаление
+        }
+
         try {
             const response = await fetch(`cities/${currentCity.table_id}/${currentCity.dock_num}/`, {
                 method: 'DELETE',
@@ -219,6 +225,7 @@ export class CityModalHandler {
                 return;
             }
 
+            // Удаляем из локальных данных
             const index = this.citiesData.findIndex(city =>
                 city.table_id === currentCity.table_id && city.dock_num === currentCity.dock_num
             );
@@ -227,6 +234,7 @@ export class CityModalHandler {
                 this.citiesData.splice(index, 1);
             }
 
+            // Удаляем карточку из DOM
             const container = document.getElementById('city-cards');
             const cards = container.querySelectorAll('.card-style');
             document.getElementById('default-search').value = '';
@@ -250,13 +258,14 @@ export class CityModalHandler {
         }
     }
 
+
     /**
      * Показывает сообщение об успехе с анимацией.
      * @param {string} message - Текст сообщения.
      */
     showSuccessMessage(message) {
         const serverInfo = document.getElementById('server-info');
-        serverInfo.classList.remove('hidden');
+        serverInfo.classList.remove('hidden', 'animate-popup-reverse');
         serverInfo.classList.add('flex', 'animate-popup');
         serverInfo.querySelector('p').textContent = message;
 
@@ -269,4 +278,77 @@ export class CityModalHandler {
             }, 1000);
         }, 4000);
     }
+
+    /**
+     * Отображает модальное окно с подтверждением удаления города.
+     * Возвращает Promise, который резолвится в true при подтверждении и false при отмене.
+     *
+     * @param {Object} cityToDelete - Объект города, который пользователь хочет удалить.
+     * @param {string} cityToDelete.name_organ - Название организации (города), отображаемое в подтверждении.
+     * @returns {Promise<boolean>} Promise, который возвращает true, если пользователь подтвердил удаление, и false — если отменил.
+     */
+    showDeleteConfirmation(cityToDelete) {
+        return new Promise((resolve) => {
+            const serverInfo = document.getElementById('server-info');
+            serverInfo.classList.remove('hidden', 'animate-popup-reverse');
+            serverInfo.classList.add('flex', 'animate-popup');
+            serverInfo.querySelector('h3').textContent = 'Подтверждение удаления';
+            serverInfo.querySelector('p').textContent = `Вы уверены, что хотите удалить "${cityToDelete.name_organ}"?`;
+
+            const divBtn = document.getElementById('btn-div');
+            divBtn.innerHTML = '';
+
+            const confirmBtn = document.createElement('button');
+            confirmBtn.id = 'confirm-delete';
+            confirmBtn.textContent = 'Удалить';
+            confirmBtn.classList.add('btn-submit', '!p-1', '!font-medium');
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.id = 'cancel-delete';
+            cancelBtn.textContent = 'Отмена';
+            cancelBtn.classList.add('btn-cancel', '!p-1', '!font-medium');
+
+            divBtn.appendChild(confirmBtn);
+            divBtn.appendChild(cancelBtn);
+
+            let resolved = false;  // 🔒 защита от двойного resolve
+
+            const cleanup = () => {
+                return new Promise((res) => {
+                    serverInfo.classList.remove('animate-popup');
+                    serverInfo.classList.add('animate-popup-reverse');
+                    setTimeout(() => {
+                        divBtn.innerHTML = '';
+                        serverInfo.querySelector('h3').textContent = '';
+                        serverInfo.querySelector('p').textContent = '';
+                        serverInfo.classList.add('hidden');
+                        res();
+                    }, 1000);
+                });
+            };
+
+            // Автоматическая отмена через 30 секунд
+            const timeoutId = setTimeout(() => {
+                if (resolved) return;
+                resolved = true;
+                cleanup().then(() => resolve(false));
+            }, 5000); // ✅ 30 секунд
+
+            confirmBtn.addEventListener('click', () => {
+                if (resolved) return;
+                resolved = true;
+                clearTimeout(timeoutId);
+                cleanup().then(() => resolve(true));
+            });
+
+            cancelBtn.addEventListener('click', () => {
+                if (resolved) return;
+                resolved = true;
+                clearTimeout(timeoutId);
+                cleanup().then(() => resolve(false));
+            });
+        });
+    }
+
+
 }
