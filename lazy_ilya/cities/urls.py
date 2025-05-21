@@ -7,6 +7,7 @@ urlpatterns = [
     path("", Cities.as_view(), name="base_template"),
     path("cities/<int:table_id>/<int:dock_num>/", Cities.as_view(), name="edit_city"),
     path("cities/delete/<int:table_id>/<int:dock_num>/", Cities.as_view(), name="delete_city"),
+    path("cities/admin/", base_view, name="admin_city"),
     # path("registration/", RegisterView.as_view(), name="registration"),
     # path(
     #     "logout/",

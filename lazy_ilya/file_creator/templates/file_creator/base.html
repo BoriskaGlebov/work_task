@@ -45,6 +45,9 @@
                    class="a-style">Города</a>
                 <a href="#"
                    class="a-style">Статистика</a>
+                <a href="{% url 'cities:admin_city' %}"
+                   class="a-style">Админ</a>
+
                 <!-- Форма для выхода -->
                 <form action="{% url 'myauth:logout' %}" method="POST" class="inline">
                     {% csrf_token %}
@@ -92,6 +95,8 @@
                class="burger-button">Города</a>
             <a href="#"
                class="burger-button">Статистика</a>
+            <a href="{% url 'cities:admin_city' %}"
+               class="burger-button">Админ</a>
             <!-- Форма для выхода -->
             <form action="{% url 'myauth:logout' %}" method="POST" class="block">
                 {% csrf_token %}
