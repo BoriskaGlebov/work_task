@@ -18,6 +18,7 @@ export default defineConfig({
                 'file_creator/js/base': resolve(__dirname, 'src/file_creator/js/base.js'),
                 'file_creator/js/main': resolve(__dirname, 'src/file_creator/js/main.js'),
                 'cities/js/main': resolve(__dirname, 'src/cities/js/main.js'),
+                'cities/js/update-form': resolve(__dirname, 'src/cities/js/update-form.js'),
             },
             output: {
                 entryFileNames: '[name].js',

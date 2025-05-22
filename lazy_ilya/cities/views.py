@@ -1,4 +1,5 @@
 import json
+import traceback
 from typing import List, Dict, Any
 
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -10,7 +11,8 @@ from django.views import View
 
 from cities.models import CityData
 from cities.utils.common_func.get_city_context import get_all_cities
-from lazy_ilya.utils.settings_for_app import logger
+from file_creator.utils.storage import OverwritingFileSystemStorage
+from lazy_ilya.utils.settings_for_app import logger, ProjectSettings
 
 
 # Create your views here.
@@ -207,6 +209,47 @@ class CitiesAdmin(LoginRequiredMixin, View):
             context={**context},
         )
 
+    def post(self, request: HttpRequest) -> JsonResponse:
+        """
+        Обрабатывает загрузку файла с данными о городах.
+
+        Args:
+            request (HttpRequest): Объект запроса.
+
+        Returns:
+            JsonResponse: Ответ с сообщением об успешной загрузке файла или ошибкой.
+        """
+        try:
+            uploaded_file = request.FILES.get("cityFile")
+            if not uploaded_file:
+                logger.bind(user=request.user.username).error("Файл не загружен")
+                logger.bind(user=request.user.username).error(f"FILES: {request.FILES}")
+                return JsonResponse({"error": "Файл не загружен"}, status=400)
+
+            fs = OverwritingFileSystemStorage(
+                location=ProjectSettings.tlg_dir, allow_overwrite=True
+            )
+            file_path = fs.save(uploaded_file.name, uploaded_file)
+
+            logger.bind(user=request.user.username).info("Запуск обработки файла в отдельном потоке")
+
+            # Запускаем обработку файла в отдельном потоке
+            # threading.Thread(
+            #     target=GlobusParser.process_file, args=(file_path,)
+            # ).start()
+
+            return JsonResponse({"message": "Файл загружен успешно"}, status=200)
+
+        except Exception as e:
+            # Если возникает исключение, логируем его и возвращаем сообщение об ошибке
+            traceback_str = traceback.format_exc()  # Получаем полный traceback
+            logger.bind(user=request.user.username).error(
+                f"Ошибка при загрузке или обработке файла: {e}\n{traceback_str}"
+            )
+            return JsonResponse(
+                {"error": str(e), "traceback": traceback_str}, status=500
+            )
+
     # def put(self, request: HttpRequest, table_id: int, dock_num: int) -> JsonResponse:
     #     """
     #     Обновляет информацию о городе.
@@ -303,46 +346,7 @@ class CitiesAdmin(LoginRequiredMixin, View):
     #         logger.bind(user=request.user.username).error(f"Ошибка при удалении города: {e}")
     #         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
-    # def post(self, request: HttpRequest) -> JsonResponse:
-    #     """
-    #     Обрабатывает загрузку файла с данными о городах.
-    #
-    #     Args:
-    #         request (HttpRequest): Объект запроса.
-    #
-    #     Returns:
-    #         JsonResponse: Ответ с сообщением об успешной загрузке файла или ошибкой.
-    #     """
-    #     try:
-    #         uploaded_file = request.FILES.get("cityFile")
-    #         if not uploaded_file:
-    #             logger.bind(user=request.user.username).error("Файл не загружен")
-    #             logger.bind(user=request.user.username).error(f"FILES: {request.FILES}")
-    #             return JsonResponse({"error": "Файл не загружен"}, status=400)
-    #
-    #         fs = OverwritingFileSystemStorage(
-    #             location=ProjectSettings.tlg_dir, allow_overwrite=True
-    #         )
-    #         file_path = fs.save(uploaded_file.name, uploaded_file)
-    #
-    #         logger.bind(user=request.user.username).info("Запуск обработки файла в отдельном потоке")
-    #
-    #         # Запускаем обработку файла в отдельном потоке
-    #         threading.Thread(
-    #             target=GlobusParser.process_file, args=(file_path,)
-    #         ).start()
-    #
-    #         return JsonResponse({"message": "Файл загружен успешно"}, status=200)
-    #
-    #     except Exception as e:
-    #         # Если возникает исключение, логируем его и возвращаем сообщение об ошибке
-    #         traceback_str = traceback.format_exc()  # Получаем полный traceback
-    #         logger.bind(user=request.user.username).error(
-    #             f"Ошибка при загрузке или обработке файла: {e}\n{traceback_str}"
-    #         )
-    #         return JsonResponse(
-    #             {"error": str(e), "traceback": traceback_str}, status=500
-    #         )
+
 
 # def download_file(request: HttpRequest) -> FileResponse:
 #     """

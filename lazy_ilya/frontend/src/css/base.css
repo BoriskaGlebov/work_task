@@ -200,7 +200,7 @@ p {
 }
 
 .correct_icon {
-    @apply size-5 md:size-7 text-accent dark:text-accent-dark
+    @apply size-5 md:size-7 text-accent dark:text-accent-dark;
 }
 
 .error_icon {
@@ -402,15 +402,28 @@ p {
     break-words whitespace-normal
     active:scale-95;
 }
+
 .card-style:hover {
     @apply scale-102 transition-all duration-500;
 }
+
 .card-style:active {
     @apply scale-100 transition-all duration-10 bg-surface-dark/50 dark:bg-surface/50;
 }
+
 .card-style h3 {
     @apply border-b-2 border-accent dark:border-accent-dark py-3
     ;
+}
+
+.accordion-style {
+    @apply w-full flex justify-between items-center px-4 py-3 text-left font-semibold
+    text-text dark:text-text-dark
+    bg-background dark:bg-background-dark
+    hover:bg-accent/50 dark:hover:bg-accent-dark/50 transition-all duration-500;
+}
+.accordion-style-content{
+    @apply overflow-hidden transition-all duration-500 px-4 bg-surface dark:bg-surface-dark;
 }
 
 
