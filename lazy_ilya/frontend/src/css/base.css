@@ -191,6 +191,7 @@ p {
 
 .error_input {
     @apply rounded-lg transition-all
+    w-full
     border border-error dark:border-error-dark
     text-error dark:text-error-dark
     bg-background dark:bg-background-dark
@@ -422,7 +423,8 @@ p {
     bg-background dark:bg-background-dark
     hover:bg-accent/50 dark:hover:bg-accent-dark/50 transition-all duration-500;
 }
-.accordion-style-content{
+
+.accordion-style-content {
     @apply overflow-hidden transition-all duration-500 px-4 bg-surface dark:bg-surface-dark;
 }
 
