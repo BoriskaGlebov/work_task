@@ -7,14 +7,14 @@
  *
  * @returns {void}
  */
-export function toggleAccentClasses() {
-  const aEl = document.getElementById('a-cities');
+export function toggleAccentClasses(id,id_mob) {
+  const aEl = document.getElementById(id);
   if (aEl) {
     aEl.classList.toggle('bg-accent');
     aEl.classList.toggle('dark:bg-accent-dark');
   }
 
-  const aElMob = document.getElementById('a-cities-mob');
+  const aElMob = document.getElementById(id_mob);
   if (aElMob) {
     aElMob.classList.toggle('bg-accent');
     aElMob.classList.toggle('dark:bg-accent-dark');

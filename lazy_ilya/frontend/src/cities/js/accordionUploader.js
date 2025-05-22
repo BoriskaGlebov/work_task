@@ -1,19 +1,32 @@
 import {showError} from "../../file_creator/js/utils.js";
-import * as timers from "node:timers";
 
+/**
+ * Класс для обработки загрузки файла в аккордеоне с отображением прогресса через WebSocket.
+ */
 export class AccordionUploader {
+    /**
+     * @param {string} formId - ID формы загрузки.
+     * @param {string} fileInputId - ID поля выбора файла.
+     * @param {string} errorMessageId - ID элемента для отображения ошибок.
+     */
     constructor(formId, fileInputId, errorMessageId) {
+        /** @type {HTMLFormElement} */
         this.form = document.getElementById(formId);
+        /** @type {HTMLInputElement} */
         this.fileInput = document.getElementById(fileInputId);
+        /** @type {HTMLElement} */
         this.errorMessage = document.getElementById(errorMessageId);
+        /** @type {HTMLElement} */
         this.infoMessage = document.getElementById('server-info');
 
         this.initAccordion();
-        this.initWebSocket();  // <-- Добавляем вызов инициализации WebSocket
+        this.initWebSocket();
         this.initFileUpload();
-
     }
 
+    /**
+     * Инициализация аккордеона с плавным раскрытием и поворотом иконки.
+     */
     initAccordion() {
         document.querySelectorAll('.accordion-toggle').forEach(button => {
             button.addEventListener('click', () => {
@@ -22,9 +35,11 @@ export class AccordionUploader {
 
                 const isOpen = content.classList.contains('max-h-96');
 
+                // Закрыть все открытые аккордеоны
                 document.querySelectorAll('.accordion-content').forEach(c => c.classList.remove('max-h-96'));
                 document.querySelectorAll('.accordion-toggle svg').forEach(s => s.classList.remove('rotate-180'));
 
+                // Открыть текущий, если он был закрыт
                 setTimeout(() => {
                     if (!isOpen) {
                         content.classList.add('max-h-150');
@@ -35,9 +50,12 @@ export class AccordionUploader {
         });
     }
 
+    /**
+     * Устанавливает WebSocket-соединение и обрабатывает сообщения с прогрессом загрузки.
+     */
     initWebSocket() {
         const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
-        const socketUrl = `${wsScheme}://${window.location.host}/ws/upload/`;  // поменяй на свой url если надо
+        const socketUrl = `${wsScheme}://${window.location.host}/ws/upload/`;
         this.socket = new WebSocket(socketUrl);
 
         this.socket.onopen = () => {
@@ -45,7 +63,6 @@ export class AccordionUploader {
         };
 
         this.socket.onmessage = (event) => {
-            // console.log(event)
             const data = JSON.parse(event.data);
             console.log("Прогресс с сервера:", data);
             this.updateProgress(data);
@@ -60,6 +77,10 @@ export class AccordionUploader {
         };
     }
 
+    /**
+     * Обновляет визуальный прогресс загрузки на основе полученного значения.
+     * @param {number} progress - Значение прогресса от 0 до 100.
+     */
     updateProgress(progress) {
         const container = document.getElementById("upload-progress-container");
         const bar = document.getElementById("upload-progress-bar");
@@ -68,21 +89,23 @@ export class AccordionUploader {
         if (container && bar && text) {
             container.classList.remove("hidden");
             bar.style.width = `${progress}%`;
-            text.textContent = `${progress}%`;
+            text.textContent = `Файл обработан на ${progress}%`;
         }
 
         if (progress >= 100) {
-            // Показываем сообщение об успешном завершении
             this.showSuccessMessage("Обработка успешно завершена!");
             this.fileInput.value = '';
             setTimeout(() => {
                 container.classList.add("hidden");
                 bar.style.width = "0%";
                 text.textContent = "0%";
-            }, 2000); // скрываем через 2 сек после завершения
+            }, 2000);
         }
     }
 
+    /**
+     * Инициализирует обработку отправки формы и валидацию файла.
+     */
     initFileUpload() {
         this.form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -93,6 +116,7 @@ export class AccordionUploader {
                 showError('Нужно добавить файл с названием globus.docx!!!');
                 this.fileInput.classList.remove("correct_input");
                 this.fileInput.classList.add("error_input");
+
                 setTimeout(() => {
                     this.fileInput.classList.add("correct_input");
                     this.fileInput.classList.remove("error_input");
@@ -103,7 +127,7 @@ export class AccordionUploader {
             }
 
             const formData = new FormData();
-            formData.append("cityFile", file); // должно совпадать с request.FILES.get("cityFile")
+            formData.append("cityFile", file);  // Название поля должно совпадать с серверной логикой
 
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
@@ -121,11 +145,9 @@ export class AccordionUploader {
                 if (response.ok) {
                     const message = result.message || "Файл успешно загружен";
                     console.log(message);
-                    // this.showSuccessMessage(message);
-
+                    // Можно отобразить сообщение
                 } else {
-                    // alert(result.error || "Ошибка загрузки файла");
-                    showError(result.error || "Ошибка загрузки файла")
+                    showError(result.error || "Ошибка загрузки файла");
                 }
 
             } catch (err) {
@@ -140,7 +162,7 @@ export class AccordionUploader {
      * @param {string} message - Текст сообщения.
      */
     showSuccessMessage(message) {
-        const serverInfo = document.getElementById('server-info');
+        const serverInfo = this.infoMessage;
         serverInfo.classList.remove('hidden', 'animate-popup-reverse');
         serverInfo.classList.add('flex', 'animate-popup');
         serverInfo.querySelector('p').textContent = message;

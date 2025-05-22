@@ -41,20 +41,20 @@
             <!-- Меню (десктоп) -->
             <div class="hidden lg:flex items-center gap-2">
                 <a id="a-main" href="{% url 'file_creator:file-creator-start' %}"
-                   class="a-style">Главная</a>
+                   class="a-style" tabindex="-1">Главная</a>
                 <a id="a-cities" href="{% url 'cities:base_template' %}"
-                   class="a-style">Города</a>
+                   class="a-style" tabindex="-1">Города</a>
                 <a href="#"
-                   class="a-style">Статистика</a>
+                   class="a-style" tabindex="-1">Статистика</a>
                 {% if user.is_superuser or user|in_group:"admin" %}
                     <a href="{% url 'cities:admin_city' %}"
-                       class="a-style">Админ</a>
+                       id="a-admin" class="a-style" tabindex="-1">Админ</a>
                 {% endif %}
                 <!-- Форма для выхода -->
                 <form action="{% url 'myauth:logout' %}" method="POST" class="inline">
                     {% csrf_token %}
                     <button type="submit"
-                            class="a-style">
+                            class="a-style" tabindex="-1">
                         Выход
                     </button>
                 </form>
@@ -64,7 +64,7 @@
             <!-- Кнопки справа -->
             <div class="flex items-center gap-5">
                 <!-- Бургер (моб) -->
-                <button id="burger-menu"
+                <button id="burger-menu" tabindex="-1"
                         class="relative flex flex-col justify-between items-center p-2 h-8 w-10 md:h-12 md:w-16 lg:hidden group hover:scale-110 transition-all duration-500 [.open]:rotate-180">
                     <span class="block w-full h-0.5 bg-accent dark:bg-accent-dark transition-all duration-200 ease-in-out group-[.open]:rotate-45  origin-center group-[.open]:translate-y-[7px]  md:group-[.open]:translate-y-[15px]"></span>
                     <span class="block w-full h-0.5 bg-accent dark:bg-accent-dark transition-all duration-200 ease-in-out group-[.open]:hidden "></span>
@@ -72,7 +72,7 @@
 
                 </button>
                 <!-- Переключатель темы -->
-                <button id="theme-toggle" class="theme-toggle-nav">
+                <button id="theme-toggle" class="theme-toggle-nav" tabindex="-1">
                     <svg id="theme-toggle-dark-icon" xmlns="http://www.w3.org/2000/svg"
                          fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                          stroke="currentColor" class="w-8 h-8 hidden">
@@ -92,20 +92,20 @@
         <div id="nav-menu"
              class="flex-col space-y-2 lg:hidden max-h-0 overflow-hidden transition-all duration-400">
             <a id="a-main-mob" href="{% url 'file_creator:file-creator-start' %}"
-               class="burger-button">Главная</a>
+               class="burger-button" tabindex="-1">Главная</a>
             <a id="a-cities-mob" href="{% url 'cities:base_template' %}"
-               class="burger-button">Города</a>
+               class="burger-button" tabindex="-1">Города</a>
             <a href="#"
-               class="burger-button">Статистика</a>
+               class="burger-button" tabindex="-1">Статистика</a>
             {% if user.is_superuser or user|in_group:"admin" %}
-                <a href="{% url 'cities:admin_city' %}"
-                   class="burger-button">Админ</a>
+                <a id="a-admin-mob" href="{% url 'cities:admin_city' %}"
+                   class="burger-button" tabindex="-1">Админ</a>
             {% endif %}
             <!-- Форма для выхода -->
             <form action="{% url 'myauth:logout' %}" method="POST" class="block">
                 {% csrf_token %}
                 <button type="submit"
-                        class="burger-button">
+                        class="burger-button" tabindex="-1">
                     Выход
                 </button>
             </form>
