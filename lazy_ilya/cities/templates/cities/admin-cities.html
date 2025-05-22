@@ -38,10 +38,11 @@
 
                     </div>
                     <form action="{% url 'cities:admin_city' %}"
-                          id="uploadForm" class="mt-4 space-y-3 max-w-lg mx-auto" method="post" enctype="multipart/form-data">
+                          id="uploadForm" class="mt-4 space-y-3 max-w-lg mx-auto" method="post"
+                          enctype="multipart/form-data">
                         {% csrf_token %}
                         <input type="file"
-                               name="file"
+                               name="cityFile"
                                id="fileInput"
                                accept=".docx"
                                required
@@ -50,10 +51,11 @@
                                 class="btn-submit">
                             Загрузить файл
                         </button>
-                        <p id="errorMessage" class="text-error dark:text-error-dark hidden">Имя файла должно быть
-                            <strong>globus.docx</strong>.
+                        <p id="errorMessage" class="text-error dark:text-error-dark hidden">
+                            Имя файла должно быть <strong>globus.docx</strong>.
                         </p>
                     </form>
+
 
                 </div>
 

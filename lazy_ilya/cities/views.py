@@ -1,4 +1,5 @@
 import json
+import threading
 import traceback
 from typing import List, Dict, Any
 
@@ -11,6 +12,7 @@ from django.views import View
 
 from cities.models import CityData
 from cities.utils.common_func.get_city_context import get_all_cities
+from cities.utils.parser_word.globus_parser import GlobusParser
 from file_creator.utils.storage import OverwritingFileSystemStorage
 from lazy_ilya.utils.settings_for_app import logger, ProjectSettings
 
@@ -234,9 +236,9 @@ class CitiesAdmin(LoginRequiredMixin, View):
             logger.bind(user=request.user.username).info("Запуск обработки файла в отдельном потоке")
 
             # Запускаем обработку файла в отдельном потоке
-            # threading.Thread(
-            #     target=GlobusParser.process_file, args=(file_path,)
-            # ).start()
+            threading.Thread(
+                target=GlobusParser.process_file, args=(file_path,)
+            ).start()
 
             return JsonResponse({"message": "Файл загружен успешно"}, status=200)
 

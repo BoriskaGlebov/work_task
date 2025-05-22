@@ -17,4 +17,47 @@ document.addEventListener("DOMContentLoaded", () => {
 
         });
     });
+
+    document.getElementById("uploadForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const form= document.getElementById("uploadForm");
+        const fileInput = document.getElementById("fileInput");
+        const errorMessage = document.getElementById("errorMessage");
+        const file = fileInput.files[0];
+
+        if (!file || file.name !== "globus.docx") {
+            errorMessage.classList.remove("hidden");
+            return;
+        } else {
+            errorMessage.classList.add("hidden");
+        }
+
+        const formData = new FormData();
+        formData.append("cityFile", file); // должно соответствовать request.FILES.get("cityFile")
+
+        // CSRF-токен
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        try {
+            const response = await fetch(form.action, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                },
+                body: formData,
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(result.message || "Файл успешно загружен");
+            } else {
+                alert(result.error || "Ошибка загрузки файла");
+            }
+
+        } catch (err) {
+            alert("Произошла ошибка при отправке файла");
+            console.error(err);
+        }
+    });
 });
