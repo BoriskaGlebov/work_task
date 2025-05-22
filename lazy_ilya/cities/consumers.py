@@ -13,25 +13,60 @@ from .utils.parser_word.globus_parser import GlobusParser
 
 
 class UploadProgressConsumer(AsyncWebsocketConsumer):
-    async def connect(self):
+    """
+    WebSocket consumer для отправки клиенту обновлений прогресса обработки файлов.
+
+    Клиенты подключаются к группе `progress_updates`, чтобы получать сообщения
+    с обновлением прогресса в формате JSON.
+
+    Атрибуты:
+        group_name (str): Имя группы WebSocket, к которой подключается клиент.
+    """
+
+    group_name: str
+
+    async def connect(self) -> None:
+        """
+        Обрабатывает подключение клиента к WebSocket.
+
+        Проверяет, авторизован ли пользователь, логирует событие и добавляет
+        клиента в группу `progress_updates`.
+        """
         user = self.scope["user"]
         if user.is_authenticated:
             logger.info(f"Пользователь {user.username} подключен к WebSocket")
         else:
             logger.info("Анонимный пользователь подключен к WebSocket")
-        self.group_name = f"progress_updates"
+
+        self.group_name = "progress_updates"
 
         await self.channel_layer.group_add(self.group_name, self.channel_name)
         await self.accept()
+
         logger.info(f"Клиент подключен к группе: {self.group_name}")
 
-    async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(self.group_name, self.channel_name)
-        logger.info(f"Клиент отключился от websocket {self.group_name} ")
+    async def disconnect(self, close_code: int) -> None:
+        """
+        Обрабатывает отключение клиента от WebSocket.
 
-    async def send_progress(self, event):
-        await self.send(text_data=json.dumps(event['progress']))
-        # logger.info(f"Отправляю сообщение о прогрессе {event['progress']}")
+        Удаляет клиента из группы `progress_updates`.
+
+        Args:
+            close_code (int): Код закрытия WebSocket-соединения.
+        """
+        await self.channel_layer.group_discard(self.group_name, self.channel_name)
+        logger.info(f"Клиент отключился от WebSocket: {self.group_name}")
+
+    async def send_progress(self, event: dict) -> None:
+        """
+        Отправляет клиенту данные об обновлении прогресса.
+
+        Args:
+            event (dict): Словарь события, содержащий ключ 'progress' с данными для отправки.
+        """
+        progress_data = event.get("progress", {})
+        await self.send(text_data=json.dumps(progress_data))
+        logger.debug(f"Отправлено обновление прогресса: {progress_data}")
 
 # class ProgressConsumer(AsyncWebsocketConsumer):
 #     """
