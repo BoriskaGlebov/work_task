@@ -200,11 +200,11 @@ p {
 }
 
 .correct_icon {
-    @apply size-5 md:size-7 text-accent dark:text-accent-dark;
+    @apply size-5 md:size-7 text-accent dark:text-accent-dark transition-all duration-500;
 }
 
 .error_icon {
-    @apply size-6 text-error dark:text-error-dark
+    @apply size-6 text-error dark:text-error-dark transition-all duration-500
 }
 
 .error_message {
