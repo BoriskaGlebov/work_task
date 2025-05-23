@@ -11,7 +11,7 @@ from django.urls import reverse_lazy
 from django.views import View
 
 from cities.models import CityData
-from cities.utils.common_func.get_city_context import get_all_cities
+from cities.utils.common_func.get_city_context import get_all_cities, get_context_admin_cities
 from cities.utils.parser_word.globus_parser import GlobusParser
 from file_creator.utils.storage import OverwritingFileSystemStorage
 from lazy_ilya.utils.settings_for_app import logger, ProjectSettings
@@ -204,7 +204,7 @@ class CitiesAdmin(LoginRequiredMixin, View):
         Returns:
             HttpResponse: Ответ с HTML-шаблоном и данными о городах в формате JSON.
         """
-        context=get_all_cities(request=request)
+        context=get_context_admin_cities()
         return render(
             request=request,
             template_name="cities/admin-cities.html",

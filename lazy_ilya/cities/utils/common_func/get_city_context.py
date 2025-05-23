@@ -1,10 +1,17 @@
+import os
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lazy_ilya.settings")
+import django
+
+# Настройка Django
+django.setup()
 import json
 from typing import List, Dict, Any
 
 from django.db.models import Q
 from django.http import HttpRequest
 
-from cities.models import CityData
+from cities.models import CityData, TableNames
 
 
 def get_all_cities(request: HttpRequest):
@@ -29,3 +36,15 @@ def get_all_cities(request: HttpRequest):
         "is_ilia": is_ilia,
     }
     return context
+
+
+def get_context_admin_cities():
+    tables_names = TableNames.objects.values("id","table_name",)
+    context = {
+        "table_name": list(tables_names),
+    }
+    return context
+
+
+if __name__ == '__main__':
+    print(get_context_admin_cities())

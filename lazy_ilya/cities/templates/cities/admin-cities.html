@@ -113,58 +113,71 @@
                         Здесь форма для точечного обновления данных таблицы
                     </p>
 
-                    <form class="w-full max-w-lg space-y-3">
+                    <form id="updateFormCities" class="w-full max-w-lg space-y-3">
                         {% csrf_token %}
                         <div>
-                            <label for="modal-location" class="block mb-2 correct_label">Название таблицы</label>
-                            <input id="modal-location" type="text" placeholder="Город" class="correct_input"/>
-                        </div>
-                         <div>
-                            <label for="modal-location" class="block mb-2 correct_label">Порядковый номер в таблице</label>
-                            <input id="modal-location" type="text" placeholder="Город" class="correct_input"/>
-                        </div>
-                        <div>
-                            <label for="modal-location" class="block mb-2 correct_label">Город</label>
-                            <input id="modal-location" type="text" placeholder="Город" class="correct_input"/>
+                            <label for="table-name" class="block mb-2 correct_label">Название таблицы</label>
+                            <select name="table_name" id="table-name" class="correct_input">
+                                <option value="">---</option>
+                                {% for table in table_name %}
+                                    <option value="{{ table.id }}"> {{ table.table_name }}</option>
+                                {% endfor %}
+
+                            </select>
                         </div>
                         <div>
-                            <label for="modal-name_organ" class="block mb-2 correct_label">Наименование органа</label>
-                            <input id="modal-name_organ" type="text" placeholder="Организация" class="correct_input"/>
+                            <label for="dock_num" class="block mb-2 correct_label">Порядковый номер в таблице</label>
+                            <input id="dock-num" name="dock_num" type="number" min="1"
+                                   placeholder="Введите номер больше нуля" class="correct_input"/>
                         </div>
                         <div>
-                            <label for="modal-pseudonim" class="block mb-2 correct_label">Псевдоним</label>
-                            <input id="modal-pseudonim" type="text" placeholder="Псевдоним" class="correct_input"/>
-                        </div>
-                        <div>
-                            <label for="modal-name_organ" class="block mb-2 correct_label">Письма</label>
-                            <input id="modal-name_organ" type="text" placeholder="Организация" class="correct_input"/>
-                        </div>
-                        <div>
-                            <label for="modal-name_organ" class="block mb-2 correct_label">Записи</label>
-                            <input id="modal-name_organ" type="text" placeholder="Организация" class="correct_input"/>
-                        </div>
-                        <div>
-                            <label for="modal-ip_address" class="block mb-2 correct_label">IP address</label>
-                            <input id="modal-ip_address" type="text" placeholder="IP address" class="correct_input"/>
-                        </div>
-                         <div>
-                            <label for="modal-some_number" class="block mb-2 correct_label">Спец номер</label>
-                            <input id="modal-some_number" type="text" placeholder="Спец номер"
+                            <label for="location" class="block mb-2 correct_label">Название города</label>
+                            <input id="location" name="location" type="text" placeholder="Введите название города"
                                    class="correct_input"/>
                         </div>
-
                         <div>
-                            <label for="modal-work_time" class="block mb-2 correct_label">Рабочее время</label>
-                            <input id="modal-work_time" type="text" placeholder="Время работы" class="correct_input"/>
+                            <label for="name-organ" class="block mb-2 correct_label">Наименование органа</label>
+                            <textarea id="name-organ" name="name_organ" rows="6" cols="50" class="correct_input"
+                                      placeholder="Введите текст с наименованием органа..."></textarea>
+                        </div>
+                        <div>
+                            <label for="pseudonim" class="block mb-2 correct_label">Псевдоним</label>
+                            <input id="pseudonim" name="pseudonim" type="text" placeholder="Псевдоним"
+                                   class="correct_input"/>
+                        </div>
+                        <div class="flex justify-start items-center gap-5">
+                            <input id="letters" name="letters" type="checkbox"
+                                   class="correct_icon rounded-full text-xl" checked>
+                            <label for="letters" class="correct_label">Можно писать в телегу</label>
+                        </div>
+                        <div class="flex justify-start items-center gap-5">
+                            <input id="writing" name="writing" type="checkbox"
+                                   class="correct_icon rounded-full text-xl" checked>
+                            <label for="writing" class="correct_label">Можно писать письма</label>
+                        </div>
+                        <div>
+                            <label for="ip-address" class="block mb-2 correct_label">IP address</label>
+                            <input id="ip-address" name="ip_address" type="text" placeholder="IP address"
+                                   class="correct_input"/>
+                        </div>
+                        <div>
+                            <label for="some-number" class="block mb-2 correct_label">Спец номер</label>
+                            <input id="some-number" name="some_number" type="text" placeholder="Спец номер"
+                                   class="correct_input"/>
+                        </div>
+                        <div>
+                            <label for="work-time" class="block mb-2 correct_label">Рабочее время</label>
+                            <input id="work-time" name="work_time" type="text" placeholder="Время работы"
+                                   class="correct_input"/>
                         </div>
                     </form>
                     <div class="flex justify-end gap-3 mt-4">
                         <button id="save-city" class="btn-submit">Сохранить</button>
                         {% if is_admin %}
-                        <button id="delete-city" class="btn-delete !w-full !font-semibold">Удалить</button>
+                            <button id="delete-city" class="btn-delete !w-full !font-semibold">Удалить</button>
                         {% else %}
-                        <button id="delete-city" class="btn-delete !hidden !w-full !font-semibold" disabled>Удалить
-                        </button>
+                            <button id="delete-city" class="btn-delete !hidden !w-full !font-semibold" disabled>Удалить
+                            </button>
                         {% endif %}
                         {#                <button id="delete-city" class="btn-delete !w-full !font-semibold">Удалить</button>#}
                         <button id="close-modal" class="btn-cancel ">Отмена</button>
@@ -189,7 +202,8 @@
         <script type="module" crossorigin src="{% static 'cities/js/update-form.js' %}"></script>
     {% endif %}
     <script>
-        window.citiesData = JSON.parse('{{ cities_json|escapejs }}');
+        window.citiesData = {{ table_name|safe }};
+        console.log(citiesData)
     </script>
 
 {% endblock %}
