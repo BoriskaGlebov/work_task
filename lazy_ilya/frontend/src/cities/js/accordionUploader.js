@@ -7,17 +7,18 @@ export class AccordionUploader {
     /**
      * @param {string} formId - ID формы загрузки.
      * @param {string} fileInputId - ID поля выбора файла.
-     * @param {string} errorMessageId - ID элемента для отображения ошибок.
+     * @param {string} serverErrorId - ID элемента для отображения ошибок.
      */
-    constructor(formId, fileInputId, errorMessageId) {
+    constructor(formId, fileInputId, serverErrorId) {
         /** @type {HTMLFormElement} */
         this.form = document.getElementById(formId);
         /** @type {HTMLInputElement} */
         this.fileInput = document.getElementById(fileInputId);
         /** @type {HTMLElement} */
-        this.errorMessage = document.getElementById(errorMessageId);
+        this.serverError = document.getElementById(serverErrorId);
         /** @type {HTMLElement} */
         this.infoMessage = document.getElementById('server-info');
+        this.errorMessage = document.getElementById('errorMessage');
 
         this.initAccordion();
         this.initWebSocket();
@@ -33,16 +34,16 @@ export class AccordionUploader {
                 const content = button.nextElementSibling;
                 const svg = button.querySelector('svg');
 
-                const isOpen = content.classList.contains('max-h-96');
+                const isOpen = content.classList.contains('max-h-600');
 
                 // Закрыть все открытые аккордеоны
-                document.querySelectorAll('.accordion-content').forEach(c => c.classList.remove('max-h-96'));
+                document.querySelectorAll('.accordion-content').forEach(c => c.classList.remove('max-h-600'));
                 document.querySelectorAll('.accordion-toggle svg').forEach(s => s.classList.remove('rotate-180'));
 
                 // Открыть текущий, если он был закрыт
                 setTimeout(() => {
                     if (!isOpen) {
-                        content.classList.add('max-h-150');
+                        content.classList.add('max-h-600');
                         svg.classList.add('rotate-180');
                     }
                 }, 500);
@@ -120,6 +121,7 @@ export class AccordionUploader {
                 setTimeout(() => {
                     this.fileInput.classList.add("correct_input");
                     this.fileInput.classList.remove("error_input");
+                    this.errorMessage.classList.add("hidden");
                 }, 4000);
                 return;
             } else {

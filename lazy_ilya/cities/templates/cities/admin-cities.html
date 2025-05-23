@@ -70,28 +70,27 @@
                          class="hidden flex flex-col items-center justify-center mt-4 w-full">
                         <!-- Линия прогресса -->
                         <div class="w-full h-6 bg-secondary dark:bg-secondary-dark rounded-full overflow-hidden">
-                            <div id="upload-progress-bar" class="h-full bg-accent dark:bg-accent-dark transition-all duration-300"
+                            <div id="upload-progress-bar"
+                                 class="h-full bg-accent dark:bg-accent-dark transition-all duration-300"
                                  style="width: 0%;"></div>
                         </div>
                         <!-- Текст процентов -->
                         <div id="upload-progress-text" class="mt-2 text-sm text-text dark:text-text-dark">0%</div>
                     </div>
                     <form action="{% url 'cities:admin_city' %}"
-                          id="uploadForm" class="mt-4 space-y-3 max-w-lg mx-auto" method="post"
+                          id="uploadForm" class="max-w-lg mx-auto space-y-3" method="post"
                           enctype="multipart/form-data">
                         {% csrf_token %}
-                        <input type="file"
-                               name="cityFile"
-                               id="fileInput"
-                               accept=".docx"
-                               class="correct_input">
+                        <div>
+                            <input type="file" name="cityFile" id="fileInput" accept=".docx" class="correct_input">
+                            <p id="errorMessage" class="error_message hidden">Имя файла должно быть
+                                <strong>globus.docx</strong>.
+                            </p>
+                        </div>
                         <button type="submit"
-                                class="btn-submit">
+                                class="btn-submit mb-3 ">
                             Загрузить файл
                         </button>
-                        <p id="errorMessage" class="text-error dark:text-error-dark hidden">
-                            Имя файла должно быть <strong>globus.docx</strong>.
-                        </p>
                     </form>
 
 
@@ -110,10 +109,69 @@
                     </svg>
                 </button>
                 <div class="accordion-content max-h-0 accordion-style-content">
-                    <p class="py-3 text-secondary dark:text-secondary-dark">Контент действия 1. Здесь может быть
-                        описание,
-                        кнопки и любые другие
-                        элементы.</p>
+                    <p class="py-3 text-secondary dark:text-secondary-dark">
+                        Здесь форма для точечного обновления данных таблицы
+                    </p>
+
+                    <form class="w-full max-w-lg space-y-3">
+                        {% csrf_token %}
+                        <div>
+                            <label for="modal-location" class="block mb-2 correct_label">Название таблицы</label>
+                            <input id="modal-location" type="text" placeholder="Город" class="correct_input"/>
+                        </div>
+                         <div>
+                            <label for="modal-location" class="block mb-2 correct_label">Порядковый номер в таблице</label>
+                            <input id="modal-location" type="text" placeholder="Город" class="correct_input"/>
+                        </div>
+                        <div>
+                            <label for="modal-location" class="block mb-2 correct_label">Город</label>
+                            <input id="modal-location" type="text" placeholder="Город" class="correct_input"/>
+                        </div>
+                        <div>
+                            <label for="modal-name_organ" class="block mb-2 correct_label">Наименование органа</label>
+                            <input id="modal-name_organ" type="text" placeholder="Организация" class="correct_input"/>
+                        </div>
+                        <div>
+                            <label for="modal-pseudonim" class="block mb-2 correct_label">Псевдоним</label>
+                            <input id="modal-pseudonim" type="text" placeholder="Псевдоним" class="correct_input"/>
+                        </div>
+                        <div>
+                            <label for="modal-name_organ" class="block mb-2 correct_label">Письма</label>
+                            <input id="modal-name_organ" type="text" placeholder="Организация" class="correct_input"/>
+                        </div>
+                        <div>
+                            <label for="modal-name_organ" class="block mb-2 correct_label">Записи</label>
+                            <input id="modal-name_organ" type="text" placeholder="Организация" class="correct_input"/>
+                        </div>
+                        <div>
+                            <label for="modal-ip_address" class="block mb-2 correct_label">IP address</label>
+                            <input id="modal-ip_address" type="text" placeholder="IP address" class="correct_input"/>
+                        </div>
+                         <div>
+                            <label for="modal-some_number" class="block mb-2 correct_label">Спец номер</label>
+                            <input id="modal-some_number" type="text" placeholder="Спец номер"
+                                   class="correct_input"/>
+                        </div>
+
+                        <div>
+                            <label for="modal-work_time" class="block mb-2 correct_label">Рабочее время</label>
+                            <input id="modal-work_time" type="text" placeholder="Время работы" class="correct_input"/>
+                        </div>
+
+
+
+                    </form>
+                    <div class="flex justify-end gap-3 mt-4">
+                        <button id="save-city" class="btn-submit">Сохранить</button>
+                        {% if is_admin %}
+                        <button id="delete-city" class="btn-delete !w-full !font-semibold">Удалить</button>
+                        {% else %}
+                        <button id="delete-city" class="btn-delete !hidden !w-full !font-semibold" disabled>Удалить
+                        </button>
+                        {% endif %}
+                        {#                <button id="delete-city" class="btn-delete !w-full !font-semibold">Удалить</button>#}
+                        <button id="close-modal" class="btn-cancel ">Отмена</button>
+                    </div>
                 </div>
             </div>
 

@@ -425,7 +425,7 @@ p {
 }
 
 .accordion-style-content {
-    @apply overflow-hidden transition-all duration-500 px-4 bg-surface dark:bg-surface-dark;
+    @apply overflow-hidden transition-all duration-500 px-4 bg-surface dark:bg-surface-dark flex flex-col items-center;
 }
 
 
