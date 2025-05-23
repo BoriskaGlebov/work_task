@@ -204,7 +204,7 @@ class CitiesAdmin(LoginRequiredMixin, View):
         Returns:
             HttpResponse: Ответ с HTML-шаблоном и данными о городах в формате JSON.
         """
-        context=get_context_admin_cities()
+        context = get_context_admin_cities()
         return render(
             request=request,
             template_name="cities/admin-cities.html",
@@ -349,6 +349,34 @@ class CitiesAdmin(LoginRequiredMixin, View):
     #         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
 
+class CityInfoView(View):
+    def get(self, request):
+        dock_num = request.GET.get('dock_num')
+        table_id = request.GET.get('table_id')  # для фильтрации по таблице
+        print(table_id)
+        print(dock_num)
+
+        if dock_num:
+            try:
+                obj = CityData.objects.get(dock_num=dock_num, table_id=table_id)
+                print(obj.to_dict())
+                data = {
+                    'location': obj.location,
+                    'name_organ': obj.name_organ,
+                    'pseudonim': obj.pseudonim,
+                    'letters': obj.letters,
+                    'writing': obj.writing,
+                    'ip_address': obj.ip_address,
+                    'some_number': obj.some_number,
+                    'work_time': obj.work_time,
+                }
+                return JsonResponse({'found': True, 'data': data})
+            except CityData.DoesNotExist:
+                return JsonResponse({'found': False})
+        else:
+            # вернём последний номер
+            latest = CityData.objects.filter(table_id=table_id).order_by('-dock_num').first()
+            return JsonResponse({'last_num': latest.dock_num if latest else 1})
 
 # def download_file(request: HttpRequest) -> FileResponse:
 #     """

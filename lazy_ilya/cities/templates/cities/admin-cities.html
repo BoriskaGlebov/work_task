@@ -113,7 +113,7 @@
                         Здесь форма для точечного обновления данных таблицы
                     </p>
 
-                    <form id="updateFormCities" class="w-full max-w-lg space-y-3">
+                    <form id="updateFormCities" class="w-full min-w-sm max-w-2xl space-y-3">
                         {% csrf_token %}
                         <div>
                             <label for="table-name" class="block mb-2 correct_label">Название таблицы</label>
@@ -157,8 +157,9 @@
                         </div>
                         <div>
                             <label for="ip-address" class="block mb-2 correct_label">IP address</label>
-                            <input id="ip-address" name="ip_address" type="text" placeholder="IP address"
-                                   class="correct_input"/>
+{#                            <input id="ip-address" name="ip_address" type="text" placeholder="IP address"#}
+{#                                   class="correct_input"/>#}
+                            <textarea id="ip-address" name="ip_address" placeholder="IP address" rows="6" cols="50" class="correct_input" ></textarea>
                         </div>
                         <div>
                             <label for="some-number" class="block mb-2 correct_label">Спец номер</label>
