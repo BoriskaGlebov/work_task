@@ -137,7 +137,7 @@
                         </div>
                         <div>
                             <label for="name-organ" class="block mb-2 correct_label">Наименование органа</label>
-                            <textarea id="name-organ" name="name_organ" rows="6" cols="50" class="correct_input"
+                            <textarea id="name-organ" name="name_organ" rows="6" cols="50" class="correct_input resize-none"
                                       placeholder="Введите текст с наименованием органа..."></textarea>
                         </div>
                         <div>
@@ -157,9 +157,10 @@
                         </div>
                         <div>
                             <label for="ip-address" class="block mb-2 correct_label">IP address</label>
-{#                            <input id="ip-address" name="ip_address" type="text" placeholder="IP address"#}
-{#                                   class="correct_input"/>#}
-                            <textarea id="ip-address" name="ip_address" placeholder="IP address" rows="6" cols="50" class="correct_input" ></textarea>
+                            {#                            <input id="ip-address" name="ip_address" type="text" placeholder="IP address"#}
+                            {#                                   class="correct_input"/>#}
+                            <textarea id="ip-address" name="ip_address" placeholder="IP address" rows="6" cols="50"
+                                      class="correct_input resize-none"></textarea>
                         </div>
                         <div>
                             <label for="some-number" class="block mb-2 correct_label">Спец номер</label>
@@ -171,18 +172,12 @@
                             <input id="work-time" name="work_time" type="text" placeholder="Время работы"
                                    class="correct_input"/>
                         </div>
+                        <div class="flex justify-between gap-3 mt-4">
+                            <button id="save-city" class="btn-submit ">Сохранить</button>
+                            <button id="close-modal" class="btn-cancel " type="button">Отмена</button>
+                        </div>
                     </form>
-                    <div class="flex justify-end gap-3 mt-4">
-                        <button id="save-city" class="btn-submit">Сохранить</button>
-                        {% if is_admin %}
-                            <button id="delete-city" class="btn-delete !w-full !font-semibold">Удалить</button>
-                        {% else %}
-                            <button id="delete-city" class="btn-delete !hidden !w-full !font-semibold" disabled>Удалить
-                            </button>
-                        {% endif %}
-                        {#                <button id="delete-city" class="btn-delete !w-full !font-semibold">Удалить</button>#}
-                        <button id="close-modal" class="btn-cancel ">Отмена</button>
-                    </div>
+
                 </div>
             </div>
 

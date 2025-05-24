@@ -3,6 +3,7 @@ export class CityFormHandler {
         this.form = document.getElementById(formId);
         this.dockInput = this.form.querySelector('#dock-num');
         this.tableSelect = this.form.querySelector('#table-name');
+        this.closeModalBtn = document.getElementById('close-modal');
 
         this.fields = {
             location: this.form.querySelector('#location'),
@@ -16,6 +17,8 @@ export class CityFormHandler {
         };
 
         this.init();
+        this.initCancelButton();
+
     }
 
     init() {
@@ -81,4 +84,16 @@ export class CityFormHandler {
             }
         });
     }
+
+    /**
+     * Инициализирует обработчик кнопки отмены — сброс формы.
+     */
+    initCancelButton() {
+        if (this.closeModalBtn) {
+            this.closeModalBtn.addEventListener('click', () => {
+                this.form.reset();
+            });
+        }
+    }
+
 }
