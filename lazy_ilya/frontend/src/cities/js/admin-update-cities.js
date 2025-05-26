@@ -1,17 +1,35 @@
+/**
+ * Обработчик формы создания/редактирования города.
+ * Поддерживает автозаполнение, режимы редактирования и создания, отправку данных на сервер.
+ */
+
 import {showError} from "../../file_creator/js/utils.js";
 
 export class CityFormHandler {
+    /**
+     * @param {string} formId - ID формы, которую нужно обрабатывать
+     */
     constructor(formId) {
+        /** @type {HTMLFormElement} */
         this.form = document.getElementById(formId);
+
+        /** @type {HTMLInputElement} */
         this.dockInput = this.form.querySelector('#dock-num');
+        /** @type {HTMLSelectElement} */
         this.tableSelect = this.form.querySelector('#table-name');
+        /** @type {HTMLButtonElement} */
         this.closeModalBtn = document.getElementById('close-modal');
+        /** @type {HTMLButtonElement} */
         this.saveCity = document.getElementById('save-city');
-        this.isEditMode = false; // <--- флаг редактирования
+
+        /** Флаг, указывающий режим редактирования */
+        this.isEditMode = false;
         /** @type {string} */
         this.csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        /** @type {HTMLElement} */
         this.infoMessage = document.getElementById('server-info');
 
+        /** @type {Record<string, HTMLInputElement>} */
         this.fields = {
             location: this.form.querySelector('#location'),
             name_organ: this.form.querySelector('#name-organ'),
@@ -25,15 +43,21 @@ export class CityFormHandler {
 
         this.init();
         this.initCancelButton();
-        this.initSaveButton(); // <--- добавим обработчик сохранения
-
+        this.initSaveButton();
     }
 
+    /**
+     * Инициализация обработки изменения номера документа и таблицы
+     */
     init() {
         this.dockInput.addEventListener('input', () => this.handleDockNumInput(false));
         this.tableSelect.addEventListener('change', () => this.handleDockNumInput());
     }
 
+    /**
+     * Получает и отображает данные о городе по номеру документа и ID таблицы
+     * @param {boolean} [first=true] - Флаг инициализации формы, при true номер будет запрошен автоматически
+     */
     async handleDockNumInput(first = true) {
         const tableId = this.tableSelect.value;
         if (!tableId) {
@@ -42,8 +66,6 @@ export class CityFormHandler {
         }
 
         const dockNum = first ? '' : this.dockInput.value;
-
-        // Если пользователь вводит вручную и поле пустое — очищаем поля и не запрашиваем
         if (!first && dockNum.trim() === '') {
             this.clearFields();
             return;
@@ -77,16 +99,19 @@ export class CityFormHandler {
         }
     }
 
+    /**
+     * Инициализирует кнопку сохранения, отправляет форму на сервер
+     */
     initSaveButton() {
         this.saveCity.addEventListener('click', async () => {
-            // Проверка выбора таблицы
             if (!this.tableSelect.value) {
-                showError('Пожалуйста, выберите название таблицы')
+                showError('Пожалуйста, выберите название таблицы');
                 this.tableSelect.focus();
-                return; // Останавливаем выполнение, форма не отправится
+                return;
             }
+
             const method = this.isEditMode ? 'PUT' : 'POST';
-            const url = 'city-info/'; // Укажи конечную точку Django
+            const url = 'city-info/';
             const data = {
                 dock_num: this.dockInput.value,
                 table_id: this.tableSelect.value,
@@ -111,16 +136,12 @@ export class CityFormHandler {
                 });
 
                 if (response.ok) {
-                    // alert('Данные успешно сохранены')
-                    this.showSuccessMessage(`Данные успешно сохранены для записи №
-                    ${data.dock_num} ${data.name_organ ? '- ' + data.name_organ : ''} ${data.location ? '- ' + data.location : ''}`);
+                    this.showSuccessMessage(`Данные успешно сохранены для записи №${data.dock_num}${data.name_organ ? ' - ' + data.name_organ : ''}${data.location ? ' - ' + data.location : ''}`);
                     this.form.reset();
                     this.saveCity.textContent = 'Сохранить';
                     this.isEditMode = false;
                 } else {
-                    // Получаем тело ошибки в JSON
                     const errorData = await response.json();
-                    // Примерно errorData.errors - это объект с ошибками
                     let errorMsg = '';
                     for (const field in errorData.errors) {
                         errorMsg += `${field}: ${errorData.errors[field].join(', ')}\n`;
@@ -133,7 +154,10 @@ export class CityFormHandler {
         });
     }
 
-
+    /**
+     * Заполняет поля формы полученными данными
+     * @param {Record<string, any>} data
+     */
     fillFields(data) {
         this.fields.location.value = data.location || '';
         this.fields.name_organ.value = data.name_organ || '';
@@ -145,8 +169,11 @@ export class CityFormHandler {
         this.fields.work_time.value = data.work_time || '';
     }
 
+    /**
+     * Очищает все поля формы
+     */
     clearFields() {
-        Object.entries(this.fields).forEach(([key, el]) => {
+        Object.entries(this.fields).forEach(([_, el]) => {
             if (el.type === 'checkbox') {
                 el.checked = false;
             } else {
@@ -156,7 +183,7 @@ export class CityFormHandler {
     }
 
     /**
-     * Инициализирует обработчик кнопки отмены — сброс формы.
+     * Обработчик кнопки "отмена" — сбрасывает форму
      */
     initCancelButton() {
         if (this.closeModalBtn) {
@@ -169,8 +196,8 @@ export class CityFormHandler {
     }
 
     /**
-     * Показывает сообщение об успехе с анимацией.
-     * @param {string} message - Текст сообщения.
+     * Показывает анимированное сообщение об успешной операции
+     * @param {string} message
      */
     showSuccessMessage(message) {
         const serverInfo = this.infoMessage;
@@ -178,8 +205,6 @@ export class CityFormHandler {
         serverInfo.classList.add('flex', 'animate-popup');
         serverInfo.querySelector('p').textContent = message;
         serverInfo.scrollIntoView({behavior: 'smooth', block: 'start'});
-        // Мягкий скролл к блоку ошибки
-
 
         setTimeout(() => {
             serverInfo.classList.remove('animate-popup');
@@ -191,5 +216,4 @@ export class CityFormHandler {
             }, 1000);
         }, 4000);
     }
-
 }
