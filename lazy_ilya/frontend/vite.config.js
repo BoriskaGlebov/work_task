@@ -15,12 +15,25 @@ export default defineConfig({
                 'myauth/js/login': resolve(__dirname, 'src/myauth/js/login.js'),
                 'myauth/js/registration': resolve(__dirname, 'src/myauth/js/registration.js'),
                 'myauth/js/reset_password': resolve(__dirname, 'src/myauth/js/reset_password.js'),
+
                 'file_creator/js/base': resolve(__dirname, 'src/file_creator/js/base.js'),
                 'file_creator/js/main': resolve(__dirname, 'src/file_creator/js/main.js'),
+
                 'cities/js/main': resolve(__dirname, 'src/cities/js/main.js'),
                 'cities/js/update-form': resolve(__dirname, 'src/cities/js/update-form.js'),
+
+                // 'statistics_app/js/': resolve(__dirname, 'src/statistics_app/js/main.js'),
             },
             output: {
+                manualChunks(id) {
+                    if (id.includes('src/cities/js/utils.js')) {
+                        return 'cities/js/utils';
+                    }
+
+                    if (id.includes('src/cities/js/toggleAccent.js')) {
+                        return 'cities/js/toggleAccent';
+                    }
+                },
                 entryFileNames: '[name].js',
                 chunkFileNames: '[name].js',
                 assetFileNames: ({name = ''}) => {

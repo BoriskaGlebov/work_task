@@ -1,4 +1,4 @@
-import {showError} from "../../file_creator/js/utils.js";
+import {showError} from "./utils.js";
 
 /**
  * Обработчик модального окна редактирования и удаления карточек городов.

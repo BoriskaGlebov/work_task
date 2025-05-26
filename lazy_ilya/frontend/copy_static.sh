@@ -16,10 +16,10 @@ SHARED_STATIC="../lazy_ilya/static"
 echo "Текущая директория: $(pwd)"
 echo "MYAUTH_STATIC: $MYAUTH_STATIC"
 echo "FILECREATOR_STATIC: $FILECREATOR_STATIC"
+echo "CITIES_STATIC: $CITIES_STATIC"
 echo "SHARED_STATIC: $SHARED_STATIC"
 
 # Удаляем старую статику и создаём директории
-#rm -rf "$MYAUTH_STATIC"
 rm -rf "$MYAUTH_STATIC" && mkdir -p "$MYAUTH_STATIC"
 rm -rf "$FILECREATOR_STATIC" && mkdir -p "$FILECREATOR_STATIC"
 rm -rf "$CITIES_STATIC" && mkdir -p "$CITIES_STATIC"

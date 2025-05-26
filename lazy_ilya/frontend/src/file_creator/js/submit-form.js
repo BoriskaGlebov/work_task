@@ -1,6 +1,6 @@
 // submit-form.js
 import {saveAllChanges} from './save-all.js';
-import {showError, getCheckIcon} from './utils.js';
+import {showError} from './utils.js';
 import {runStep1} from './step1.js';
 import handleSaveClick from './handle-save-click.js';  // Импортируем новую функцию
 

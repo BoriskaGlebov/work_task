@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "file_creator.apps.FileCreatorConfig",
     "myauth.apps.MyauthConfig",
     "cities.apps.CitiesConfig",
+    "statistics_app.apps.StatisticsAppConfig",
     "channels",
 ]
 

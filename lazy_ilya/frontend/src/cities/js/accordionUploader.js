@@ -1,4 +1,4 @@
-import {showError} from "../../file_creator/js/utils.js";
+import {showError} from "./utils.js";
 
 /**
  * Класс для обработки загрузки файла в аккордеоне с отображением прогресса через WebSocket.

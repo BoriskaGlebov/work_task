@@ -3,7 +3,7 @@
  * Поддерживает автозаполнение, режимы редактирования и создания, отправку данных на сервер.
  */
 
-import {showError} from "../../file_creator/js/utils.js";
+import {showError} from "./utils.js";
 
 export class CityFormHandler {
     /**

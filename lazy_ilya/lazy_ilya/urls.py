@@ -22,7 +22,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("file_creator.urls")),
     path("login/", include("myauth.urls")),
-    path("cities/", include("cities.urls"))
+    path("cities/", include("cities.urls")),
 
-    # path("", include("work_for_ilia.urls")),
+    path("statistics-app/", include("statistics_app.urls")),
 ]
