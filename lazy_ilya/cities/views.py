@@ -10,6 +10,7 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse_lazy
 from django.views import View
 
+from cities.forms import CityDataForm
 from cities.models import CityData
 from cities.utils.common_func.get_city_context import get_all_cities, get_context_admin_cities
 from cities.utils.parser_word.globus_parser import GlobusParser
@@ -376,7 +377,31 @@ class CityInfoView(View):
         else:
             # вернём последний номер
             latest = CityData.objects.filter(table_id=table_id).order_by('-dock_num').first()
-            return JsonResponse({'last_num': latest.dock_num if latest else 1})
+            return JsonResponse({'last_num': latest.dock_num + 1 if latest else 1})
+
+    def post(self, request):
+        data = json.loads(request.body)
+        form = CityDataForm(data)
+        if form.is_valid():
+            obj = form.save()
+            return JsonResponse({'created': True, 'id': obj.id})
+        else:
+            print(form.errors)
+            return JsonResponse({'errors': form.errors}, status=400)
+
+    def put(self, request):
+        data = json.loads(request.body)
+        try:
+            obj = CityData.objects.get(dock_num=data['dock_num'], table_id=data['table_id'])
+        except CityData.DoesNotExist:
+            return JsonResponse({'errors': 'Object not found'}, status=404)
+        form = CityDataForm(data, instance=obj)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'updated': True})
+        else:
+            print(form.errors)
+            return JsonResponse({'errors': form.errors}, status=400)
 
 # def download_file(request: HttpRequest) -> FileResponse:
 #     """

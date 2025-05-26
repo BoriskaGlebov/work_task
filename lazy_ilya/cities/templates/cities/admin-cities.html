@@ -113,7 +113,7 @@
                         Здесь форма для точечного обновления данных таблицы
                     </p>
 
-                    <form id="updateFormCities" class="w-full min-w-sm max-w-2xl space-y-3">
+                    <form id="updateFormCities" class="w-full min-w-sm max-w-2xl space-y-3 px-4">
                         {% csrf_token %}
                         <div>
                             <label for="table-name" class="block mb-2 correct_label">Название таблицы</label>
@@ -172,8 +172,8 @@
                             <input id="work-time" name="work_time" type="text" placeholder="Время работы"
                                    class="correct_input"/>
                         </div>
-                        <div class="flex justify-between gap-3 mt-4">
-                            <button id="save-city" class="btn-submit ">Сохранить</button>
+                        <div class="flex justify-between gap-3 mt-4 mb-3">
+                            <button id="save-city" class="btn-submit" type="button">Сохранить</button>
                             <button id="close-modal" class="btn-cancel " type="button">Отмена</button>
                         </div>
                     </form>

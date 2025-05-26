@@ -1,59 +1,27 @@
-# class CitiesForm(forms.ModelForm):
-#     """
-#     Форма для создания и редактирования записей в модели SomeDataFromSomeTables.
-#     """
-#
-#     class Meta:
-#         """
-#         Метаданные для формы CitiesForm.
-#         """
-#
-#         model = SomeDataFromSomeTables
-#         fields: Tuple[str] = (
-#             "table_id",
-#             "dock_num",
-#             "location",
-#             "name_organ",
-#             "pseudonim",
-#             "letters",
-#             "writing",
-#             "ip_address",
-#             "some_number",
-#             "work_timme",
-#         )
-#         widgets: Dict[str, forms.Widget] = {
-#             "writing": forms.CheckboxInput(
-#                 attrs={"class": "hidden-checkbox", "id": "writing"}
-#             ),
-#             "letters": forms.CheckboxInput(
-#                 attrs={"class": "hidden-checkbox", "id": "letters"}
-#             ),
-#         }
-#
-#     def __init__(self, *args: Any, **kwargs: Any) -> None:
-#         """
-#         Инициализация формы CitiesForm.
-#
-#         Args:
-#             *args: Произвольные аргументы.
-#             **kwargs: Произвольные именованные аргументы.
-#         """
-#         super().__init__(*args, **kwargs)
-#         table_id: Optional[str] = self.data.get("table_id")
-#         if table_id:
-#             # Получаем максимальный dock_num для данного table_id
-#             aggregate_result: Dict[str, Optional[int]] = (
-#                 SomeDataFromSomeTables.objects.filter(table_id=table_id).aggregate(
-#                     Max("dock_num")
-#                 )
-#             )
-#             last_dock_num: Optional[int] = aggregate_result["dock_num__max"]
-#
-#             # Устанавливаем начальное значение для поля dock_num
-#             if last_dock_num is None:
-#                 self.fields["dock_num"].initial = 1
-#             else:
-#                 self.fields["dock_num"].initial = last_dock_num + 1
-#         else:
-#             # Если table_id не передан, устанавливаем начальное значение dock_num равным 1
-#             self.fields["dock_num"].initial = 1
+from django.core.exceptions import ValidationError
+from django.forms import ModelForm
+
+from cities.models import CityData
+
+
+class CityDataForm(ModelForm):
+    class Meta:
+        model = CityData
+        fields = [
+            "table_id",
+            "dock_num",
+            "location",
+            "name_organ",
+            "pseudonim",
+            "letters",
+            "writing",
+            "ip_address",
+            "some_number",
+            "work_time",
+        ]
+
+    def clean_some_number(self):
+        value = self.cleaned_data.get("some_number")
+        if value and not value.isdigit():
+            raise ValidationError("Поле спец номер: должно содержать только цифры.")
+        return value

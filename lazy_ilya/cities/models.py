@@ -3,7 +3,6 @@ import os
 from django.db import models
 
 
-
 # Create your models here.
 
 class TableNames(models.Model):
@@ -146,15 +145,33 @@ class CityData(models.Model):
         """
         Переопределяем метод save, чтобы автоматически устанавливать dock_num.
         """
-        if not self.pk:  # Проверяем, что это новая запись
-            # Получаем последний dock_num для данного table_id
+        is_new = self.pk is None
+
+        if is_new:
+            # Получаем максимальный dock_num для текущей table_id
             last_dock_num = CityData.objects.filter(
                 table_id=self.table_id
-            ).aggregate(models.Max("dock_num"))["dock_num__max"]
-            # Если записей для данного table_id еще нет, начинаем с 1
-            if last_dock_num is None:
-                self.dock_num = 1
-            else:
+            ).aggregate(models.Max("dock_num"))["dock_num__max"] or 0
+
+            # Если dock_num явно указан и он больше
+            if self.dock_num and self.dock_num > last_dock_num + 1:
+                # Создаем пустые записи между last_dock_num и self.dock_num
+                for num in range(last_dock_num + 1, self.dock_num):
+                    CityData.objects.create(
+                        table_id=self.table_id,
+                        dock_num=num,
+                        location=None,
+                        name_organ=None,
+                        pseudonim=None,
+                        letters=False,
+                        writing=False,
+                        ip_address=None,
+                        some_number=None,
+                        work_time=None,
+                    )
+
+            # Если dock_num не передан, устанавливаем автоматически
+            if not self.dock_num or self.dock_num <= last_dock_num:
                 self.dock_num = last_dock_num + 1
 
         super().save(*args, **kwargs)

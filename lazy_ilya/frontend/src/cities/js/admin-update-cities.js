@@ -1,9 +1,16 @@
+import {showError} from "../../file_creator/js/utils.js";
+
 export class CityFormHandler {
     constructor(formId) {
         this.form = document.getElementById(formId);
         this.dockInput = this.form.querySelector('#dock-num');
         this.tableSelect = this.form.querySelector('#table-name');
         this.closeModalBtn = document.getElementById('close-modal');
+        this.saveCity = document.getElementById('save-city');
+        this.isEditMode = false; // <--- флаг редактирования
+        /** @type {string} */
+        this.csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        this.infoMessage = document.getElementById('server-info');
 
         this.fields = {
             location: this.form.querySelector('#location'),
@@ -18,6 +25,7 @@ export class CityFormHandler {
 
         this.init();
         this.initCancelButton();
+        this.initSaveButton(); // <--- добавим обработчик сохранения
 
     }
 
@@ -47,6 +55,8 @@ export class CityFormHandler {
 
             if (result.found) {
                 this.fillFields(result.data);
+                this.saveCity.textContent = 'Сохранить изменения';
+                this.isEditMode = true;
                 if (first) {
                     this.dockInput.value = result.data.dock_num || '';
                 }
@@ -55,12 +65,72 @@ export class CityFormHandler {
                     this.dockInput.value = result.last_num;
                     this.clearFields();
                 }
+                this.saveCity.textContent = 'Создать запись';
+                this.isEditMode = false;
             } else {
+                this.saveCity.textContent = 'Создать запись';
                 this.clearFields();
+                this.isEditMode = false;
             }
         } catch (err) {
             console.error('Ошибка при получении данных:', err);
         }
+    }
+
+    initSaveButton() {
+        this.saveCity.addEventListener('click', async () => {
+            // Проверка выбора таблицы
+            if (!this.tableSelect.value) {
+                showError('Пожалуйста, выберите название таблицы')
+                this.tableSelect.focus();
+                return; // Останавливаем выполнение, форма не отправится
+            }
+            const method = this.isEditMode ? 'PUT' : 'POST';
+            const url = 'city-info/'; // Укажи конечную точку Django
+            const data = {
+                dock_num: this.dockInput.value,
+                table_id: this.tableSelect.value,
+                location: this.fields.location.value,
+                name_organ: this.fields.name_organ.value,
+                pseudonim: this.fields.pseudonim.value,
+                letters: this.fields.letters.checked,
+                writing: this.fields.writing.checked,
+                ip_address: this.fields.ip_address.value,
+                some_number: this.fields.some_number.value,
+                work_time: this.fields.work_time.value,
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': this.csrfToken,
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    // alert('Данные успешно сохранены')
+                    this.showSuccessMessage(`Данные успешно сохранены для записи №
+                    ${data.dock_num} ${data.name_organ ? '- ' + data.name_organ : ''} ${data.location ? '- ' + data.location : ''}`);
+                    this.form.reset();
+                    this.saveCity.textContent = 'Сохранить';
+                    this.isEditMode = false;
+                } else {
+                    // Получаем тело ошибки в JSON
+                    const errorData = await response.json();
+                    // Примерно errorData.errors - это объект с ошибками
+                    let errorMsg = '';
+                    for (const field in errorData.errors) {
+                        errorMsg += `${field}: ${errorData.errors[field].join(', ')}\n`;
+                    }
+                    showError('Ошибка при сохранении:\n' + errorMsg);
+                }
+            } catch (err) {
+                console.error('Ошибка при отправке формы:', err);
+            }
+        });
     }
 
 
@@ -92,8 +162,34 @@ export class CityFormHandler {
         if (this.closeModalBtn) {
             this.closeModalBtn.addEventListener('click', () => {
                 this.form.reset();
+                this.saveCity.textContent = 'Сохранить';
+                this.isEditMode = false;
             });
         }
+    }
+
+    /**
+     * Показывает сообщение об успехе с анимацией.
+     * @param {string} message - Текст сообщения.
+     */
+    showSuccessMessage(message) {
+        const serverInfo = this.infoMessage;
+        serverInfo.classList.remove('hidden', 'animate-popup-reverse');
+        serverInfo.classList.add('flex', 'animate-popup');
+        serverInfo.querySelector('p').textContent = message;
+        serverInfo.scrollIntoView({behavior: 'smooth', block: 'start'});
+        // Мягкий скролл к блоку ошибки
+
+
+        setTimeout(() => {
+            serverInfo.classList.remove('animate-popup');
+            serverInfo.classList.add('animate-popup-reverse');
+            serverInfo.scrollIntoView({behavior: 'smooth', block: 'start'});
+            setTimeout(() => {
+                serverInfo.classList.add('hidden');
+                serverInfo.classList.remove('flex', 'animate-popup-reverse');
+            }, 1000);
+        }, 4000);
     }
 
 }
