@@ -276,7 +276,7 @@ export class CityModalHandler {
                 serverInfo.classList.add('hidden');
                 serverInfo.classList.remove('flex', 'animate-popup-reverse');
             }, 1000);
-        }, 4000);
+        }, 5000);
     }
 
     /**

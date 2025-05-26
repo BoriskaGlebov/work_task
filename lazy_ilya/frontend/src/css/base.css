@@ -6,7 +6,7 @@
 @source "../../../myauth/templates/**/*.html";
 @source "../../../file_creator/templates/**/*.html";
 @source "../../../cities/templates/**/*.html";
-/*@source "../../../statictics_app/templates!**!*.html";*/
+@source "../../../statistics_app/templates/**/*.html";
 
 @custom-variant dark (&:where(.dark, .dark *));
 

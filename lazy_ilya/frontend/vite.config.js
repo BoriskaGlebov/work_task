@@ -22,7 +22,7 @@ export default defineConfig({
                 'cities/js/main': resolve(__dirname, 'src/cities/js/main.js'),
                 'cities/js/update-form': resolve(__dirname, 'src/cities/js/update-form.js'),
 
-                // 'statistics_app/js/': resolve(__dirname, 'src/statistics_app/js/main.js'),
+                'statistics_app/js/main': resolve(__dirname, 'src/statistics_app/js/main.js'),
             },
             output: {
                 manualChunks(id) {
