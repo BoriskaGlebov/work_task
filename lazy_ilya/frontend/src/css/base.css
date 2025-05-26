@@ -429,4 +429,9 @@ p {
     @apply overflow-hidden transition-all duration-500 px-4 bg-surface dark:bg-surface-dark flex flex-col items-center;
 }
 
-
+.stat-card {
+    @apply  w-full max-w-3xs sm:max-w-2xs  mx-auto aspect-3/2 lg:aspect-square bg-form-color
+    dark:bg-form-color-dark shadow-xl rounded-xl p-6 flex flex-col justify-around border border-accent
+    dark:border-accent-dark
+    hover:scale-105 transition-all duration-500;
+}
