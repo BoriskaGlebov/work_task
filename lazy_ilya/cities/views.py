@@ -69,7 +69,6 @@ class Cities(LoginRequiredMixin, View):
             )
             # Загружаем данные из тела запроса
             data = json.loads(request.body)
-            logger.info(data)
             # Обновляем поля города
             city.location = data.get("location", city.location)
             city.name_organ = data.get("name_organ", city.name_organ)

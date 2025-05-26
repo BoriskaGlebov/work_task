@@ -18,7 +18,7 @@ class FileCreatorActionLoggingMiddleware:
         user = request.user
         ip = request.META.get('REMOTE_ADDR')
         user_name = user.username if user.is_authenticated else "Аноним"
-
+        file_names = [f.name for f in request.FILES.getlist("files")] if request.FILES else []
         body_data = None
         if method in ['POST', 'PUT']:
             try:
@@ -36,9 +36,11 @@ class FileCreatorActionLoggingMiddleware:
                     f"📄 GET-запрос на страницу загрузки документов {path} с IP {ip}"
                 )
             elif method in ['POST', 'PUT']:
-                logger.bind(user=user_name).info(
+                files = f"Загруженные файлы: {file_names}"
+
+                logger.bind(user=user_name,filename=','.join(file_names)).info(
                     f"{'📤' if method == 'POST' else '💾'} {method}-запрос от {user_name} на {path} с IP {ip}. "
-                    f"Отправленные данные: {body_data}"
+                    f"Отправленные данные: {body_data} {files if file_names else ''} "
                 )
 
         try:

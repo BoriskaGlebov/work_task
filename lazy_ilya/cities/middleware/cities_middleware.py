@@ -4,9 +4,9 @@ from django.http import HttpResponse
 from lazy_ilya.utils.settings_for_app import logger
 
 
-class FileCreatorActionLoggingMiddleware:
+class CitiesActionLoggingMiddleware:
     """
-    Middleware для логирования действий пользователей в приложении file_creator.
+    Middleware для логирования действий пользователей в приложении cities.
     """
 
     def __init__(self, get_response: Callable):
@@ -18,7 +18,7 @@ class FileCreatorActionLoggingMiddleware:
         user = request.user
         ip = request.META.get('REMOTE_ADDR')
         user_name = user.username if user.is_authenticated else "Аноним"
-
+        file_names = [f.name for f in request.FILES.getlist("cityFile")] if request.FILES else []
         body_data = None
         if method in ['POST', 'PUT']:
             try:
@@ -28,18 +28,38 @@ class FileCreatorActionLoggingMiddleware:
                     body_data = request.POST.dict()
             except Exception as e:
                 body_data = f"[Не удалось прочитать тело запроса: {str(e)}]"
-
         # Только для адресов, связанных с file_creator
-        if path == '/' and user.is_authenticated:
+        if path == '/cities/' and user.is_authenticated:
             if method == 'GET':
                 logger.bind(user=user_name).info(
-                    f"📄 GET-запрос на страницу загрузки документов {path} с IP {ip}"
+                    f"📄 GET-запрос на страницу поиска городов {path} с IP {ip}"
                 )
-            elif method in ['POST', 'PUT']:
+        elif path == '/cities/admin/city-info/' and user.is_authenticated:
+            if method == 'GET':
                 logger.bind(user=user_name).info(
-                    f"{'📤' if method == 'POST' else '💾'} {method}-запрос от {user_name} на {path} с IP {ip}. "
-                    f"Отправленные данные: {body_data}"
+                    f"📄 GET-запрос на админ страницу получение имен таблиц  {path} с IP {ip}"
                 )
+        elif path == '/cities/admin/' and user.is_authenticated:
+            if method == 'GET':
+                logger.bind(user=user_name).info(
+                    f"📄 GET-запрос на админ страницу работы с городами {path} с IP {ip}"
+                )
+        if path.startswith('/cities/cities/') and user.is_authenticated and method in ['PUT', 'DELETE']:
+            logger.bind(user=user_name).info(
+                f"{'📤' if method == 'PUT' else '💾'} {method}-запрос от {user_name} на {path} с IP {ip}. "
+                f"Отправленные данные: {body_data}"
+            )
+        elif path.startswith('/cities/admin/') and method in ['POST']:
+            files = f"Загруженные файлы: {file_names}"
+            logger.bind(user=user_name, filename=','.join(file_names)).info(
+                f"{'📤' if method == 'PUT' else '💾'} {method}-запрос от {user_name} на {path} с IP {ip}. "
+                f"Отправленные данные: {body_data} {files if file_names else ''} "
+            )
+        elif path.startswith('/cities/admin/city-info/') and user.is_authenticated and method in ['POST', 'PUT']:
+            logger.bind(user=user_name).info(
+                f"{'📤' if method == 'PUT' else '💾'} {method}-запрос на создание/обновление от {user_name} на {path} с IP {ip}. "
+                f"Отправленные данные: {body_data}"
+            )
 
         try:
             response = self.get_response(request)
@@ -48,14 +68,17 @@ class FileCreatorActionLoggingMiddleware:
                 f"❌ Ошибка при обработке запроса {method} {path} с IP {ip}: {str(e)}"
             )
             raise
-        if path == '/' and user.is_authenticated:
-            if method in ['POST', 'PUT']:
-                self.log_response(response, user_name, method, path, ip)
-            elif path == '/':
-                logger.bind(user=user_name).info(
-                    f"✅ {user_name} успешно выполнил {method}-запрос на {path} "
-                    f"с IP {ip}. Статус: {response.status_code}"
-                )
+        if path == '/cities/' and user.is_authenticated:
+            logger.bind(user=user_name).info(
+                f"✅ {user_name} успешно выполнил {method}-запрос на {path} "
+                f"с IP {ip}. Статус: {response.status_code}"
+            )
+        elif path.startswith('/cities/cities/') and user.is_authenticated and method in ['PUT', 'DELETE']:
+            self.log_response(response, user_name, method, path, ip)
+        elif path.startswith('/cities/admin/') and user.is_authenticated and method in ['POST']:
+            self.log_response(response, user_name, method, path, ip)
+        elif path.startswith('/cities/admin/city-info/') and user.is_authenticated and method in ['POST', 'PUT']:
+            self.log_response(response, user_name, method, path, ip)
 
         return response
 
