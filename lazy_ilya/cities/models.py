@@ -175,3 +175,46 @@ class CityData(models.Model):
                 self.dock_num = last_dock_num + 1
 
         super().save(*args, **kwargs)
+
+
+class CounterCities(models.Model):
+    """
+    Модель для хранения статистики по количеству запросов к городам.
+
+    Attributes:
+        processed_at (DateTimeField): Дата и время создания или последнего обновления записи.
+            Автоматически устанавливается при создании и каждом обновлении записи.
+            verbose_name: "Дата создания/обновления"
+
+        dock_num (OneToOneField): Ссылка на запись в таблице `SomeDataFromSomeTables`, представляющую
+            конкретный пункт в таблице документов. Используется для идентификации города.
+            on_delete: models.CASCADE - Если связанная запись в `SomeDataFromSomeTables` удалена,
+            то и запись в `CounterCities` будет удалена.
+            unique: True - Гарантирует, что для каждой записи в `SomeDataFromSomeTables` может быть
+            только одна запись в `CounterCities`.
+            verbose_name: "Пункт в таблице документов"
+
+        count_responses (IntegerField): Количество запросов к данному городу.
+            verbose_name: "Количество запросов к этому городу"
+
+    Meta:
+        ordering (list): Список полей, по которым будет производиться сортировка записей по умолчанию.
+            В данном случае: "pk" (первичный ключ), "dock_num", "count_responses"
+        verbose_name (str): Отображаемое имя модели в единственном числе.
+            В данном случае: "Счетчик городов"
+        verbose_name_plural (str): Отображаемое имя модели во множественном числе.
+            В данном случае: "Счетчики городов"
+    """
+    processed_at: models.DateTimeField = models.DateTimeField(
+        auto_now_add=True, verbose_name="Дата создания/обновления"
+    )
+    dock_num: models.OneToOneField = models.OneToOneField(CityData, on_delete=models.CASCADE,
+                                                          verbose_name="Пункт в таблице документов")
+    count_responses: models.IntegerField = models.IntegerField(
+        verbose_name="Количество запросов к этому городу"
+    )
+
+    class Meta:
+        ordering = ["pk", "dock_num", "count_responses"]
+        verbose_name = "Счетчик городов"
+        verbose_name_plural = "Счетчики городов"

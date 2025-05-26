@@ -11,7 +11,7 @@ from django.urls import reverse_lazy
 from django.views import View
 
 from cities.forms import CityDataForm
-from cities.models import CityData
+from cities.models import CityData, CounterCities
 from cities.utils.common_func.get_city_context import get_all_cities, get_context_admin_cities
 from cities.utils.parser_word.globus_parser import GlobusParser
 from file_creator.utils.storage import OverwritingFileSystemStorage
@@ -119,13 +119,13 @@ class Cities(LoginRequiredMixin, View):
             logger.bind(user=request.user.username).info(
                 f"Проиcходит удаление города {city.name_organ} - {city.location}")
             if city:
-                # try:
-                #     counter_city = CounterCities.objects.get(
-                #         dock_num=city)  # changed name to the name u have in related model
-                #     counter_city.delete()  # Удаляем запись CounterCities
-                # except CounterCities.DoesNotExist:
-                #     # Если CounterCities не существует, ничего страшного, продолжаем
-                #     pass
+                try:
+                    counter_city = CounterCities.objects.get(
+                        dock_num=city)  # changed name to the name u have in related model
+                    counter_city.delete()  # Удаляем запись CounterCities
+                except CounterCities.DoesNotExist:
+                    # Если CounterCities не существует, ничего страшного, продолжаем
+                    pass
                 # Очищаем поля города
                 city.location = ""
                 city.name_organ = ""
