@@ -9,16 +9,5 @@ urlpatterns = [
     path("cities/delete/<int:table_id>/<int:dock_num>/", Cities.as_view(), name="delete_city"),
     path("cities/admin/", CitiesAdmin.as_view(), name="admin_city"),
     path("cities/admin/city-info/", CityInfoView.as_view(), name="city_info"),
-    # path("registration/", RegisterView.as_view(), name="registration"),
-    # path(
-    #     "logout/",
-    #     LogoutView.as_view(next_page="myauth:login"),
-    #     name="logout",
-    # ),
-    # path(
-    #     "reset-password/",
-    #     CustomPasswordResetView.as_view(),
-    #     name="reset-password",
-    # ),
 
 ]

@@ -83,11 +83,13 @@ class Cities(LoginRequiredMixin, View):
             return JsonResponse({"status": "success"})
 
         except CityData.DoesNotExist:
+            logger.bind(user=request.user.username).error(f"Город не найден")
             return JsonResponse(
                 {"status": "error", "message": "Город не найден"}, status=404
             )
 
         except json.JSONDecodeError:
+            logger.bind(user=request.user.username).error(f"Неверный формат JSON")
             return JsonResponse(
                 {"status": "error", "message": "Неверный формат JSON"}, status=400
             )
@@ -115,7 +117,8 @@ class Cities(LoginRequiredMixin, View):
             city = get_object_or_404(
                 CityData, table_id=table_id, dock_num=dock_num
             )
-
+            logger.bind(user=request.user.username).info(
+                f"Проиcходит удаление города {city.name_organ} - {city.location}")
             if city:
                 # try:
                 #     counter_city = CounterCities.objects.get(
@@ -138,6 +141,7 @@ class Cities(LoginRequiredMixin, View):
             return JsonResponse({"status": "success"})
 
         except CityData.DoesNotExist:
+            logger.bind(user=request.user.username).error(f"Город не найден")
             return JsonResponse(
                 {"status": "error", "message": "Город не найден"}, status=404
             )
@@ -146,58 +150,17 @@ class Cities(LoginRequiredMixin, View):
             logger.bind(user=request.user.username).error(f"Ошибка при удалении города: {e}")
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
-    # def post(self, request: HttpRequest) -> JsonResponse:
-    #     """
-    #     Обрабатывает загрузку файла с данными о городах.
-    #
-    #     Args:
-    #         request (HttpRequest): Объект запроса.
-    #
-    #     Returns:
-    #         JsonResponse: Ответ с сообщением об успешной загрузке файла или ошибкой.
-    #     """
-    #     try:
-    #         uploaded_file = request.FILES.get("cityFile")
-    #         if not uploaded_file:
-    #             logger.bind(user=request.user.username).error("Файл не загружен")
-    #             logger.bind(user=request.user.username).error(f"FILES: {request.FILES}")
-    #             return JsonResponse({"error": "Файл не загружен"}, status=400)
-    #
-    #         fs = OverwritingFileSystemStorage(
-    #             location=ProjectSettings.tlg_dir, allow_overwrite=True
-    #         )
-    #         file_path = fs.save(uploaded_file.name, uploaded_file)
-    #
-    #         logger.bind(user=request.user.username).info("Запуск обработки файла в отдельном потоке")
-    #
-    #         # Запускаем обработку файла в отдельном потоке
-    #         threading.Thread(
-    #             target=GlobusParser.process_file, args=(file_path,)
-    #         ).start()
-    #
-    #         return JsonResponse({"message": "Файл загружен успешно"}, status=200)
-    #
-    #     except Exception as e:
-    #         # Если возникает исключение, логируем его и возвращаем сообщение об ошибке
-    #         traceback_str = traceback.format_exc()  # Получаем полный traceback
-    #         logger.bind(user=request.user.username).error(
-    #             f"Ошибка при загрузке или обработке файла: {e}\n{traceback_str}"
-    #         )
-    #         return JsonResponse(
-    #             {"error": str(e), "traceback": traceback_str}, status=500
-    #         )
-
 
 class CitiesAdmin(LoginRequiredMixin, View):
     """
-    Класс для обработки запросов, связанных с обновлением городов.
+    Класс для обработки запросов, связанных с обновлением городов через админ панель
 
     """
     login_url = reverse_lazy("cities:admin_city")
 
     def get(self, request: HttpRequest) -> HttpResponse:
         """
-        Получает список всех городов.
+        Получает список названий таблиц для городов
 
         Args:
             request (HttpRequest): Объект запроса.
@@ -240,32 +203,45 @@ class CitiesAdmin(LoginRequiredMixin, View):
             threading.Thread(
                 target=GlobusParser.process_file, args=(file_path,)
             ).start()
-
+            logger.bind(user=request.user.username).info(
+                f"Файл загружен успешно")
             return JsonResponse({"message": "Файл загружен успешно"}, status=200)
 
         except Exception as e:
             # Если возникает исключение, логируем его и возвращаем сообщение об ошибке
             traceback_str = traceback.format_exc()  # Получаем полный traceback
             logger.bind(user=request.user.username).error(
-                f"Ошибка при загрузке или обработке файла: {e}\n{traceback_str}"
-            )
+                f"Ошибка при загрузке или обработке файла: {e}\n{traceback_str}")
             return JsonResponse(
                 {"error": str(e), "traceback": traceback_str}, status=500
             )
 
 
 class CityInfoView(View):
-    def get(self, request):
+    """
+    Представление для работы с данными о городах (CityData).
+    Поддерживает методы:
+    - GET: получение информации о городе по номеру документа (dock_num) и ID таблицы (table_id)
+    - POST: создание новой записи
+    - PUT: обновление существующей записи
+    """
+
+    def get(self, request: HttpRequest) -> JsonResponse:
+        """
+        Обрабатывает GET-запрос:
+        - если передан dock_num, возвращает данные соответствующей записи
+        - иначе возвращает следующий доступный номер документа
+
+        :param request: объект запроса
+        :return: JSON-ответ с найденными данными или следующим номером
+        """
         dock_num = request.GET.get('dock_num')
-        table_id = request.GET.get('table_id')  # для фильтрации по таблице
-        print(table_id)
-        print(dock_num)
+        table_id = request.GET.get('table_id')
 
         if dock_num:
             try:
-                obj = CityData.objects.get(dock_num=dock_num, table_id=table_id)
-                print(obj.to_dict())
-                data = {
+                obj: CityData = CityData.objects.get(dock_num=dock_num, table_id=table_id)
+                data: Dict[str, Any] = {
                     'location': obj.location,
                     'name_organ': obj.name_organ,
                     'pseudonim': obj.pseudonim,
@@ -279,30 +255,55 @@ class CityInfoView(View):
             except CityData.DoesNotExist:
                 return JsonResponse({'found': False})
         else:
-            # вернём последний номер
-            latest = CityData.objects.filter(table_id=table_id).order_by('-dock_num').first()
-            return JsonResponse({'last_num': latest.dock_num + 1 if latest else 1})
+            latest: CityData = (
+                CityData.objects.filter(table_id=table_id).order_by('-dock_num').first()
+            )
+            next_num: int = latest.dock_num + 1 if latest else 1
+            return JsonResponse({'last_num': next_num})
 
-    def post(self, request):
+    def post(self, request: HttpRequest) -> JsonResponse:
+        """
+        Обрабатывает POST-запрос:
+        - валидирует и сохраняет новые данные
+
+        :param request: объект запроса
+        :return: JSON-ответ с результатом создания или ошибками валидации
+        """
         data = json.loads(request.body)
         form = CityDataForm(data)
         if form.is_valid():
-            obj = form.save()
+            obj: CityData = form.save()
+            logger.bind(user=request.user.username).info(f"Город успешно создан: {obj.id}")
             return JsonResponse({'created': True, 'id': obj.id})
         else:
-            print(form.errors)
+            logger.bind(user=request.user.username).error(
+                f"Ошибка при создании города: {json.dumps(form.errors.get_json_data(), ensure_ascii=False, indent=2)}"
+            )
             return JsonResponse({'errors': form.errors}, status=400)
 
-    def put(self, request):
+    def put(self, request: HttpRequest) -> JsonResponse:
+        """
+        Обрабатывает PUT-запрос:
+        - обновляет существующую запись по dock_num и table_id
+
+        :param request: объект запроса
+        :return: JSON-ответ с результатом обновления или ошибками
+        """
         data = json.loads(request.body)
         try:
-            obj = CityData.objects.get(dock_num=data['dock_num'], table_id=data['table_id'])
+            obj: CityData = CityData.objects.get(
+                dock_num=data['dock_num'], table_id=data['table_id']
+            )
         except CityData.DoesNotExist:
             return JsonResponse({'errors': 'Object not found'}, status=404)
+
         form = CityDataForm(data, instance=obj)
         if form.is_valid():
             form.save()
+            logger.bind(user=request.user.username).info(f"Город успешно обновлён: {obj.id}")
             return JsonResponse({'updated': True})
         else:
-            print(form.errors)
+            logger.bind(user=request.user.username).error(
+                f"Ошибка при обновлении города: {json.dumps(form.errors.get_json_data(), ensure_ascii=False, indent=2)}"
+            )
             return JsonResponse({'errors': form.errors}, status=400)
