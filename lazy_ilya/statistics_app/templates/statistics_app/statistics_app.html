@@ -57,6 +57,35 @@
         </div>
     </div>
 
+    <div class="max-w-full mx-auto p-6 border-b-2 border-b-accent">
+        <h2 class="mb-6 text-center">Топ запросов по городам</h2>
+
+        <!-- Топ-3 популярных города -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 lg:max-w-4xl mx-auto gap-3 pb-3 ">
+        {% for counter in top_cities %}
+            <div class="stat-card">
+                <div>
+                    <h3 class="text-center text-text dark:text-text-dark">Город №{{ forloop.counter }}</h3>
+                </div>
+                <div class="mt-4 space-y-2">
+                    <!-- Название города -->
+                    <p class="!text-2xl text-center font-semibold text-primary dark:text-primary-dark">
+                        {{ counter.dock_num.location }}
+                    </p>
+                    <!-- Кол-во запросов -->
+                    <p class="!text-4xl text-center font-bold text-accent dark:text-accent-dark">
+                        <span class="count-up" data-target="{{ counter.count_responses }}">0</span>
+                    </p>
+                </div>
+            </div>
+        {% empty %}
+            <p class="col-span-full text-center text-secondary dark:text-secondary-dark">Нет данных по городам</p>
+        {% endfor %}
+    </div>
+    </div>
+
+
+
 
 
 

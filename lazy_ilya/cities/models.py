@@ -211,7 +211,7 @@ class CounterCities(models.Model):
     dock_num: models.OneToOneField = models.OneToOneField(CityData, on_delete=models.CASCADE,
                                                           verbose_name="Пункт в таблице документов")
     count_responses: models.IntegerField = models.IntegerField(
-        verbose_name="Количество запросов к этому городу"
+        verbose_name="Количество запросов к этому городу",default=0
     )
 
     class Meta:

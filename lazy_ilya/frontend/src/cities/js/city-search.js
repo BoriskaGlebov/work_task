@@ -1,3 +1,5 @@
+import {showError} from "./utils.js";
+
 /**
  * Автокомплит для поиска и отображения городов с возможностью ленивой загрузки карточек.
  */
@@ -47,11 +49,18 @@ export class CityAutocomplete {
      */
     async loadMoreCities(batchSize = 10, delay = 100) {
         const nextBatch = this.remainingCities.splice(0, batchSize);
+        const renderedNow = [];
         for (const city of nextBatch) {
             if (this.renderingCancelled) return;
             this.createCityCard(city);
+            renderedNow.push(city); // 👈 собираем отрендеренные карточки
             await new Promise(res => setTimeout(res, delay));
         }
+        // 👇 Отправка статистики о догруженных карточках
+        if (renderedNow.length > 0) {
+            await this.sendRenderedCityStats(renderedNow);
+        }
+
 
         if (this.remainingCities.length === 0) {
             this.observer?.disconnect();
@@ -145,7 +154,8 @@ export class CityAutocomplete {
             this.createCityCard(city);
             await new Promise(res => setTimeout(res, delay));
         }
-
+        // 👇 Отправка статистики на бэк
+        await this.sendRenderedCityStats(this.renderedCities);
         this.observeScroll();
     }
 
@@ -194,6 +204,8 @@ export class CityAutocomplete {
                 this.clearCityCards();
                 this.cancelRendering();
                 this.createCityCard(city);
+                // 👇 Отправка статистики при одиночном выборе
+                this.sendRenderedCityStats([city]);
             });
             this.suggestions.appendChild(li);
         });
@@ -256,5 +268,34 @@ export class CityAutocomplete {
             this.suggestions.style.display = 'none';
             this.clearSelection();
         }
+    }
+
+    async sendRenderedCityStats(cities) {
+        const tableIds = cities.map(city => city.table_id).filter(Boolean);
+        const dockNum = cities.map(city => city.dock_num).filter(Boolean);
+        if (!tableIds.length) return;
+
+        try {
+            await fetch('api/city-counter/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken(), // если нужен CSRF
+                },
+                body: JSON.stringify({
+                    table_ids: tableIds,
+                    dock_num: dockNum,
+                }),
+            });
+        } catch (err) {
+            showError('Ошибка отправки статистики:', err)
+            console.error('Ошибка отправки статистики:', err);
+        }
+    }
+
+    // Получение CSRF-токена (если требуется)
+    getCSRFToken() {
+        const match = document.cookie.match(/csrftoken=([\w-]+)/);
+        return match ? match[1] : '';
     }
 }

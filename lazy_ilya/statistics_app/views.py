@@ -6,6 +6,7 @@ from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views import View
 
+from cities.models import CounterCities
 from file_creator.models import Counter
 
 
@@ -21,7 +22,6 @@ class StatisticsApp(LoginRequiredMixin, View):
         """
         """
         counters = Counter.objects.all()
-        print(counters)
 
         # Общее количество файлов
         total_files = counters.aggregate(total=Sum('num_files'))['total'] or 0
@@ -40,10 +40,17 @@ class StatisticsApp(LoginRequiredMixin, View):
 
         # Кружки кофе (2 файла = 1 кружка)
         coffee_cups = total_files // 2
+        # ✅ Топ-3 самых популярных города по запросам
+        top_cities = (
+            CounterCities.objects
+            .select_related("dock_num")  # Чтобы избежать дополнительных запросов
+            .order_by("-count_responses")[:3]
+        )
 
         return render(request, 'statistics_app/statistics_app.html', {
             'total_files': total_files,
             'best_day': best_day,
             'best_day_total': best_day_total,
             'coffee_cups': coffee_cups,
+            'top_cities': top_cities,  # 🔥 Передаём в шаблон
         })

@@ -60,6 +60,11 @@ class CitiesActionLoggingMiddleware:
                 f"{'📤' if method == 'PUT' else '💾'} {method}-запрос на создание/обновление от {user_name} на {path} с IP {ip}. "
                 f"Отправленные данные: {body_data}"
             )
+        elif path=="/cities/api/city-counter/" and user.is_authenticated and method in ['POST']:
+            logger.bind(user=user_name).info(
+                f"{'📤' if method == 'PUT' else '💾'} {method}-запрос на обноноления счетчика запросов в городам от {user_name} на {path} с IP {ip}. "
+                f"Отправленные данные: {body_data}"
+            )
 
         try:
             response = self.get_response(request)
@@ -78,6 +83,8 @@ class CitiesActionLoggingMiddleware:
         elif path.startswith('/cities/admin/') and user.is_authenticated and method in ['POST']:
             self.log_response(response, user_name, method, path, ip)
         elif path.startswith('/cities/admin/city-info/') and user.is_authenticated and method in ['POST', 'PUT']:
+            self.log_response(response, user_name, method, path, ip)
+        elif path=="/cities/api/city-counter/" and user.is_authenticated and method in ['POST']:
             self.log_response(response, user_name, method, path, ip)
 
         return response

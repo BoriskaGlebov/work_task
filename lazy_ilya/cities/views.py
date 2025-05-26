@@ -9,6 +9,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse_lazy
 from django.views import View
+from django.views.decorators.csrf import csrf_exempt
 
 from cities.forms import CityDataForm
 from cities.models import CityData, CounterCities
@@ -306,3 +307,56 @@ class CityInfoView(View):
                 f"Ошибка при обновлении города: {json.dumps(form.errors.get_json_data(), ensure_ascii=False, indent=2)}"
             )
             return JsonResponse({'errors': form.errors}, status=400)
+
+
+# @csrf_exempt
+def increment_city_counters(request: HttpRequest) -> JsonResponse:
+    """
+    Обрабатывает POST-запрос для увеличения счетчиков запросов к городам.
+
+    Ожидает JSON-тело запроса следующего вида:
+        {
+            "table_ids": [1, 2, 3],
+            "dock_num": ["A1", "B2", "C3"]
+        }
+
+    Каждая пара (table_id, dock_num) используется для поиска записи CityData.
+    Если такая запись найдена, увеличивается соответствующий счетчик в модели CounterCities.
+
+    Returns:
+        JsonResponse:
+            - {"status": "ok"} с HTTP 200 — если операция прошла успешно.
+            - {"error": "..."} с HTTP 400 — в случае ошибки обработки.
+            - {"error": "Only POST allowed"} с HTTP 405 — если метод не POST.
+    """
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=405)
+
+    try:
+        data = json.loads(request.body)
+        table_ids = data.get("table_ids", [])
+        dock_nums = data.get("dock_num", [])
+
+        # Проверка на соответствие количества элементов
+        if len(table_ids) != len(dock_nums):
+            return JsonResponse({"error": "table_ids и dock_num должны быть одинаковой длины"}, status=400)
+
+        for table_id, dock_num in zip(table_ids, dock_nums):
+            try:
+                city = CityData.objects.get(table_id=table_id, dock_num=dock_num)
+                counter, created = CounterCities.objects.get_or_create(dock_num=city)
+                counter.count_responses += 1
+                counter.save()
+            except CityData.DoesNotExist:
+                continue  # Запись не найдена — пропускаем
+
+        logger.bind(user=getattr(request.user, 'username', 'Anonymous')).info(
+            "Обновлены счетчики запросов к городам"
+        )
+        return JsonResponse({"status": "ok"}, status=200)
+
+    except Exception as e:
+        logger.bind(user=getattr(request.user, 'username', 'Anonymous')).error(
+            f"Ошибка при обновлении счетчиков: {str(e)}"
+        )
+        return JsonResponse({"error": str(e)}, status=400)
