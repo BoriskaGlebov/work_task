@@ -1,1 +1,0 @@
-function a(c,s){const t=document.getElementById(c);t&&(t.classList.toggle("bg-accent"),t.classList.toggle("dark:bg-accent-dark"));const e=document.getElementById(s);e&&(e.classList.toggle("bg-accent"),e.classList.toggle("dark:bg-accent-dark"))}export{a as t};
