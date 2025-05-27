@@ -39,6 +39,7 @@ export async function runStep2(data, step3, formDiv3) {
     const fileContentTextarea = document.getElementById('file-content');
     const leftUlForm3 = document.getElementById('file-names-list');
     step3.classList.add('li-style-active');
+    let maxHeight = 300; // Максимальная высота в px
 
     const fileContentMap = new Map();
     let firstFile = null;
@@ -70,11 +71,13 @@ export async function runStep2(data, step3, formDiv3) {
             });
 
             li.addEventListener('click', () => {
-                window.scrollTo({top: 0, behavior: 'smooth'});
+                // window.scrollTo({top: 0, behavior: 'smooth'});
+                fileContentTextarea.scrollIntoView({behavior: 'smooth', block: 'start'});
                 fileContentTextarea.value = fileContentMap.get(file);
                 fileContentTextarea.disabled = false;
                 fileContentTextarea.style.height = "auto";
-                fileContentTextarea.style.height = fileContentTextarea.scrollHeight + "px";
+                maxHeight = fileContentTextarea.scrollHeight
+                fileContentTextarea.style.height = maxHeight + "px";
 
                 saveButton.disabled = false;
                 saveAllButton.disabled = false;
@@ -97,11 +100,13 @@ export async function runStep2(data, step3, formDiv3) {
 
             deleteBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                window.scrollTo({top: 0, behavior: 'smooth'});
+                // window.scrollTo({top: 0, behavior: 'smooth'});
 
                 const serverInfo = document.getElementById('server-info2');
+
                 const btnDiv = document.getElementById('btn-div');
                 serverInfo.classList.remove('hidden');
+                serverInfo.scrollIntoView({behavior: 'smooth', block: 'start'});
                 serverInfo.classList.add('flex', 'animate-popup');
 
                 serverInfo.querySelector('h3').textContent = `Удалить файл "${file}"?`;
@@ -144,7 +149,8 @@ export async function runStep2(data, step3, formDiv3) {
                             fileContentTextarea.value = fileContentMap.get(newFileName) || '';
                             fileContentTextarea.disabled = false;
                             fileContentTextarea.style.height = "auto";
-                            fileContentTextarea.style.height = fileContentTextarea.scrollHeight + "px";
+                            maxHeight = fileContentTextarea.scrollHeight
+                            fileContentTextarea.style.height = maxHeight + "px";
 
                             document.querySelectorAll('.file-item').forEach(el => el.classList.remove('file-item-selected'));
                             newLi.classList.add('file-item-selected');
@@ -206,7 +212,9 @@ export async function runStep2(data, step3, formDiv3) {
         fileContentTextarea.value = fileContentMap.get(firstFile);
         fileContentTextarea.disabled = false;
         fileContentTextarea.style.height = "auto";
-        fileContentTextarea.style.height = fileContentTextarea.scrollHeight + "px";
+        maxHeight = fileContentTextarea.scrollHeight
+        fileContentTextarea.style.height = maxHeight + "px";
+        fileContentTextarea.blur();  // Снимаем фокус, чтобы не скроллило
 
         const saveButton = document.getElementById('save-edited-content');
         saveButton.disabled = false;
@@ -218,10 +226,12 @@ export async function runStep2(data, step3, formDiv3) {
 
     fileContentTextarea.addEventListener('input', () => {
         if (currentFileName) {
-            // Сначала сбрасываем высоту, чтобы scrollHeight был точным
+            const scrollY = window.scrollY;
+
             fileContentTextarea.style.height = 'auto';
-            // Затем устанавливаем новую высоту по содержимому
             fileContentTextarea.style.height = fileContentTextarea.scrollHeight + 'px';
+
+            window.scrollTo({top: scrollY});
 
             const newText = fileContentTextarea.value;
             fileContentMap.set(currentFileName, newText);
@@ -229,7 +239,6 @@ export async function runStep2(data, step3, formDiv3) {
             if (index !== -1) {
                 data.content[index] = newText;
             }
-            console.log(data);
         }
     });
 
