@@ -43,15 +43,22 @@
 
 ```
 
+## Команда скачать все модули для фронта и потом ля установк оффлайн
 
-[репка с образами](https://disk.yandex.ru/d/mwNyjrgPqyo8oA)<br>
-[grafana](https://disk.yandex.ru/d/FeRgvtyFiNpXFw)
+```bash
+    mkdir npm-offline-cache
+    npm install --cache ./npm-offline-cache --prefer-offline
+    или / или 
+    npm ci --cache ./npm-offline-cache --prefer-offline
 
-[верстка1](https://disk.yandex.ru/d/YBTowH1VvyaiDA) 
-[верстка2](https://disk.yandex.ru/d/skEKMmowHtxEMg) 
 
-[КОнтейнер1](https://disk.yandex.ru/d/1028OIhsfTuImQ)
-[КОнтейнер2](https://disk.yandex.ru/d/hCNHgj-Wd_yQUg)
+
+```
+## Оффлайн установка после
+```bash
+    npm install --offline --cache ./npm-offline-cache
+
+```
 
 [FRONTEND](https://disk.yandex.ru/d/fryy7S-eUYAtzQ)
 
