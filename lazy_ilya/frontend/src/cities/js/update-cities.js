@@ -268,6 +268,7 @@ export class CityModalHandler {
         serverInfo.classList.remove('hidden', 'animate-popup-reverse');
         serverInfo.classList.add('flex', 'animate-popup');
         serverInfo.querySelector('p').textContent = message;
+        serverInfo.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
         setTimeout(() => {
             serverInfo.classList.remove('animate-popup');
