@@ -11,6 +11,7 @@ from django.views.generic import CreateView, TemplateView, FormView
 
 from myauth.forms import CustomUserCreationForm, PasswordResetForm
 from myauth.models import CustomUser
+from lazy_ilya.utils.settings_for_app import logger
 
 
 class LoginAjaxView(LoginView):
@@ -113,6 +114,7 @@ class RegisterView(CreateView):
             JsonResponse
         """
         errors = {field: error[0] for field, error in form.errors.items()}
+        logger.warning(errors)
         if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return JsonResponse({'success': False, 'errors': errors}, status=400)
         return super().form_invalid(form)

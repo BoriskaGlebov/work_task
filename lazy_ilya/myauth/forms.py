@@ -47,10 +47,30 @@ class CustomUserCreationForm(UserCreationForm):
         password1 = self.cleaned_data.get("password1")
         password2 = self.cleaned_data.get("password2")
         if password1 and password2 and password1 != password2:
-            self.add_error(field="password2", error="Кожаный, будь внимателен, пароли должны \nсовпадать!!!")
+            self.add_error('password2', 'Кожаный, будь внимателен, пароли должны \nсовпадать!!!')
+        if password1 and len(password1) < 5:
+            self.add_error('password1', 'Длина пароля от 5 символов!')
+        if password2 and len(password2) < 5:
+            self.add_error('password2', 'Длина пароля от 5 символов!')
         # Вызывается позже, что ю сработала моя валидация с кастомным сообщением
         cleaned_data = super().clean()
         return cleaned_data
+
+    def clean_password1(self):
+        password1 = self.cleaned_data.get("password1")
+        if password1 and len(password1) < 5:
+            raise forms.ValidationError("Длина пароля от 5 символов!")
+        return password1
+
+    def clean_password2(self):
+        password1 = self.cleaned_data.get("password1")
+        password2 = self.cleaned_data.get("password2")
+
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError("Кожаный, будь внимателен, пароли должны \nсовпадать!!!")
+        if password2 and len(password2) < 5:
+            raise forms.ValidationError("Длина пароля от 5 символов!")
+        return password2
 
 
 class PasswordResetForm(forms.Form):

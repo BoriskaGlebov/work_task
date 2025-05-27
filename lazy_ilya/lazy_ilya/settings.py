@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "daphne",
     "django.contrib.staticfiles",
-    # "work_for_ilia.apps.WorkForIliaConfig",
     "file_creator.apps.FileCreatorConfig",
     "myauth.apps.MyauthConfig",
     "cities.apps.CitiesConfig",
