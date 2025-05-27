@@ -295,6 +295,7 @@ export class CityModalHandler {
             serverInfo.classList.add('flex', 'animate-popup');
             serverInfo.querySelector('h3').textContent = 'Подтверждение удаления';
             serverInfo.querySelector('p').textContent = `Вы уверены, что хотите удалить "${cityToDelete.name_organ}"?`;
+            serverInfo.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
             const divBtn = document.getElementById('btn-div');
             divBtn.innerHTML = '';
