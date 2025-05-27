@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Dict
 
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
@@ -33,7 +33,7 @@ class CustomUserCreationForm(UserCreationForm):
             },
         }
 
-    def clean(self) -> dict[str, Any]:
+    def clean(self) -> Dict[str, Any]:
         """
         Переопределяет метод clean для добавления проверки совпадения паролей.
 

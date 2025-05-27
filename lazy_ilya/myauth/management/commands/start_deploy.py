@@ -66,19 +66,19 @@ class GroupManager:
             {
                 "name": "admins",
                 "permissions": [
-                    # "add_counter", "change_counter", "delete_counter", "view_counter",
-                    # "add_sometables", "change_sometables", "delete_sometables", "view_sometables",
-                    # "add_somedatafromsometables", "change_somedatafromsometables",
-                    # "delete_somedatafromsometables", "view_somedatafromsometables",
-                    # "add_countercities", "change_countercities",
-                    # "delete_countercities", "view_countercities",
+                    "add_counter", "change_counter", "delete_counter", "view_counter",
+                    "add_tablenames", "change_tablenames", "delete_tablenames", "view_tablenames",
+                    "add_citydata", "change_citydata",
+                    "delete_citydata", "view_citydata",
+                    "add_countercities", "change_countercities",
+                    "delete_countercities", "view_countercities",
                 ],
             },
             {
                 "name": "ilia-group",
                 "permissions": [
-                    # "view_counter", "view_sometables",
-                    # "view_somedatafromsometables", "view_countercities",
+                    "view_counter", "view_tablenames",
+                    "view_citydata", "view_citydata",
                 ],
             },
         ]
