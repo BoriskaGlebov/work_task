@@ -1,0 +1,23 @@
+{% extends "file_creator/base.html" %}
+
+{% load static %}
+
+{% block title %}
+    Обработчик файлов
+{% endblock %}
+
+{% block loader %}
+    <!-- Элемент с иконкой загрузки (крутящийся логотип) -->
+    <div id="loader"
+         class="loader">
+        <img src="
+{% if VITE_DEV_MODE %}
+http://localhost:5173/src/file_creator/img/file_creator_eating.ico
+{% else %}
+{% static 'file_creator/img/file_creator_eating.ico' %}
+{% endif %}"
+             alt="Loading Logo" class="w-50 h-50 animate-bounce">
+    </div>
+{% endblock %}
+
+

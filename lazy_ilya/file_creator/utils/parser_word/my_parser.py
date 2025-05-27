@@ -5,7 +5,7 @@ from typing import List
 
 import django
 from docx import Document
-from work_for_ilia.utils.my_settings.settings_for_app import logger
+from lazy_ilya.utils.settings_for_app import logger,ProjectSettings
 
 # Укажите путь к настройкам вашего проекта
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lazy_ilya.settings")
@@ -13,7 +13,6 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lazy_ilya.settings")
 # Настройка Django
 django.setup()
 
-from work_for_ilia.utils.my_settings.settings_for_app import ProjectSettings
 
 
 class Parser:

@@ -16,7 +16,7 @@ def base_view(request: HttpRequest):
 
 
 class StatisticsApp(LoginRequiredMixin, View):
-    login_url = reverse_lazy("statistics_app:statistics_app")
+    login_url = reverse_lazy('myauth:login')
 
     def get(self, request: HttpRequest) -> HttpResponse:
         """

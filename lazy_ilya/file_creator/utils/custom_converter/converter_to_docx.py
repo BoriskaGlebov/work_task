@@ -2,9 +2,7 @@ import os
 from typing import List
 
 from spire.doc import Document, FileFormat
-from work_for_ilia.utils.my_settings.settings_for_app import (ProjectSettings,
-                                                              logger)
-
+from lazy_ilya.utils.settings_for_app import logger,ProjectSettings
 
 class Converter:
     """

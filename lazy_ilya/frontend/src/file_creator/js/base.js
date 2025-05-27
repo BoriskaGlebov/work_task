@@ -4,7 +4,7 @@ import "../img/file_creator_eating.ico"
 window.addEventListener('load', () => {
     // Получаем элемент загрузки
     const loader = document.getElementById('loader');
-
+    if (!loader) return; // Если элемент не найден, выходим
     // После 2 секунд начнем плавное скрытие элемента
     setTimeout(() => {
         // Плавно меняем прозрачность на 0
@@ -67,3 +67,29 @@ burgerMenuBtn.addEventListener('click', () => {
         burgerMenuBtn.classList.remove('open')
     }
 });
+
+// --- Автоматическая перезагрузка страницы при бездействии (через 30 минут) ---
+const AUTO_RELOAD_TIME = 30 * 60 * 1000; // 30 минут в миллисекундах
+
+function updateActivity() {
+    localStorage.setItem('lastActivity', Date.now().toString());
+}
+
+function checkInactivity() {
+    const lastActivity = parseInt(localStorage.getItem('lastActivity'), 10) || Date.now();
+    const now = Date.now();
+
+    if (now - lastActivity > AUTO_RELOAD_TIME) {
+        location.reload(); // Перезагрузка страницы
+    }
+}
+
+// Обновляем активность при любом действии пользователя
+['click', 'mousemove', 'keydown', 'scroll', 'touchstart'].forEach(event => {
+    window.addEventListener(event, updateActivity);
+});
+
+updateActivity(); // Устанавливаем время активности при загрузке страницы
+
+setInterval(checkInactivity, 1000); // Проверяем бездействие каждые 1 секунд
+

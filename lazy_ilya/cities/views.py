@@ -32,7 +32,7 @@ class Cities(LoginRequiredMixin, View):
     Этот класс обрабатывает загрузку файлов с данными о городах, получение списка городов,
     обновление и удаление информации о городах.
     """
-    login_url = reverse_lazy("cities:base_template")
+    login_url = reverse_lazy('myauth:login')
 
     def get(self, request: HttpRequest) -> HttpResponse:
         """
@@ -156,7 +156,7 @@ class CitiesAdmin(LoginRequiredMixin, View):
     Класс для обработки запросов, связанных с обновлением городов через админ панель
 
     """
-    login_url = reverse_lazy("cities:admin_city")
+    login_url = reverse_lazy('myauth:login')
 
     def get(self, request: HttpRequest) -> HttpResponse:
         """
@@ -217,7 +217,7 @@ class CitiesAdmin(LoginRequiredMixin, View):
             )
 
 
-class CityInfoView(View):
+class CityInfoView(LoginRequiredMixin, View):
     """
     Представление для работы с данными о городах (CityData).
     Поддерживает методы:
@@ -225,6 +225,7 @@ class CityInfoView(View):
     - POST: создание новой записи
     - PUT: обновление существующей записи
     """
+    login_url = reverse_lazy('myauth:login')
 
     def get(self, request: HttpRequest) -> JsonResponse:
         """
