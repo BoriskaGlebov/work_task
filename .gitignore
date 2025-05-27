@@ -172,3 +172,4 @@ cython_debug/
 /lazy_ilya/db.sqlite3
 /lazy_ilya/work_for_ilia/utils/test_dir/
 /test_dir/
+/lazy_ilya/logs/
