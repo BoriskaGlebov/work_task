@@ -67,7 +67,7 @@ class UploadView(LoginRequiredMixin, View):
         try:
             for index, uploaded_file in enumerate(uploaded_files):
                 # Сохраните файл и получите его имя
-                filename = fs.save(f"{index + 1}{uploaded_file.name}", uploaded_file)
+                filename = fs.save(f"{index + 1}_{uploaded_file.name}", uploaded_file)
                 new_files.append(
                     f"{index + document_number}_{str(os.path.splitext(filename)[0])[1:]}.txt"
                 )
