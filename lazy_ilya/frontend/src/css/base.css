@@ -227,6 +227,7 @@ p {
 
 .common_error {
     @apply items-center
+    absolute top-5 left-5 right-5
     text-sm md:text-base text-start  rounded-lg p-4 mb-4
     text-error dark:text-error-dark
     border border-error dark:border-error-dark
@@ -235,6 +236,7 @@ p {
 
 .common_info {
     @apply items-center
+    absolute top-5 left-5 right-5
     text-sm md:text-base text-start  rounded-lg p-4 mb-4
     text-info dark:text-info-dark
     border border-info dark:border-info-dark

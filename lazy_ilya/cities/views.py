@@ -162,7 +162,7 @@ class CitiesAdmin(LoginRequiredMixin, UserPassesTestMixin, View):
 
     def test_func(self):
         # Проверяем, что пользователь в группе admin
-        return self.request.user.groups.filter(name='admin').exists()
+        return self.request.user.groups.filter(name='admin').exists() or self.request.user.is_superuser
 
     def handle_no_permission(self):
         if not self.request.user.is_authenticated:
@@ -243,7 +243,7 @@ class CityInfoView(LoginRequiredMixin, UserPassesTestMixin,View):
 
     def test_func(self):
         # Проверяем, что пользователь в группе admin
-        return self.request.user.groups.filter(name='admin').exists()
+        return self.request.user.groups.filter(name='admin').exists() or self.request.user.is_superuser
 
     def handle_no_permission(self):
         if not self.request.user.is_authenticated:
