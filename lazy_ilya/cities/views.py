@@ -3,10 +3,10 @@ import threading
 import traceback
 from typing import List, Dict, Any
 
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Q
-from django.http import HttpRequest, HttpResponse, JsonResponse
-from django.shortcuts import render, get_object_or_404
+from django.http import HttpRequest, HttpResponse, JsonResponse, Http404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
@@ -68,6 +68,7 @@ class Cities(LoginRequiredMixin, View):
             city = get_object_or_404(
                 CityData, table_id=table_id, dock_num=dock_num
             )
+
             # Загружаем данные из тела запроса
             data = json.loads(request.body)
             # Обновляем поля города
@@ -82,7 +83,8 @@ class Cities(LoginRequiredMixin, View):
                 f"Произошло обновление города {city.name_organ} - {city.location}")
             return JsonResponse({"status": "success"})
 
-        except CityData.DoesNotExist:
+
+        except Http404:
             logger.bind(user=request.user.username).error(f"Город не найден")
             return JsonResponse(
                 {"status": "error", "message": "Город не найден"}, status=404
@@ -140,7 +142,7 @@ class Cities(LoginRequiredMixin, View):
 
             return JsonResponse({"status": "success"})
 
-        except CityData.DoesNotExist:
+        except Http404:
             logger.bind(user=request.user.username).error(f"Город не найден")
             return JsonResponse(
                 {"status": "error", "message": "Город не найден"}, status=404
@@ -151,12 +153,24 @@ class Cities(LoginRequiredMixin, View):
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
 
-class CitiesAdmin(LoginRequiredMixin, View):
+class CitiesAdmin(LoginRequiredMixin, UserPassesTestMixin, View):
     """
     Класс для обработки запросов, связанных с обновлением городов через админ панель
 
     """
     login_url = reverse_lazy('myauth:login')
+
+    def test_func(self):
+        # Проверяем, что пользователь в группе admin
+        return self.request.user.groups.filter(name='admin').exists()
+
+    def handle_no_permission(self):
+        if not self.request.user.is_authenticated:
+            # Если не залогинен — редиректим на страницу логина
+            return redirect(self.login_url)
+        # Возвращаем 403 вместо редиректа
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Доступ запрещён, только админ может сюда заходить")
 
     def get(self, request: HttpRequest) -> HttpResponse:
         """
@@ -217,7 +231,7 @@ class CitiesAdmin(LoginRequiredMixin, View):
             )
 
 
-class CityInfoView(LoginRequiredMixin, View):
+class CityInfoView(LoginRequiredMixin, UserPassesTestMixin,View):
     """
     Представление для работы с данными о городах (CityData).
     Поддерживает методы:
@@ -226,6 +240,18 @@ class CityInfoView(LoginRequiredMixin, View):
     - PUT: обновление существующей записи
     """
     login_url = reverse_lazy('myauth:login')
+
+    def test_func(self):
+        # Проверяем, что пользователь в группе admin
+        return self.request.user.groups.filter(name='admin').exists()
+
+    def handle_no_permission(self):
+        if not self.request.user.is_authenticated:
+            # Если не залогинен — редиректим на страницу логина
+            return redirect(self.login_url)
+        # Возвращаем 403 вместо редиректа
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Доступ запрещён, только админ может сюда заходить")
 
     def get(self, request: HttpRequest) -> JsonResponse:
         """
@@ -296,7 +322,7 @@ class CityInfoView(LoginRequiredMixin, View):
                 dock_num=data['dock_num'], table_id=data['table_id']
             )
         except CityData.DoesNotExist:
-            return JsonResponse({'errors': 'Object not found'}, status=404)
+            return JsonResponse({'errors': 'А я такой город не нашел!'}, status=404)
 
         form = CityDataForm(data, instance=obj)
         if form.is_valid():
