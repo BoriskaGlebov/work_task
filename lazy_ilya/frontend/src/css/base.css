@@ -444,8 +444,8 @@ p {
     @apply absolute flex flex-col p-4 rounded-xl shadow-md cursor-text
     select-text w-full max-w-[350px]  max-h-[1000px] duration-500 overflow-y-auto
     transition-shadow outline-none resize min-h-[200px];
-    transform: rotate(calc(-2deg + 4deg * var(--random)));
-    --random: 0;
+    /*transform: rotate(calc(-2deg + 4deg * var(--random)));*/
+    /*--random: 0;*/
     /*overflow: auto;*/
 }
 

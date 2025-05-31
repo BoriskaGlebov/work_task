@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
         boardId: 'note-board',
         colors: ['#FFEB3B', '#FFCDD2', '#C8E6C9', '#BBDEFB'],
     });
+    // ВАЖНО: вызываем загрузку начальных заметок после инициализации
+    kanban.loadInitialNotes();
     const kanbanTask = new KanbanTasks({addButtonId: 'btn-tasks', boardId: 'task-board'});
 
 });

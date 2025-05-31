@@ -7,6 +7,36 @@
 
 
     <div class="container mx-auto py-6 px-4 space-y-4">
+        <div id="server-error" class="hidden common_error"
+             role="alert">
+            <svg class="shrink-0 inline size-5 md:size-7 me-3" aria-hidden="true"
+                 xmlns="http://www.w3.org/2000/svg"
+                 fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"></path>
+            </svg>
+            <span class="sr-only">Info</span>
+            <div>
+                <span class="!font-bold">Danger alert!</span>
+                <p>Change a few things up and try submitting again.</p>
+            </div>
+        </div>
+        <div id="server-info" class="hidden common_info"
+             role="info">
+            <svg class="shrink-0 inline size-5 md:size-7 me-3" aria-hidden="true"
+                 xmlns="http://www.w3.org/2000/svg"
+                 fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"></path>
+            </svg>
+            <span class="sr-only">Info</span>
+            <div>
+                <span class="!font-bold">Info alert!</span>
+                <h3 class="text-text dark:text-text-dark">Сообщение</h3>
+                <p class="text-text dark:text-text-dark">Change a few things up and try submitting again.</p>
+                <div id="btn-div" class="flex justify-center gap-3 mt-3">
+
+                </div>
+            </div>
+        </div>
         <h2 class="text-center">📌 Моя доска</h2>
         <!-- Header -->
         <div class="flex justify-between items-center mb-4">
@@ -22,6 +52,7 @@
         <!-- Notes Board -->
         <div id="note-board"
              class="relative  min-h-[400px]  border-b-2 border-b-accent transition-all">
+            {% csrf_token %}
             <!-- карточки стикеров -->
         </div>
 
@@ -52,8 +83,11 @@
         <script type="module" crossorigin src="{% static 'stickers/js/start.js' %}"></script>
     {% endif %}
     <script>
-        window.username =  "{{ user.first_name|default:user.username }}"
+
+        window.username = "{{ user.first_name|default:user.username }}"
         console.log(username)
+        window.notes_data = JSON.parse('{{ notes_data|escapejs }}')
+        console.log(notes_data)
     </script>
 
 {% endblock %}

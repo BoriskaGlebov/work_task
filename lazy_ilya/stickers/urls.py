@@ -1,10 +1,11 @@
 from django.urls import path
 
-from stickers.views import base_view
+from stickers.views import base_view, StickyNoteView
 
 app_name = "stickers"
 urlpatterns = [
-    path("", base_view, name="stickers"),
+    path("", StickyNoteView.as_view(), name="stickers"),
+    path("<int:note_id>/",StickyNoteView.as_view(), name="delete_stickers")
     # path("cities/<int:table_id>/<int:dock_num>/", Cities.as_view(), name="edit_city"),
     # path(
     #     "cities/delete/<int:table_id>/<int:dock_num>/",
