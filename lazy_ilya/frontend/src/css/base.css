@@ -7,6 +7,7 @@
 @source "../../../file_creator/templates/**/*.html";
 @source "../../../cities/templates/**/*.html";
 @source "../../../statistics_app/templates/**/*.html";
+@source "../../../stickers/templates/**/*.html";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -437,3 +438,47 @@ p {
     dark:border-accent-dark
     hover:scale-105 transition-all duration-500;
 }
+
+
+.note-card {
+    @apply absolute flex flex-col p-4 rounded-xl shadow-md cursor-text
+    select-text w-full max-w-[350px]  max-h-[1000px] duration-500 overflow-y-auto
+    transition-shadow outline-none resize min-h-[200px];
+    transform: rotate(calc(-2deg + 4deg * var(--random)));
+    --random: 0;
+    /*overflow: auto;*/
+}
+
+.add-button {
+    @apply fixed bottom-6 right-6 bg-background dark:bg-background-dark
+    hover:bg-primary dark:hover:bg-primary-dark hover:scale-120
+    border-2  border-accent
+    transition-all duration-200
+    ease-in-out active:scale-95 active:rotate-360
+    text-text dark:text-text-dark w-15 h-15 rounded-full shadow-xl text-2xl flex items-center justify-center ;
+}
+
+
+.delete-btn {
+    @apply absolute top-1.5 right-1.5 bg-transparent border-0 text-gray-600 text-xl cursor-pointer select-none p-0 leading-none z-10;
+}
+
+
+.note-card.dragging {
+    @apply opacity-70 shadow-xl shadow-primary dark:shadow-primary-dark cursor-grabbing;
+}
+
+.delete-btn {
+    @apply absolute top-1 right-2 text-lg text-gray-700 hover:text-red-600 font-bold bg-transparent border-none cursor-pointer ;
+    line-height: 1;
+    user-select: none;
+}
+
+.task-card {
+    @apply max-h-[250px] overflow-y-auto;
+}
+.author-btn{
+    @apply  bg-accent text-text text-sm font-medium mr-3 px-4 py-0.5 rounded-sm dark:bg-accent-dark dark:text-text-dark cursor-pointer
+}
+
+

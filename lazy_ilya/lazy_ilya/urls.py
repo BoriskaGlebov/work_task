@@ -24,4 +24,6 @@ urlpatterns = [
     path("login/", include("myauth.urls")),
     path("cities/", include("cities.urls")),
     path("statistics-app/", include("statistics_app.urls")),
+
+    path("stickers/", include("stickers.urls")),
 ]

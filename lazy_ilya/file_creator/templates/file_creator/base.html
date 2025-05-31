@@ -42,6 +42,8 @@
             <div class="hidden lg:flex items-center gap-2">
                 <a id="a-main" href="{% url 'file_creator:file-creator-start' %}"
                    class="a-style" tabindex="-1">Главная</a>
+                <a id="a-stickers" href="{% url 'stickers:stickers' %}"
+                   class="a-style" tabindex="-1">Заметки</a>
                 <a id="a-cities" href="{% url 'cities:base_template' %}"
                    class="a-style" tabindex="-1">Города</a>
                 <a id="a-statistics" href="{% url 'statistics_app:statistics_app' %}"
@@ -93,6 +95,8 @@
              class="flex-col space-y-2 lg:hidden max-h-0 overflow-hidden transition-all duration-400">
             <a id="a-main-mob" href="{% url 'file_creator:file-creator-start' %}"
                class="burger-button" tabindex="-1">Главная</a>
+            <a id="a-stickers-mob" href="{% url 'stickers:stickers' %}"
+               class="burger-button" tabindex="-1">Заметки</a>
             <a id="a-cities-mob" href="{% url 'cities:base_template' %}"
                class="burger-button" tabindex="-1">Города</a>
             <a id="a-statistics-mob" href="{% url 'statistics_app:statistics_app' %}"

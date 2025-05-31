@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "myauth.apps.MyauthConfig",
     "cities.apps.CitiesConfig",
     "statistics_app.apps.StatisticsAppConfig",
+    "stickers.apps.StickersConfig",
     "channels",
 ]
 
