@@ -39,12 +39,15 @@ def get_all_cities(request: HttpRequest):
 
 
 def get_context_admin_cities():
-    tables_names = TableNames.objects.values("id","table_name",)
+    tables_names = TableNames.objects.values(
+        "id",
+        "table_name",
+    )
     context = {
         "table_name": list(tables_names),
     }
     return context
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(get_context_admin_cities())

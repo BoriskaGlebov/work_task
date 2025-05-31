@@ -13,13 +13,17 @@ from django.views.decorators.csrf import csrf_exempt
 
 from cities.forms import CityDataForm
 from cities.models import CityData, CounterCities
-from cities.utils.common_func.get_city_context import get_all_cities, get_context_admin_cities
+from cities.utils.common_func.get_city_context import (
+    get_all_cities,
+    get_context_admin_cities,
+)
 from cities.utils.parser_word.globus_parser import GlobusParser
 from file_creator.utils.storage import OverwritingFileSystemStorage
 from lazy_ilya.utils.settings_for_app import logger, ProjectSettings
 
 
 # Create your views here.
+
 
 def base_view(request):
     return render(request=request, template_name="cities/admin-cities.html")
@@ -32,7 +36,8 @@ class Cities(LoginRequiredMixin, View):
     Этот класс обрабатывает загрузку файлов с данными о городах, получение списка городов,
     обновление и удаление информации о городах.
     """
-    login_url = reverse_lazy('myauth:login')
+
+    login_url = reverse_lazy("myauth:login")
 
     def get(self, request: HttpRequest) -> HttpResponse:
         """
@@ -65,24 +70,30 @@ class Cities(LoginRequiredMixin, View):
         """
         try:
             # Получаем город по ID таблицы и номеру доки
-            city = get_object_or_404(
-                CityData, table_id=table_id, dock_num=dock_num
-            )
+            city = get_object_or_404(CityData, table_id=table_id, dock_num=dock_num)
 
             # Загружаем данные из тела запроса
             data = json.loads(request.body)
-            # Обновляем поля города
-            city.location = data.get("location", city.location)
-            city.name_organ = data.get("name_organ", city.name_organ)
-            city.pseudonim = data.get("pseudonim", city.pseudonim)
-            city.ip_address = data.get("ip_address", city.ip_address)
-            city.work_time = data.get("work_time", city.work_time)
-            city.some_number = data.get("some_number", city.some_number)
-            city.save()
-            logger.bind(user=request.user.username).info(
-                f"Произошло обновление города {city.name_organ} - {city.location}")
-            return JsonResponse({"status": "success"})
-
+            form = CityDataForm(data, instance=city)
+            if form.is_valid():
+                form.save()
+                # # Обновляем поля города
+                # city.location = data.get("location", city.location)
+                # city.name_organ = data.get("name_organ", city.name_organ)
+                # city.pseudonim = data.get("pseudonim", city.pseudonim)
+                # city.ip_address = data.get("ip_address", city.ip_address)
+                # city.work_time = data.get("work_time", city.work_time)
+                # city.some_number = data.get("some_number", city.some_number)
+                # city.save()
+                logger.bind(user=request.user.username).info(
+                    f"Произошло обновление города {city.name_organ} - {city.location}"
+                )
+                return JsonResponse({"status": "success"})
+            else:
+                logger.bind(user=request.user.username).error(
+                    f"Ошибка при создании города: {json.dumps(form.errors.get_json_data(), ensure_ascii=False, indent=2)}"
+                )
+                return JsonResponse({"errors": form.errors}, status=400)
 
         except Http404:
             logger.bind(user=request.user.username).error(f"Город не найден")
@@ -97,11 +108,13 @@ class Cities(LoginRequiredMixin, View):
             )
 
         except Exception as e:
-            logger.bind(user=request.user.username).error(f"Ошибка при обновлении города: {e}")
+            logger.bind(user=request.user.username).error(
+                f"Ошибка при обновлении города: {e}"
+            )
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
     def delete(
-            self, request: HttpRequest, table_id: int, dock_num: int
+        self, request: HttpRequest, table_id: int, dock_num: int
     ) -> JsonResponse:
         """
         Удаляет город.
@@ -116,15 +129,15 @@ class Cities(LoginRequiredMixin, View):
         """
         try:
             # Получаем город по ID таблицы и номеру доки
-            city = get_object_or_404(
-                CityData, table_id=table_id, dock_num=dock_num
-            )
+            city = get_object_or_404(CityData, table_id=table_id, dock_num=dock_num)
             logger.bind(user=request.user.username).info(
-                f"Проиcходит удаление города {city.name_organ} - {city.location}")
+                f"Проиcходит удаление города {city.name_organ} - {city.location}"
+            )
             if city:
                 try:
                     counter_city = CounterCities.objects.get(
-                        dock_num=city)  # changed name to the name u have in related model
+                        dock_num=city
+                    )  # changed name to the name u have in related model
                     counter_city.delete()  # Удаляем запись CounterCities
                 except CounterCities.DoesNotExist:
                     # Если CounterCities не существует, ничего страшного, продолжаем
@@ -149,7 +162,9 @@ class Cities(LoginRequiredMixin, View):
             )
 
         except Exception as e:
-            logger.bind(user=request.user.username).error(f"Ошибка при удалении города: {e}")
+            logger.bind(user=request.user.username).error(
+                f"Ошибка при удалении города: {e}"
+            )
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
 
@@ -158,11 +173,15 @@ class CitiesAdmin(LoginRequiredMixin, UserPassesTestMixin, View):
     Класс для обработки запросов, связанных с обновлением городов через админ панель
 
     """
-    login_url = reverse_lazy('myauth:login')
+
+    login_url = reverse_lazy("myauth:login")
 
     def test_func(self):
         # Проверяем, что пользователь в группе admin
-        return self.request.user.groups.filter(name='admin').exists() or self.request.user.is_superuser
+        return (
+            self.request.user.groups.filter(name="admin").exists()
+            or self.request.user.is_superuser
+        )
 
     def handle_no_permission(self):
         if not self.request.user.is_authenticated:
@@ -170,7 +189,10 @@ class CitiesAdmin(LoginRequiredMixin, UserPassesTestMixin, View):
             return redirect(self.login_url)
         # Возвращаем 403 вместо редиректа
         from django.http import HttpResponseForbidden
-        return HttpResponseForbidden("Доступ запрещён, только админ может сюда заходить")
+
+        return HttpResponseForbidden(
+            "Доступ запрещён, только админ может сюда заходить"
+        )
 
     def get(self, request: HttpRequest) -> HttpResponse:
         """
@@ -211,27 +233,29 @@ class CitiesAdmin(LoginRequiredMixin, UserPassesTestMixin, View):
             )
             file_path = fs.save(uploaded_file.name, uploaded_file)
 
-            logger.bind(user=request.user.username).info("Запуск обработки файла в отдельном потоке")
+            logger.bind(user=request.user.username).info(
+                "Запуск обработки файла в отдельном потоке"
+            )
 
             # Запускаем обработку файла в отдельном потоке
             threading.Thread(
                 target=GlobusParser.process_file, args=(file_path,)
             ).start()
-            logger.bind(user=request.user.username).info(
-                f"Файл загружен успешно")
+            logger.bind(user=request.user.username).info(f"Файл загружен успешно")
             return JsonResponse({"message": "Файл загружен успешно"}, status=200)
 
         except Exception as e:
             # Если возникает исключение, логируем его и возвращаем сообщение об ошибке
             traceback_str = traceback.format_exc()  # Получаем полный traceback
             logger.bind(user=request.user.username).error(
-                f"Ошибка при загрузке или обработке файла: {e}\n{traceback_str}")
+                f"Ошибка при загрузке или обработке файла: {e}\n{traceback_str}"
+            )
             return JsonResponse(
                 {"error": str(e), "traceback": traceback_str}, status=500
             )
 
 
-class CityInfoView(LoginRequiredMixin, UserPassesTestMixin,View):
+class CityInfoView(LoginRequiredMixin, UserPassesTestMixin, View):
     """
     Представление для работы с данными о городах (CityData).
     Поддерживает методы:
@@ -239,11 +263,15 @@ class CityInfoView(LoginRequiredMixin, UserPassesTestMixin,View):
     - POST: создание новой записи
     - PUT: обновление существующей записи
     """
-    login_url = reverse_lazy('myauth:login')
+
+    login_url = reverse_lazy("myauth:login")
 
     def test_func(self):
         # Проверяем, что пользователь в группе admin
-        return self.request.user.groups.filter(name='admin').exists() or self.request.user.is_superuser
+        return (
+            self.request.user.groups.filter(name="admin").exists()
+            or self.request.user.is_superuser
+        )
 
     def handle_no_permission(self):
         if not self.request.user.is_authenticated:
@@ -251,7 +279,10 @@ class CityInfoView(LoginRequiredMixin, UserPassesTestMixin,View):
             return redirect(self.login_url)
         # Возвращаем 403 вместо редиректа
         from django.http import HttpResponseForbidden
-        return HttpResponseForbidden("Доступ запрещён, только админ может сюда заходить")
+
+        return HttpResponseForbidden(
+            "Доступ запрещён, только админ может сюда заходить"
+        )
 
     def get(self, request: HttpRequest) -> JsonResponse:
         """
@@ -262,31 +293,33 @@ class CityInfoView(LoginRequiredMixin, UserPassesTestMixin,View):
         :param request: объект запроса
         :return: JSON-ответ с найденными данными или следующим номером
         """
-        dock_num = request.GET.get('dock_num')
-        table_id = request.GET.get('table_id')
+        dock_num = request.GET.get("dock_num")
+        table_id = request.GET.get("table_id")
 
         if dock_num:
             try:
-                obj: CityData = CityData.objects.get(dock_num=dock_num, table_id=table_id)
+                obj: CityData = CityData.objects.get(
+                    dock_num=dock_num, table_id=table_id
+                )
                 data: Dict[str, Any] = {
-                    'location': obj.location,
-                    'name_organ': obj.name_organ,
-                    'pseudonim': obj.pseudonim,
-                    'letters': obj.letters,
-                    'writing': obj.writing,
-                    'ip_address': obj.ip_address,
-                    'some_number': obj.some_number,
-                    'work_time': obj.work_time,
+                    "location": obj.location,
+                    "name_organ": obj.name_organ,
+                    "pseudonim": obj.pseudonim,
+                    "letters": obj.letters,
+                    "writing": obj.writing,
+                    "ip_address": obj.ip_address,
+                    "some_number": obj.some_number,
+                    "work_time": obj.work_time,
                 }
-                return JsonResponse({'found': True, 'data': data})
+                return JsonResponse({"found": True, "data": data})
             except CityData.DoesNotExist:
-                return JsonResponse({'found': False})
+                return JsonResponse({"found": False})
         else:
             latest: CityData = (
-                CityData.objects.filter(table_id=table_id).order_by('-dock_num').first()
+                CityData.objects.filter(table_id=table_id).order_by("-dock_num").first()
             )
             next_num: int = latest.dock_num + 1 if latest else 1
-            return JsonResponse({'last_num': next_num})
+            return JsonResponse({"last_num": next_num})
 
     def post(self, request: HttpRequest) -> JsonResponse:
         """
@@ -300,13 +333,15 @@ class CityInfoView(LoginRequiredMixin, UserPassesTestMixin,View):
         form = CityDataForm(data)
         if form.is_valid():
             obj: CityData = form.save()
-            logger.bind(user=request.user.username).info(f"Город успешно создан: {obj.id}")
-            return JsonResponse({'created': True, 'id': obj.id})
+            logger.bind(user=request.user.username).info(
+                f"Город успешно создан: {obj.id}"
+            )
+            return JsonResponse({"created": True, "id": obj.id})
         else:
             logger.bind(user=request.user.username).error(
                 f"Ошибка при создании города: {json.dumps(form.errors.get_json_data(), ensure_ascii=False, indent=2)}"
             )
-            return JsonResponse({'errors': form.errors}, status=400)
+            return JsonResponse({"errors": form.errors}, status=400)
 
     def put(self, request: HttpRequest) -> JsonResponse:
         """
@@ -319,21 +354,23 @@ class CityInfoView(LoginRequiredMixin, UserPassesTestMixin,View):
         data = json.loads(request.body)
         try:
             obj: CityData = CityData.objects.get(
-                dock_num=data['dock_num'], table_id=data['table_id']
+                dock_num=data["dock_num"], table_id=data["table_id"]
             )
         except CityData.DoesNotExist:
-            return JsonResponse({'errors': 'А я такой город не нашел!'}, status=404)
+            return JsonResponse({"errors": "А я такой город не нашел!"}, status=404)
 
         form = CityDataForm(data, instance=obj)
         if form.is_valid():
             form.save()
-            logger.bind(user=request.user.username).info(f"Город успешно обновлён: {obj.id}")
-            return JsonResponse({'updated': True})
+            logger.bind(user=request.user.username).info(
+                f"Город успешно обновлён: {obj.id}"
+            )
+            return JsonResponse({"updated": True})
         else:
             logger.bind(user=request.user.username).error(
                 f"Ошибка при обновлении города: {json.dumps(form.errors.get_json_data(), ensure_ascii=False, indent=2)}"
             )
-            return JsonResponse({'errors': form.errors}, status=400)
+            return JsonResponse({"errors": form.errors}, status=400)
 
 
 # @csrf_exempt
@@ -366,7 +403,10 @@ def increment_city_counters(request: HttpRequest) -> JsonResponse:
 
         # Проверка на соответствие количества элементов
         if len(table_ids) != len(dock_nums):
-            return JsonResponse({"error": "table_ids и dock_num должны быть одинаковой длины"}, status=400)
+            return JsonResponse(
+                {"error": "table_ids и dock_num должны быть одинаковой длины"},
+                status=400,
+            )
 
         for table_id, dock_num in zip(table_ids, dock_nums):
             try:
@@ -377,13 +417,13 @@ def increment_city_counters(request: HttpRequest) -> JsonResponse:
             except CityData.DoesNotExist:
                 continue  # Запись не найдена — пропускаем
 
-        logger.bind(user=getattr(request.user, 'username', 'Anonymous')).info(
+        logger.bind(user=getattr(request.user, "username", "Anonymous")).info(
             "Обновлены счетчики запросов к городам"
         )
         return JsonResponse({"status": "ok"}, status=200)
 
     except Exception as e:
-        logger.bind(user=getattr(request.user, 'username', 'Anonymous')).error(
+        logger.bind(user=getattr(request.user, "username", "Anonymous")).error(
             f"Ошибка при обновлении счетчиков: {str(e)}"
         )
         return JsonResponse({"error": str(e)}, status=400)

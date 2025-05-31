@@ -27,7 +27,7 @@ SECRET_KEY = "django-insecure-f)sqft2b+v-rn(9%g76ii2yp(nr)er4@sm@9u(lrvq0vp5q6*#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 # Application definition
 
@@ -64,9 +64,11 @@ ROOT_URLCONF = "lazy_ilya.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "myauth/templates",
-                 BASE_DIR / "file_creator/templates",
-                 BASE_DIR / "cities/templates"],
+        "DIRS": [
+            BASE_DIR / "myauth/templates",
+            BASE_DIR / "file_creator/templates",
+            BASE_DIR / "cities/templates",
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -133,7 +135,6 @@ STATICFILES_DIRS = [
     BASE_DIR / "lazy_ilya/static",
     BASE_DIR / "file_creator/static",
     BASE_DIR / "cities/static",
-
 ]
 
 # Default primary key field type
@@ -167,7 +168,7 @@ CHANNEL_LAYERS = {
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 30 * 60  # Время жизни сессии в секундах (например, 30 минут)
 SESSION_SAVE_EVERY_REQUEST = True  # Обновляет таймер сессии при каждом запросе
-AUTH_USER_MODEL = 'myauth.CustomUser'
+AUTH_USER_MODEL = "myauth.CustomUser"
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(BASE_DIR)

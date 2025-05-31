@@ -23,6 +23,5 @@ urlpatterns = [
     path("", include("file_creator.urls")),
     path("login/", include("myauth.urls")),
     path("cities/", include("cities.urls")),
-
     path("statistics-app/", include("statistics_app.urls")),
 ]

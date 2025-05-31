@@ -2,7 +2,8 @@ import os
 from typing import List
 
 from spire.doc import Document, FileFormat
-from lazy_ilya.utils.settings_for_app import logger,ProjectSettings
+from lazy_ilya.utils.settings_for_app import logger, ProjectSettings
+
 
 class Converter:
     """
@@ -33,7 +34,7 @@ class Converter:
             file
             for file in os.listdir(self.dir)
             if os.path.isfile(os.path.join(self.dir, file))
-               and not file.endswith((".txt", ".docx"))
+            and not file.endswith((".txt", ".docx"))
         ]
         return files
 

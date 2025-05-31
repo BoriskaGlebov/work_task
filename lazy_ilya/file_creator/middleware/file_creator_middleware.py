@@ -16,29 +16,34 @@ class FileCreatorActionLoggingMiddleware:
         path = request.path
         method = request.method
         user = request.user
-        ip = request.META.get('REMOTE_ADDR')
+        ip = request.META.get("REMOTE_ADDR")
         user_name = user.username if user.is_authenticated else "Аноним"
-        file_names = [f.name for f in request.FILES.getlist("files")] if request.FILES else []
+        file_names = (
+            [f.name for f in request.FILES.getlist("files")] if request.FILES else []
+        )
         body_data = None
-        if method in ['POST', 'PUT']:
+        if method in ["POST", "PUT"]:
             try:
-                if request.content_type == 'application/json':
+                if request.content_type == "application/json":
                     body_data = json.loads(request.body.decode())
-                elif 'multipart/form-data' in request.content_type or 'application/x-www-form-urlencoded' in request.content_type:
+                elif (
+                    "multipart/form-data" in request.content_type
+                    or "application/x-www-form-urlencoded" in request.content_type
+                ):
                     body_data = request.POST.dict()
             except Exception as e:
                 body_data = f"[Не удалось прочитать тело запроса: {str(e)}]"
 
         # Только для адресов, связанных с file_creator
-        if path == '/' and user.is_authenticated:
-            if method == 'GET':
+        if path == "/" and user.is_authenticated:
+            if method == "GET":
                 logger.bind(user=user_name).info(
                     f"📄 GET-запрос на страницу загрузки документов {path} с IP {ip}"
                 )
-            elif method in ['POST', 'PUT']:
+            elif method in ["POST", "PUT"]:
                 files = f"Загруженные файлы: {file_names}"
 
-                logger.bind(user=user_name,filename=','.join(file_names)).info(
+                logger.bind(user=user_name, filename=",".join(file_names)).info(
                     f"{'📤' if method == 'POST' else '💾'} {method}-запрос от {user_name} на {path} с IP {ip}. "
                     f"Отправленные данные: {body_data} {files if file_names else ''} "
                 )
@@ -50,10 +55,10 @@ class FileCreatorActionLoggingMiddleware:
                 f"❌ Ошибка при обработке запроса {method} {path} с IP {ip}: {str(e)}"
             )
             raise
-        if path == '/' and user.is_authenticated:
-            if method in ['POST', 'PUT']:
+        if path == "/" and user.is_authenticated:
+            if method in ["POST", "PUT"]:
                 self.log_response(response, user_name, method, path, ip)
-            elif path == '/':
+            elif path == "/":
                 logger.bind(user=user_name).info(
                     f"✅ {user_name} успешно выполнил {method}-запрос на {path} "
                     f"с IP {ip}. Статус: {response.status_code}"
@@ -61,16 +66,18 @@ class FileCreatorActionLoggingMiddleware:
 
         return response
 
-    def log_response(self, response: HttpResponse, user_name: str, method: str, path: str, ip: str) -> None:
+    def log_response(
+        self, response: HttpResponse, user_name: str, method: str, path: str, ip: str
+    ) -> None:
         """
         Подробное логирование ответа сервера.
         """
-        content_type = response.get('Content-Type', '')
-        body = ''
-        if 'application/json' in content_type or 'text' in content_type:
+        content_type = response.get("Content-Type", "")
+        body = ""
+        if "application/json" in content_type or "text" in content_type:
             try:
-                body = response.content.decode(errors='ignore')
-                if 'application/json' in content_type:
+                body = response.content.decode(errors="ignore")
+                if "application/json" in content_type:
                     body = json.loads(body)
             except Exception as e:
                 body = f"[Ошибка при чтении тела ответа: {str(e)}]"

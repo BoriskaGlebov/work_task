@@ -11,7 +11,10 @@ from django.views import View
 
 from file_creator.models import Counter
 from file_creator.utils.custom_converter.converter_to_docx import Converter
-from file_creator.utils.parser_word.my_parser import Parser, replace_unsupported_characters
+from file_creator.utils.parser_word.my_parser import (
+    Parser,
+    replace_unsupported_characters,
+)
 from file_creator.utils.storage import OverwritingFileSystemStorage
 from lazy_ilya.utils.settings_for_app import logger, ProjectSettings
 
@@ -23,7 +26,8 @@ class UploadView(LoginRequiredMixin, View):
     Этот класс обрабатывает HTTP-запросы для загрузки файлов,
     их конвертации в нужный формат и парсинга содержимого.
     """
-    login_url = reverse_lazy('myauth:login')
+
+    login_url = reverse_lazy("myauth:login")
 
     def get(self, request: HttpRequest) -> HttpResponse:
         """
@@ -91,13 +95,18 @@ class UploadView(LoginRequiredMixin, View):
             return JsonResponse({"error": "Неверный номер документа."}, status=400)
 
         except FileNotFoundError as fnfe:
-            logger.bind(user=request.user.username).error(f"FileNotFoundError: {str(fnfe)}")
+            logger.bind(user=request.user.username).error(
+                f"FileNotFoundError: {str(fnfe)}"
+            )
             return JsonResponse({"error": "Файл не найден."}, status=404)
 
         except Exception as e:
             logger.bind(user=request.user.username).error(str(e))
             error_type = type(e).__name__
-            return JsonResponse({"error": f"Произошла какая-то ошибка - {error_type} - {str(e)}"}, status=500)
+            return JsonResponse(
+                {"error": f"Произошла какая-то ошибка - {error_type} - {str(e)}"},
+                status=500,
+            )
 
     def put(self, request: HttpRequest) -> JsonResponse:
         """
@@ -113,7 +122,7 @@ class UploadView(LoginRequiredMixin, View):
         try:
             data = json.loads(request.body)
 
-            for file_name, file_content in zip(data['files'], data['content']):
+            for file_name, file_content in zip(data["files"], data["content"]):
 
                 new_content = replace_unsupported_characters(file_content)
                 new_file_name: str = file_name
@@ -129,7 +138,9 @@ class UploadView(LoginRequiredMixin, View):
                     file.write(new_content)
 
                 counter += 1
-                logger.bind(user=request.user.username, filename=new_file_name).info(f"Сохранил файл ")
+                logger.bind(user=request.user.username, filename=new_file_name).info(
+                    f"Сохранил файл "
+                )
 
             res = Counter.objects.create(num_files=counter)
             res.save()
@@ -146,4 +157,7 @@ class UploadView(LoginRequiredMixin, View):
         except Exception as e:
             logger.bind(user=request.user.username).error(str(e))
             error_type = type(e).__name__
-            return JsonResponse({"error": f"Произошла какая-то ошибка - {error_type} - {str(e)}"}, status=500)
+            return JsonResponse(
+                {"error": f"Произошла какая-то ошибка - {error_type} - {str(e)}"},
+                status=500,
+            )

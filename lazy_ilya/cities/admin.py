@@ -98,10 +98,7 @@ class CounterCitiesAdmin(admin.ModelAdmin):
             модели в административном интерфейсе Django.
             В данном случае: ("processed_at", "dock_num","count_responses")
     """
-    list_display: Tuple[str] = (
-        "id",
-        "dock_num",
-        "count_responses"
-    )
+
+    list_display: Tuple[str] = ("id", "dock_num", "count_responses")
     list_display_links: Tuple[str] = "id", "dock_num"
     list_filter: Tuple[str] = ("processed_at", "dock_num", "count_responses")

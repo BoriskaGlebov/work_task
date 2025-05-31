@@ -40,37 +40,53 @@ class UserActionLoggingMiddleware:
         user = request.user
         path = request.path
         method = request.method
-        ip = request.META.get('REMOTE_ADDR')
+        ip = request.META.get("REMOTE_ADDR")
 
-        if 'registration' in path.lower() and method == 'GET':
-            logger.info(f"Загрузка формы регистрации в приложение по адресу {path} from IP {ip}")
-        elif 'reset-password' in path.lower() and method == 'GET':
-            logger.info(f"Загрузка формы сброса пароля в приложение по адресу {path} from IP {ip}")
-        elif 'login' in path.lower() and method == 'GET':
-            logger.info(f"Загрузка формы входа в приложение по адресу {path} from IP {ip}")
+        if "registration" in path.lower() and method == "GET":
+            logger.info(
+                f"Загрузка формы регистрации в приложение по адресу {path} from IP {ip}"
+            )
+        elif "reset-password" in path.lower() and method == "GET":
+            logger.info(
+                f"Загрузка формы сброса пароля в приложение по адресу {path} from IP {ip}"
+            )
+        elif "login" in path.lower() and method == "GET":
+            logger.info(
+                f"Загрузка формы входа в приложение по адресу {path} from IP {ip}"
+            )
 
         try:
             # Получаем ответ от следующего обработчика
             response = self.get_response(request)
         except Exception as e:
             # Логируем ошибку при обработке запроса
-            logger.exception(f"❗ Ошибка при обработке запроса {method} {path} с IP {ip}: {str(e)}")
+            logger.exception(
+                f"❗ Ошибка при обработке запроса {method} {path} с IP {ip}: {str(e)}"
+            )
             raise
 
         # Логируем успешные и неуспешные запросы
-        if 'registration' in path.lower() and method == 'POST':
-            logger.info(f"🔐 Анонимная попытка регистрации через {path} с IP {ip} (Статус: {response.status_code})")
+        if "registration" in path.lower() and method == "POST":
+            logger.info(
+                f"🔐 Анонимная попытка регистрации через {path} с IP {ip} (Статус: {response.status_code})"
+            )
             self.custom_message(response, user, method, path, ip)
-        elif 'reset-password' in path.lower() and method == 'POST':
-            logger.info(f"🔐 Анонимная попытка сброса пароля через {path} с IP {ip} (Статус: {response.status_code})")
+        elif "reset-password" in path.lower() and method == "POST":
+            logger.info(
+                f"🔐 Анонимная попытка сброса пароля через {path} с IP {ip} (Статус: {response.status_code})"
+            )
             self.custom_message(response, user, method, path, ip)
-        elif 'login' in path.lower() and method == 'POST':
-            logger.info(f"🔐 Анонимная попытка входа через {path} с IP {ip} (Статус: {response.status_code})")
+        elif "login" in path.lower() and method == "POST":
+            logger.info(
+                f"🔐 Анонимная попытка входа через {path} с IP {ip} (Статус: {response.status_code})"
+            )
             self.custom_message(response, user, method, path, ip)
 
         return response
 
-    def custom_message(self, response: HttpResponse, user, method: str, path: str, ip: str) -> None:
+    def custom_message(
+        self, response: HttpResponse, user, method: str, path: str, ip: str
+    ) -> None:
         """
         Логирует сообщение об ошибках или успешных запросах с деталями ответа.
 
@@ -85,15 +101,15 @@ class UserActionLoggingMiddleware:
         """
         if response.status_code >= 400:
             # Пытаемся получить тело ответа в случае ошибки
-            content_type = response.get('Content-Type', '')
-            body = ''
-            if 'application/json' in content_type:
+            content_type = response.get("Content-Type", "")
+            body = ""
+            if "application/json" in content_type:
                 try:
                     body = json.loads(response.content.decode())
                 except Exception:
-                    body = response.content.decode(errors='ignore')
-            elif 'text' in content_type:
-                body = response.content.decode(errors='ignore')
+                    body = response.content.decode(errors="ignore")
+            elif "text" in content_type:
+                body = response.content.decode(errors="ignore")
 
             # Логируем ошибку с подробным ответом
             logger.warning(

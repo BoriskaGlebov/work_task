@@ -34,7 +34,9 @@ class UploadProgressConsumer(AsyncWebsocketConsumer):
         """
         user = self.scope["user"]
         if user.is_authenticated:
-            logger.bind(user=user.username).info(f"Пользователь {user.username} подключен к WebSocket")
+            logger.bind(user=user.username).info(
+                f"Пользователь {user.username} подключен к WebSocket"
+            )
         else:
             logger.info("Анонимный пользователь подключен к WebSocket")
 
@@ -43,7 +45,9 @@ class UploadProgressConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_add(self.group_name, self.channel_name)
         await self.accept()
 
-        logger.bind(user=user.username).info(f"Клиент подключен к группе: {self.group_name}")
+        logger.bind(user=user.username).info(
+            f"Клиент подключен к группе: {self.group_name}"
+        )
 
     async def disconnect(self, close_code: int) -> None:
         """

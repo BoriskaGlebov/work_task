@@ -23,13 +23,14 @@ class CustomUser(AbstractUser):
         - Номер телефона должен быть уникальным.
         - Обязательно для заполнения.
     """
+
     phone_number = PhoneNumberField(
         verbose_name=_("Телефон"),
         unique=True,
         null=False,
         blank=False,
-        region='RU',  # Установить регион по умолчанию на Россию
-        help_text=_("Номер в международном формате, например: +7 912 345 6789")
+        region="RU",  # Установить регион по умолчанию на Россию
+        help_text=_("Номер в международном формате, например: +7 912 345 6789"),
     )
 
     def __str__(self):

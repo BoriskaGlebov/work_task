@@ -3,6 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser
 from django.utils.translation import gettext_lazy as _
 
+
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
     """
@@ -37,7 +38,7 @@ class CustomUserAdmin(UserAdmin):
         new_fieldsets = []
 
         for name, options in fieldsets:
-            if name == _('Personal info'):  # Стандартный блок "Персональная информация"
+            if name == _("Personal info"):  # Стандартный блок "Персональная информация"
                 # Добавляем поле phone_number, если его нет в списке полей
                 fields = list(options["fields"])
                 if "phone_number" not in fields:
@@ -49,7 +50,10 @@ class CustomUserAdmin(UserAdmin):
         return new_fieldsets
 
     add_fieldsets = UserAdmin.add_fieldsets + (
-        (_("Personal info"), {"fields": ("phone_number",)}),  # Добавление поля phone_number при создании пользователя
+        (
+            _("Personal info"),
+            {"fields": ("phone_number",)},
+        ),  # Добавление поля phone_number при создании пользователя
     )
 
     list_display = ("username", "email", "phone_number", "is_staff", "is_active")

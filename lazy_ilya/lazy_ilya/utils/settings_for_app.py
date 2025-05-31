@@ -23,11 +23,18 @@ class ProjectSettings:
         LOGGER_LEVEL_STDOUT: Уровень логирования для stdout.
         LOGGER_LEVEL_FILE: Уровень логирования для файлового лога.
     """
+
     base_dir: Optional[Path] = BASE_DIR
     tlg_dir: Optional[str] = Path(os.getenv("TLG_PATH")).resolve()
-    log_dir: Optional[Path] = BASE_DIR / "logs"  # Используем Path для лучшей работы с путями
-    LOGGER_LEVEL_STDOUT: Optional[str] = os.getenv("LOGGER_LEVEL_STDOUT", "INFO")  # Устанавливаем значение по умолчанию
-    LOGGER_LEVEL_FILE: Optional[str] = os.getenv("LOGGER_LEVEL_FILE", "DEBUG")  # Устанавливаем значение по умолчанию
+    log_dir: Optional[Path] = (
+        BASE_DIR / "logs"
+    )  # Используем Path для лучшей работы с путями
+    LOGGER_LEVEL_STDOUT: Optional[str] = os.getenv(
+        "LOGGER_LEVEL_STDOUT", "INFO"
+    )  # Устанавливаем значение по умолчанию
+    LOGGER_LEVEL_FILE: Optional[str] = os.getenv(
+        "LOGGER_LEVEL_FILE", "DEBUG"
+    )  # Устанавливаем значение по умолчанию
 
 
 settings = ProjectSettings()
@@ -56,7 +63,9 @@ def filename_filter(record: dict) -> bool:
     Returns:
         bool: True, если имя файла есть, иначе False.
     """
-    return bool(record["extra"].get("filename") and (record["extra"].get("filename") != "-"))
+    return bool(
+        record["extra"].get("filename") and (record["extra"].get("filename") != "-")
+    )
 
 
 def default_filter(record: dict) -> bool:
@@ -72,7 +81,9 @@ def default_filter(record: dict) -> bool:
     # Проверка, если нет user или filename
     if (record["extra"].get("user") == "-") or (not record["extra"].get("user")):
         return True
-    elif (record["extra"].get("filename") == "-") or (not record["extra"].get("filename")):
+    elif (record["extra"].get("filename") == "-") or (
+        not record["extra"].get("filename")
+    ):
         return True
     else:
         return True
@@ -86,24 +97,21 @@ if not os.path.exists(settings.log_dir):
 logger.remove()
 
 # Глобальная конфигурация extra (но она не будет работать, если bind не передаст данные)
-logger.configure(
-    extra={
-        "user": "-",
-        "filename": "-"
-    }
-)
+logger.configure(extra={"user": "-", "filename": "-"})
 # Добавляем обработчик для вывода в stdout
 logger.add(
     sys.stdout,
     level=settings.LOGGER_LEVEL_STDOUT,
     format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> - "
-           "<level>{level:^8}</level> - "
-           "<cyan>{name}</cyan>:<magenta>{line}</magenta> - "
-           "<yellow>{function}</yellow> - "
-           "<white>{message}</white> - "
-           "<magenta>{extra[user]:^15}</magenta> - "
-           "<magenta>{extra[filename]:^15}</magenta>",
-    filter=lambda record: user_filter(record) or filename_filter(record) or default_filter(record),
+    "<level>{level:^8}</level> - "
+    "<cyan>{name}</cyan>:<magenta>{line}</magenta> - "
+    "<yellow>{function}</yellow> - "
+    "<white>{message}</white> - "
+    "<magenta>{extra[user]:^15}</magenta> - "
+    "<magenta>{extra[filename]:^15}</magenta>",
+    filter=lambda record: user_filter(record)
+    or filename_filter(record)
+    or default_filter(record),
     catch=True,
     diagnose=True,
     enqueue=True,
@@ -117,18 +125,20 @@ logger.add(
     log_file_path,
     level=settings.LOGGER_LEVEL_FILE,
     format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> - "
-           "<level>{level:^8}</level> - "
-           "<cyan>{name}</cyan>:<magenta>{line}</magenta> - "
-           "<yellow>{function}</yellow> - "
-           "<white>{message}</white>"
-           "<magenta>{extra[user]:^15}</magenta> - "
-           "<magenta>{extra[filename]:^15}</magenta>",
+    "<level>{level:^8}</level> - "
+    "<cyan>{name}</cyan>:<magenta>{line}</magenta> - "
+    "<yellow>{function}</yellow> - "
+    "<white>{message}</white>"
+    "<magenta>{extra[user]:^15}</magenta> - "
+    "<magenta>{extra[filename]:^15}</magenta>",
     rotation="1 day",  # Ротация логов
     retention="7 days",  # Хранение логов 7 дней
     catch=True,
     backtrace=True,
     diagnose=True,
-    filter=lambda record: user_filter(record) or filename_filter(record) or default_filter(record),
+    filter=lambda record: user_filter(record)
+    or filename_filter(record)
+    or default_filter(record),
     enqueue=True,
 )
 # Экспортируем logger и ProjectSettings для использования в других модулях

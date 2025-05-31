@@ -55,7 +55,9 @@ class UserCreator:
             )
             logger.info(f"Суперпользователь '{self.username}' создан.")
         else:
-            logger.info(f"Суперпользователь '{self.username}' уже существует или не задан.")
+            logger.info(
+                f"Суперпользователь '{self.username}' уже существует или не задан."
+            )
 
     def create_additional_users(self) -> None:
         """
@@ -92,16 +94,30 @@ class GroupManager:
             {
                 "name": "admins",
                 "permissions": [
-                    "add_counter", "change_counter", "delete_counter", "view_counter",
-                    "add_tablenames", "change_tablenames", "delete_tablenames", "view_tablenames",
-                    "add_citydata", "change_citydata", "delete_citydata", "view_citydata",
-                    "add_countercities", "change_countercities", "delete_countercities", "view_countercities",
+                    "add_counter",
+                    "change_counter",
+                    "delete_counter",
+                    "view_counter",
+                    "add_tablenames",
+                    "change_tablenames",
+                    "delete_tablenames",
+                    "view_tablenames",
+                    "add_citydata",
+                    "change_citydata",
+                    "delete_citydata",
+                    "view_citydata",
+                    "add_countercities",
+                    "change_countercities",
+                    "delete_countercities",
+                    "view_countercities",
                 ],
             },
             {
                 "name": "ilia-group",
                 "permissions": [
-                    "view_counter", "view_tablenames", "view_citydata",
+                    "view_counter",
+                    "view_tablenames",
+                    "view_citydata",
                 ],
             },
         ]
@@ -126,7 +142,9 @@ class GroupManager:
                 try:
                     permission = Permission.objects.get(codename=codename)
                     group.permissions.add(permission)
-                    logger.info(f"Право '{codename}' добавлено к группе '{group_data['name']}'.")
+                    logger.info(
+                        f"Право '{codename}' добавлено к группе '{group_data['name']}'."
+                    )
                 except Permission.DoesNotExist:
                     logger.warning(f"Право с codename='{codename}' не найдено в базе.")
 
@@ -139,14 +157,18 @@ class GroupManager:
             group_name = assignment.get("group_name")
 
             if not username or not group_name:
-                logger.warning("Пропущено назначение пользователя в группу: отсутствует username или group_name.")
+                logger.warning(
+                    "Пропущено назначение пользователя в группу: отсутствует username или group_name."
+                )
                 continue
 
             try:
                 user = User.objects.get(username=username)
                 group = Group.objects.get(name=group_name)
                 user.groups.add(group)
-                logger.info(f"Пользователь '{username}' добавлен в группу '{group_name}'.")
+                logger.info(
+                    f"Пользователь '{username}' добавлен в группу '{group_name}'."
+                )
             except User.DoesNotExist:
                 logger.warning(f"Пользователь '{username}' не найден.")
             except Group.DoesNotExist:
@@ -179,4 +201,6 @@ class Command(BaseCommand):
         group_manager.assign_users_to_groups()
 
         # Подтверждение успешного выполнения
-        self.stdout.write(self.style.SUCCESS("✅ Все пользователи и группы успешно созданы!"))
+        self.stdout.write(
+            self.style.SUCCESS("✅ Все пользователи и группы успешно созданы!")
+        )

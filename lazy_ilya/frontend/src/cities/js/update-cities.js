@@ -144,7 +144,11 @@ export class CityModalHandler {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => null);
-                showError(errorData?.message || 'Ошибка при обновлении города');
+                let errorMsg = '';
+                for (const field in errorData.errors) {
+                    errorMsg += `${field}: ${errorData.errors[field].join(', ')}\n`;
+                }
+                showError('Ошибка при сохранении:\n' + errorMsg);
                 return;
             }
 
@@ -268,7 +272,7 @@ export class CityModalHandler {
         serverInfo.classList.remove('hidden', 'animate-popup-reverse');
         serverInfo.classList.add('flex', 'animate-popup');
         serverInfo.querySelector('p').textContent = message;
-        serverInfo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        serverInfo.scrollIntoView({behavior: 'smooth', block: 'start'});
 
         setTimeout(() => {
             serverInfo.classList.remove('animate-popup');
@@ -295,7 +299,7 @@ export class CityModalHandler {
             serverInfo.classList.add('flex', 'animate-popup');
             serverInfo.querySelector('h3').textContent = 'Подтверждение удаления';
             serverInfo.querySelector('p').textContent = `Вы уверены, что хотите удалить "${cityToDelete.name_organ}"?`;
-            serverInfo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            serverInfo.scrollIntoView({behavior: 'smooth', block: 'start'});
 
             const divBtn = document.getElementById('btn-div');
             divBtn.innerHTML = '';

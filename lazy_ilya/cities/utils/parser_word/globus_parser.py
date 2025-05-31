@@ -34,7 +34,7 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from docx import Document
 
-from lazy_ilya.utils.settings_for_app import (ProjectSettings, logger)
+from lazy_ilya.utils.settings_for_app import ProjectSettings, logger
 
 
 class GlobusParser:
@@ -93,7 +93,8 @@ class GlobusParser:
         """
         try:
             doc = cls._load_doc(
-                file_path)  # тип doc зависит от реализации _load_doc (вероятно, объект python-docx.Document)
+                file_path
+            )  # тип doc зависит от реализации _load_doc (вероятно, объект python-docx.Document)
             tables = doc.tables  # Обычно список объектов таблиц документа
             paragraphs = doc.paragraphs  # Список параграфов документа
 
@@ -101,7 +102,9 @@ class GlobusParser:
             # processed_tables: List[Any]
             # tables_to_add: List[Any]
             # tables_to_update: List[Any]
-            processed_tables, tables_to_add, tables_to_update = cls._process_paragraphs(paragraphs)
+            processed_tables, tables_to_add, tables_to_update = cls._process_paragraphs(
+                paragraphs
+            )
 
             # Синхронизация таблиц: метод без возвращаемого значения
             cls._sync_tables(processed_tables, tables_to_add, tables_to_update)
@@ -133,8 +136,9 @@ class GlobusParser:
         return Document(ProjectSettings.tlg_dir / file_path)
 
     @classmethod
-    def _process_paragraphs(cls, paragraphs: List[Any]) -> Tuple[
-        List["TableNames"], List["TableNames"], List["TableNames"]]:
+    def _process_paragraphs(
+        cls, paragraphs: List[Any]
+    ) -> Tuple[List["TableNames"], List["TableNames"], List["TableNames"]]:
         """
         Обрабатывает список параграфов, выделяя из них разделы и соответствующие таблицы.
 
@@ -167,8 +171,8 @@ class GlobusParser:
                 section_number = match.group(1)
                 section_name = paragraph.text.strip()
                 table = TableNames.objects.filter(
-                    Q(table_name__startswith=f"Раздел {section_number}") &
-                    Q(table_name__regex=rf"^Раздел {section_number}(?!\d)")
+                    Q(table_name__startswith=f"Раздел {section_number}")
+                    & Q(table_name__regex=rf"^Раздел {section_number}(?!\d)")
                 ).first()
 
                 if table:
@@ -184,10 +188,12 @@ class GlobusParser:
         return processed_tables, tables_to_add, tables_to_update
 
     @classmethod
-    def _sync_tables(cls,
-                     processed_tables: List["TableNames"],
-                     tables_to_add: List["TableNames"],
-                     tables_to_update: List["TableNames"]) -> None:
+    def _sync_tables(
+        cls,
+        processed_tables: List["TableNames"],
+        tables_to_add: List["TableNames"],
+        tables_to_update: List["TableNames"],
+    ) -> None:
         """
         Синхронизирует таблицы с базой данных: добавляет новые, обновляет изменённые и удаляет устаревшие.
 
@@ -223,9 +229,9 @@ class GlobusParser:
             logger.info(f"Удалено {deleted_count} устаревших таблиц.")
 
     @classmethod
-    def _process_tables_with_rows(cls,
-                                  tables: List[Any],
-                                  tables_id: List["TableNames"]) -> None:
+    def _process_tables_with_rows(
+        cls, tables: List[Any], tables_id: List["TableNames"]
+    ) -> None:
         """
         Обрабатывает строки таблиц из документа, синхронизирует данные с базой.
 
@@ -264,10 +270,11 @@ class GlobusParser:
             for row_num, row in enumerate(doc_table.rows[3:]):
                 # cells = [cell.text.strip().replace("\n", "<br>") for cell in row.cells]
                 cells = [cell.text.strip() for cell in row.cells]
-                row_in_db = CityData.objects.select_related("table_id").filter(
-                    table_id=table_model.id,
-                    dock_num=row_num + 1
-                ).first()
+                row_in_db = (
+                    CityData.objects.select_related("table_id")
+                    .filter(table_id=table_model.id, dock_num=row_num + 1)
+                    .first()
+                )
 
                 value_corrector = {"+": True, "-": False}
                 cls.model_inf = {
@@ -300,10 +307,12 @@ class GlobusParser:
         cls._sync_city_data(cities_to_add, cities_to_update, processed_cities)
 
     @classmethod
-    def _sync_city_data(cls,
-                        cities_to_add: List["CityData"],
-                        cities_to_update: List["CityData"],
-                        processed_cities: List["CityData"]) -> None:
+    def _sync_city_data(
+        cls,
+        cities_to_add: List["CityData"],
+        cities_to_update: List["CityData"],
+        processed_cities: List["CityData"],
+    ) -> None:
         """
         Синхронизирует записи городов с базой: добавляет новые, обновляет существующие и удаляет устаревшие.
 
@@ -328,10 +337,19 @@ class GlobusParser:
                 logger.info(f"Добавил новую запись id = '{row.id}' - {row.location}")
 
         if cities_to_update:
-            CityData.objects.bulk_update(cities_to_update, [
-                "location", "name_organ", "pseudonim", "letters",
-                "writing", "ip_address", "some_number", "work_time"
-            ])
+            CityData.objects.bulk_update(
+                cities_to_update,
+                [
+                    "location",
+                    "name_organ",
+                    "pseudonim",
+                    "letters",
+                    "writing",
+                    "ip_address",
+                    "some_number",
+                    "work_time",
+                ],
+            )
             for row in cities_to_update:
                 logger.info(f"Обновил запись id = '{row.id}' - {row.location}")
 
@@ -365,11 +383,7 @@ class GlobusParser:
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             "progress_updates",
-            {
-                "type": "send_progress",
-                "progress": 100,
-                "cities": updated_cities
-            }
+            {"type": "send_progress", "progress": 100, "cities": updated_cities},
         )
         logger.info(f"Отправка прогресса: 100%")
 
@@ -434,13 +448,17 @@ class GlobusParser:
         style.base_style = document.styles["Heading 1"]  # Наследование от Heading 1
         font = style.font
         font.name = "Times New Roman"
-        font._element.rPr.rFonts.set(qn("w:ascii"), "Times New Roman")  # Корректная установка шрифта для ASCII
+        font._element.rPr.rFonts.set(
+            qn("w:ascii"), "Times New Roman"
+        )  # Корректная установка шрифта для ASCII
         font.color.rgb = RGBColor(0, 0, 0)  # Черный цвет
         font.size = Pt(16)  # Размер шрифта 16 пунктов
 
         para_fmt = style.paragraph_format
         para_fmt.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY  # Выравнивание по ширине
-        para_fmt.line_spacing_rule = WD_LINE_SPACING.SINGLE  # Одинарный межстрочный интервал
+        para_fmt.line_spacing_rule = (
+            WD_LINE_SPACING.SINGLE
+        )  # Одинарный межстрочный интервал
         para_fmt.space_before = Pt(0)  # Отступ перед абзацем
         para_fmt.space_after = Pt(0)  # Отступ после абзаца
         para_fmt.first_line_indent = Inches(0)  # Отступ первой строки
@@ -492,7 +510,8 @@ class GlobusParser:
             "Наименование органа",
             "Название пункта\n(псевдоним)",
             "Вид передаваемой информации",
-            "", "",  # колонки 5 и 6 объединены с 4
+            "",
+            "",  # колонки 5 и 6 объединены с 4
             "Какой-то номер",
             "Время работы, телефон для связи",
         ]
@@ -521,7 +540,9 @@ class GlobusParser:
                 cls._style_cell_text(cell)
                 if row_num >= 3:
                     # Извлекаем данные, сдвигаем индексы под таблицу (пропускаем 3 заголовка)
-                    data_insert = str(table_data[row_num - 3][cell_num + 1]).replace("<br>", "\n")
+                    data_insert = str(table_data[row_num - 3][cell_num + 1]).replace(
+                        "<br>", "\n"
+                    )
                     if data_insert == "True":
                         data_insert = "+"
                     elif data_insert == "False":
@@ -535,7 +556,9 @@ class GlobusParser:
                         cls._style_cell_text(cell, justify=True)
 
     @classmethod
-    def _send_progress_update(cls, send_progress: Optional[Callable[[int], None]], current: int, total: int) -> None:
+    def _send_progress_update(
+        cls, send_progress: Optional[Callable[[int], None]], current: int, total: int
+    ) -> None:
         """
         Отправляет прогресс выполнения, если передана функция send_progress.
 
@@ -551,9 +574,9 @@ class GlobusParser:
 
     @classmethod
     def create_globus(
-            cls,
-            filename: str = "globus_new.docx",
-            send_progress: Optional[Callable[[int], None]] = None,
+        cls,
+        filename: str = "globus_new.docx",
+        send_progress: Optional[Callable[[int], None]] = None,
     ) -> None:
         """
         Создает документ Word с данными о городах и таблицами.
@@ -601,7 +624,7 @@ class GlobusParser:
 
 
 if __name__ == "__main__":
-    globus_file = ProjectSettings.tlg_dir / 'globus.docx'
+    globus_file = ProjectSettings.tlg_dir / "globus.docx"
     print(globus_file)
     GlobusParser.process_file(file_path=globus_file)
     # print(res)

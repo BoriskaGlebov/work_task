@@ -25,7 +25,7 @@ class CustomUserCreationForm(UserCreationForm):
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'first_name', 'last_name', 'phone_number', 'email')
+        fields = ("username", "first_name", "last_name", "phone_number", "email")
         error_messages = {
             "phone_number": {
                 "unique": "Пользователь с таким номером телефона уже зарегистрирован.",
@@ -47,11 +47,13 @@ class CustomUserCreationForm(UserCreationForm):
         password1 = self.cleaned_data.get("password1")
         password2 = self.cleaned_data.get("password2")
         if password1 and password2 and password1 != password2:
-            self.add_error('password2', 'Кожаный, будь внимателен, пароли должны \nсовпадать!!!')
+            self.add_error(
+                "password2", "Кожаный, будь внимателен, пароли должны \nсовпадать!!!"
+            )
         if password1 and len(password1) < 5:
-            self.add_error('password1', 'Длина пароля от 5 символов!')
+            self.add_error("password1", "Длина пароля от 5 символов!")
         if password2 and len(password2) < 5:
-            self.add_error('password2', 'Длина пароля от 5 символов!')
+            self.add_error("password2", "Длина пароля от 5 символов!")
         # Вызывается позже, что ю сработала моя валидация с кастомным сообщением
         cleaned_data = super().clean()
         return cleaned_data
@@ -67,7 +69,9 @@ class CustomUserCreationForm(UserCreationForm):
         password2 = self.cleaned_data.get("password2")
 
         if password1 and password2 and password1 != password2:
-            raise forms.ValidationError("Кожаный, будь внимателен, пароли должны \nсовпадать!!!")
+            raise forms.ValidationError(
+                "Кожаный, будь внимателен, пароли должны \nсовпадать!!!"
+            )
         if password2 and len(password2) < 5:
             raise forms.ValidationError("Длина пароля от 5 символов!")
         return password2
@@ -88,25 +92,16 @@ class PasswordResetForm(forms.Form):
                  и существование пользователя с заданными логином и телефоном.
     """
 
-    username: str = forms.CharField(
-        label="Логин",
-        max_length=150
-    )
+    username: str = forms.CharField(label="Логин", max_length=150)
     phone_number = PhoneNumberField(
         label="Телефон",
         region="RU",
         error_messages={
             "invalid": "Введите корректный номер телефона в формате \n +7 (999) 999-99-99.",
-        }
+        },
     )
-    password1: str = forms.CharField(
-        label="Новый пароль",
-        widget=forms.PasswordInput
-    )
-    password2: str = forms.CharField(
-        label="Повтор пароля",
-        widget=forms.PasswordInput
-    )
+    password1: str = forms.CharField(label="Новый пароль", widget=forms.PasswordInput)
+    password2: str = forms.CharField(label="Повтор пароля", widget=forms.PasswordInput)
 
     def clean(self) -> dict:
         """
@@ -118,19 +113,23 @@ class PasswordResetForm(forms.Form):
             dict: Очищенные данные формы (cleaned_data).
         """
 
-        username = self.cleaned_data.get('username')
-        phone_number = self.cleaned_data.get('phone_number')
-        password1 = self.cleaned_data.get('password1')
-        password2 = self.cleaned_data.get('password2')
+        username = self.cleaned_data.get("username")
+        phone_number = self.cleaned_data.get("phone_number")
+        password1 = self.cleaned_data.get("password1")
+        password2 = self.cleaned_data.get("password2")
         if password1 and password2 and password1 != password2:
-            self.add_error('password2', 'Кожаный, будь внимателен, пароли должны \nсовпадать!!!')
+            self.add_error(
+                "password2", "Кожаный, будь внимателен, пароли должны \nсовпадать!!!"
+            )
         if password1 and len(password1) < 5:
-            self.add_error('password1', 'Длина пароля от 5 символов!')
+            self.add_error("password1", "Длина пароля от 5 символов!")
         if password2 and len(password2) < 5:
-            self.add_error('password2', 'Длина пароля от 5 символов!')
+            self.add_error("password2", "Длина пароля от 5 символов!")
         if username and phone_number:
             try:
-                self.user = CustomUser.objects.get(username=username, phone_number=phone_number)
+                self.user = CustomUser.objects.get(
+                    username=username, phone_number=phone_number
+                )
             except CustomUser.DoesNotExist:
                 self.add_error("username", "Пользователь с такими данными не найдет")
 
