@@ -1,6 +1,6 @@
 from django.urls import path
 
-from stickers.views import base_view, StickyNoteView
+from stickers.views import StickyNoteView
 
 app_name = "stickers"
 urlpatterns = [

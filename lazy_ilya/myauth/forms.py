@@ -131,6 +131,10 @@ class PasswordResetForm(forms.Form):
         phone_number = self.cleaned_data.get("phone_number")
         password1 = self.cleaned_data.get("password1")
         password2 = self.cleaned_data.get("password2")
+        if username == "admin":
+            self.add_error("username", "Борис запретил менять этот пароль")
+            return super().clean()  # Возвращаем после ошибки — дальнейшие проверки не нужны
+
         if password1 and password2 and password1 != password2:
             self.add_error(
                 "password2", "Кожаный, будь внимателен, пароли должны \nсовпадать!!!"
