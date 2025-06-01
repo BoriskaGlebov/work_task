@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth.models import Group
 from django.test import TestCase
 from django.urls import reverse
@@ -16,7 +18,18 @@ class RegisterAjaxViewTest(TestCase):
             "username": "newuser",
             "first_name": "Илья",
             "last_name": "Ленивый",
-            "phone_number": "+79998887766",
+            "phone_number": "+79852000338",
+            "email": "newuser@example.com",
+            "password1": "securepass123",
+            "password2": "securepass123",
+        }
+
+    def get_invalid_data(self):
+        return {
+            "username": "newuser",
+            "first_name": "Илья",
+            "last_name": "Ленивый",
+            "phone_number": "+79852005555",
             "email": "newuser@example.com",
             "password1": "securepass123",
             "password2": "securepass123",
@@ -70,3 +83,16 @@ class RegisterAjaxViewTest(TestCase):
             HTTP_X_REQUESTED_WITH="XMLHttpRequest",
         )
         self.assertTrue("_auth_user_id" in self.client.session)
+
+    def test_user_incorrect_number(self):
+        response = self.client.post(
+            self.register_url,
+            data=self.get_invalid_data(),
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        # Декодируем и парсим JSON-ответ
+        response_json = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('errors',response_json,'Да есть там все')
+        self.assertEqual('Этот номер телефона не разрешён для регистрации.',response_json['errors']['phone_number'])
+

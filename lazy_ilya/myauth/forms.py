@@ -6,6 +6,7 @@ from django.forms import ModelForm, Form
 from phonenumber_field.formfields import PhoneNumberField
 
 from .models import CustomUser
+from lazy_ilya.utils.settings_for_app import settings
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -22,6 +23,12 @@ class CustomUserCreationForm(UserCreationForm):
             fields (tuple): Список отображаемых полей.
             error_messages (dict): Кастомные сообщения об ошибках.
     """
+
+    # ALLOWED_PHONE_NUMBERS = [
+    #     '+79852000338',
+    #     '+79852004545',
+    #     # Добавь нужные номера
+    # ]
 
     class Meta:
         model = CustomUser
@@ -65,6 +72,7 @@ class CustomUserCreationForm(UserCreationForm):
         return password1
 
     def clean_password2(self):
+        """Переопределил метод, что б корректно отображалась ошибка"""
         password1 = self.cleaned_data.get("password1")
         password2 = self.cleaned_data.get("password2")
 
@@ -75,6 +83,12 @@ class CustomUserCreationForm(UserCreationForm):
         if password2 and len(password2) < 5:
             raise forms.ValidationError("Длина пароля от 5 символов!")
         return password2
+
+    def clean_phone_number(self):
+        phone = self.cleaned_data.get("phone_number")
+        if phone not in settings.ALLOWED_PHONE_NUMBERS:
+            raise forms.ValidationError("Этот номер телефона не разрешён для регистрации.")
+        return phone
 
 
 class PasswordResetForm(forms.Form):

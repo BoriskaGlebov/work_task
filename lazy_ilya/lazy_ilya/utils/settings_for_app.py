@@ -22,12 +22,13 @@ class ProjectSettings:
         log_dir: Путь к папке для логов.
         LOGGER_LEVEL_STDOUT: Уровень логирования для stdout.
         LOGGER_LEVEL_FILE: Уровень логирования для файлового лога.
+        ALLOWED_PHONE_NUMBERS: Разрешенные номера телефонные сотрудников
     """
 
     base_dir: Optional[Path] = BASE_DIR
     tlg_dir: Optional[str] = Path(os.getenv("TLG_PATH")).resolve()
     log_dir: Optional[Path] = (
-        BASE_DIR / "logs"
+            BASE_DIR / "logs"
     )  # Используем Path для лучшей работы с путями
     LOGGER_LEVEL_STDOUT: Optional[str] = os.getenv(
         "LOGGER_LEVEL_STDOUT", "INFO"
@@ -35,6 +36,13 @@ class ProjectSettings:
     LOGGER_LEVEL_FILE: Optional[str] = os.getenv(
         "LOGGER_LEVEL_FILE", "DEBUG"
     )  # Устанавливаем значение по умолчанию
+    ALLOWED_PHONE_NUMBERS: Optional[list] = os.getenv("ALLOWED_PHONE_NUMBERS")
+
+    def __post_init__(self):
+        raw_numbers = os.getenv("ALLOWED_PHONE_NUMBERS", "")
+        self.ALLOWED_PHONE_NUMBERS = [
+            phone.strip() for phone in raw_numbers.split(",") if phone.strip()
+        ]
 
 
 settings = ProjectSettings()
@@ -82,7 +90,7 @@ def default_filter(record: dict) -> bool:
     if (record["extra"].get("user") == "-") or (not record["extra"].get("user")):
         return True
     elif (record["extra"].get("filename") == "-") or (
-        not record["extra"].get("filename")
+            not record["extra"].get("filename")
     ):
         return True
     else:
@@ -103,15 +111,15 @@ logger.add(
     sys.stdout,
     level=settings.LOGGER_LEVEL_STDOUT,
     format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> - "
-    "<level>{level:^8}</level> - "
-    "<cyan>{name}</cyan>:<magenta>{line}</magenta> - "
-    "<yellow>{function}</yellow> - "
-    "<white>{message}</white> - "
-    "<magenta>{extra[user]:^15}</magenta> - "
-    "<magenta>{extra[filename]:^15}</magenta>",
+           "<level>{level:^8}</level> - "
+           "<cyan>{name}</cyan>:<magenta>{line}</magenta> - "
+           "<yellow>{function}</yellow> - "
+           "<white>{message}</white> - "
+           "<magenta>{extra[user]:^15}</magenta> - "
+           "<magenta>{extra[filename]:^15}</magenta>",
     filter=lambda record: user_filter(record)
-    or filename_filter(record)
-    or default_filter(record),
+                          or filename_filter(record)
+                          or default_filter(record),
     catch=True,
     diagnose=True,
     enqueue=True,
@@ -125,20 +133,20 @@ logger.add(
     log_file_path,
     level=settings.LOGGER_LEVEL_FILE,
     format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> - "
-    "<level>{level:^8}</level> - "
-    "<cyan>{name}</cyan>:<magenta>{line}</magenta> - "
-    "<yellow>{function}</yellow> - "
-    "<white>{message}</white>"
-    "<magenta>{extra[user]:^15}</magenta> - "
-    "<magenta>{extra[filename]:^15}</magenta>",
+           "<level>{level:^8}</level> - "
+           "<cyan>{name}</cyan>:<magenta>{line}</magenta> - "
+           "<yellow>{function}</yellow> - "
+           "<white>{message}</white>"
+           "<magenta>{extra[user]:^15}</magenta> - "
+           "<magenta>{extra[filename]:^15}</magenta>",
     rotation="1 day",  # Ротация логов
     retention="7 days",  # Хранение логов 7 дней
     catch=True,
     backtrace=True,
     diagnose=True,
     filter=lambda record: user_filter(record)
-    or filename_filter(record)
-    or default_filter(record),
+                          or filename_filter(record)
+                          or default_filter(record),
     enqueue=True,
 )
 # Экспортируем logger и ProjectSettings для использования в других модулях
@@ -149,4 +157,4 @@ if __name__ == "__main__":
     logger.bind(filename="Boris_file.txt").debug("Сообщение")
     logger.bind(user="Boris", filename="Boris_file.txt").warning("Сообщение")
     logger.debug("Сообщение")
-    # print(type(settings.log_dir))
+    print(settings.ALLOWED_PHONE_NUMBERS)
