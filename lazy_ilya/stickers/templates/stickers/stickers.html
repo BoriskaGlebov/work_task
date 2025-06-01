@@ -84,10 +84,12 @@
     {% endif %}
     <script>
 
-        window.username = "{{ user.first_name|default:user.username }}"
-        console.log(username)
+        window.username = "{{ user.username|default:user.first_name }}"
         window.notes_data = JSON.parse('{{ notes_data|escapejs }}')
+        window.username_data = JSON.parse('{{ username_list|escapejs }}')
+        console.log(username)
         console.log(notes_data)
+        console.log(username_data)
     </script>
 
 {% endblock %}

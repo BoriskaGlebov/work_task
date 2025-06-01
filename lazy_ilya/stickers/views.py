@@ -6,6 +6,8 @@ from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.db.models import Q
+
+from myauth.models import CustomUser
 from .models import StickyNote
 from .forms import StickyNoteForm
 from lazy_ilya.utils.settings_for_app import logger
@@ -18,9 +20,12 @@ class StickyNoteView(LoginRequiredMixin, View):
         notes = StickyNote.objects.filter(
             Q(user=request.user) | Q(author="Всем!") | Q(author=request.user.first_name)
         )
+        users = list(CustomUser.objects.filter(is_active=True).values('username','first_name'))
         notes_data = [note.to_dict() for note in notes]
+
         return render(request, "stickers/stickers.html", {
-            "notes_data": json.dumps(notes_data, ensure_ascii=False)
+            "notes_data": json.dumps(notes_data, ensure_ascii=False),
+            "username_list": json.dumps(users, ensure_ascii=False)
         })
 
     def post(self, request: HttpRequest):
@@ -34,7 +39,8 @@ class StickyNoteView(LoginRequiredMixin, View):
             note = form.save(commit=False)
             note.user = request.user
             note.save()
-            logger.bind(user=request.user.username).info(f"Пользователь {request.user.username} создал заметку #{note.id}")
+            logger.bind(user=request.user.username).info(
+                f"Пользователь {request.user.username} создал заметку #{note.id}")
             return JsonResponse({
                 'success': True,
                 'data': self._note_data(note)
@@ -56,13 +62,15 @@ class StickyNoteView(LoginRequiredMixin, View):
         try:
             note = StickyNote.objects.get(id=note_id)
         except StickyNote.DoesNotExist:
-            logger.bind(user=request.user.username).error(f"Заметка #{note_id} не найдена (пользователь: {request.user.username})")
+            logger.bind(user=request.user.username).error(
+                f"Заметка #{note_id} не найдена (пользователь: {request.user.username})")
             return JsonResponse({'success': False, 'errors': {'id': ['Заметка не найдена']}}, status=404)
 
         form = StickyNoteForm(data, instance=note)
         if form.is_valid():
             updated_note = form.save()
-            logger.bind(user=request.user.username).info(f"Пользователь {request.user.username} обновил заметку #{updated_note.id}")
+            logger.bind(user=request.user.username).info(
+                f"Пользователь {request.user.username} обновил заметку #{updated_note.id}")
             return JsonResponse({
                 'success': True,
                 'data': self._note_data(updated_note)
@@ -74,10 +82,12 @@ class StickyNoteView(LoginRequiredMixin, View):
         try:
             note = StickyNote.objects.get(id=note_id)
             note.delete()
-            logger.bind(user=request.user.username).error(f"Пользователь {request.user.username} удалил заметку #{note_id}")
+            logger.bind(user=request.user.username).error(
+                f"Пользователь {request.user.username} удалил заметку #{note_id}")
             return JsonResponse({'success': True, 'data': {'message': f'Заметка {note_id} удалена'}})
         except StickyNote.DoesNotExist:
-            logger.bind(user=request.user.username).error(f"Заметка #{note_id} не найдена (пользователь: {request.user.username})")
+            logger.bind(user=request.user.username).error(
+                f"Заметка #{note_id} не найдена (пользователь: {request.user.username})")
             return JsonResponse({'success': False, 'errors': {'id': ['Заметка не найдена']}}, status=404)
 
     # Вспомогательные методы

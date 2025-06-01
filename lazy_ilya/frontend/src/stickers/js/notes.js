@@ -12,9 +12,6 @@ export class KanbanStickyNotes {
      * @param {string[]} [options.colors] - Массив цветов для заметок (опционально)
      */
     constructor({addButtonId, boardId, colors = []}) {
-        /** Счётчик ID для заметок */
-        this.noteIdCounter = 1;
-
         /** Кнопка добавления новой заметки */
         this.addCardBtn = document.getElementById(addButtonId);
 
@@ -43,7 +40,13 @@ export class KanbanStickyNotes {
         /** Смещение курсора по Y при перетаскивании */
         this.dragOffsetY = 0;
         // Добавим список имён и индекс для поочередного переключения
-        this.authors = [username, 'Всем!'];
+        this.authors = [
+            username,
+            ...username_data
+                .filter(user => user.username !== username && user.first_name !== username)
+                .map(user => user.first_name.trim() !== '' ? user.first_name : user.username),
+            'Всем!'
+        ];
         this.currentAuthorIndex = 0;
         this.noteData = notes_data;
 
@@ -229,7 +232,8 @@ export class KanbanStickyNotes {
             color = '#FFEB3B',
             position_top = 100,
             position_left = 100,
-            author = this.authors[0]
+            author = this.authors[0],
+            user,
         } = noteData;
 
         const noteCard = document.createElement('div');
@@ -242,6 +246,9 @@ export class KanbanStickyNotes {
         if (id !== undefined) {
             noteCard.setAttribute('data-id', id);
         }
+        if (user !== undefined) {
+            noteCard.setAttribute('data-user', user);
+        }
 
         // Автор
         const authorBtn = document.createElement('button');
@@ -250,9 +257,9 @@ export class KanbanStickyNotes {
 
         let authorIndex = this.authors.indexOf(author);
         if (authorIndex === -1) authorIndex = 0;
-        console.log(author);
-        console.log(currentUser);
-        if (author === currentUser) {
+        console.log(currentUser)
+        console.log(user)
+        if (currentUser === user) {
             authorBtn.addEventListener('click', () => {
                 authorIndex = (authorIndex + 1) % this.authors.length;
                 authorBtn.textContent = this.authors[authorIndex];
@@ -291,14 +298,21 @@ export class KanbanStickyNotes {
         deleteBtn.title = 'Удалить заметку';
         deleteBtn.type = 'button';
         deleteBtn.className = 'delete-btn';
-        deleteBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const noteId = noteCard.getAttribute('data-id');
-            if (noteId) {
-                this.deleteNoteFromServer(noteId);
-            }
-            noteCard.remove();
-        });
+        if (currentUser === user) {
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const noteId = noteCard.getAttribute('data-id');
+                if (noteId) {
+                    this.deleteNoteFromServer(noteId);
+                }
+                noteCard.remove();
+            });
+        } else {
+            // Сделать кнопку неактивной, чтобы было видно, что менять нельзя
+            deleteBtn.disabled = true;
+            deleteBtn.title = 'Вы не можете удалить заметку, вы ее не создавали';
+        }
+
 
         noteCard.appendChild(authorContainer);
         noteCard.appendChild(contentDiv);
@@ -346,8 +360,10 @@ export class KanbanStickyNotes {
         }, (noteCard, dataToSend) => {
             this.sendNoteToServer(dataToSend, (createdNote) => {
                 noteCard.setAttribute('data-id', createdNote.id);
+                noteCard.setAttribute('data-id', createdNote.user);
+
             });
-        },username);
+        }, username);
 
         // Фокус на текст сразу
         noteCard.querySelector('[contenteditable]').focus();
@@ -364,7 +380,7 @@ export class KanbanStickyNotes {
      * @param {string} noteData.author - автор заметки
      */
     createNoteFromData(noteData) {
-        this.buildNoteCard(noteData,undefined,username);
+        this.buildNoteCard(noteData, undefined, username);
     }
 
     /**
