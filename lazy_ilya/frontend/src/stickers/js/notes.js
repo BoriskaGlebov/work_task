@@ -57,6 +57,16 @@ export class KanbanStickyNotes {
 
     }
 
+    /**
+     * Загружает начальные заметки с данными из `this.noteData`.
+     *
+     * Метод проверяет, является ли `this.noteData` массивом, и если да —
+     * создает DOM-элементы для каждой заметки, используя метод `createNoteFromData`.
+     * Предполагается, что `noteData` уже содержит валидные объекты заметок с нужными полями.
+     *
+     * Этот метод можно вызывать при инициализации доски, чтобы отобразить
+     * все сохранённые или загруженные заметки.
+     */
     loadInitialNotes() {
         if (Array.isArray(this.noteData)) {
             this.noteData.forEach(note => this.createNoteFromData(note));
@@ -255,7 +265,6 @@ export class KanbanStickyNotes {
         const authorBtn = document.createElement('button');
         authorBtn.className = 'author-btn';
         authorBtn.textContent = author;
-
         let authorIndex = this.authors.indexOf(author);
         if (authorIndex === -1) authorIndex = 0;
         if (currentUser === user) {
@@ -297,7 +306,7 @@ export class KanbanStickyNotes {
         deleteBtn.title = 'Удалить заметку';
         deleteBtn.type = 'button';
         deleteBtn.className = 'delete-btn';
-        if (currentUser === user) {
+        if (currentUser === user || currentUser === author) {
             deleteBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const noteId = noteCard.getAttribute('data-id');
@@ -360,13 +369,60 @@ export class KanbanStickyNotes {
             this.sendNoteToServer(dataToSend, (createdNote) => {
                 noteCard.setAttribute('data-id', createdNote.id);
                 noteCard.setAttribute('data-user', createdNote.user);
-
+                // ⬇️ После получения данных пересоздаём или активируем кнопки
+                this.refreshNoteCardPermissions(noteCard, createdNote.user);
             });
         }, username);
 
         // Фокус на текст сразу
         noteCard.querySelector('[contenteditable]').focus();
     }
+
+    /**
+     * Обновляет права доступа к карточке заметки для текущего пользователя.
+     *
+     * Этот метод проверяет, является ли текущий пользователь автором заметки.
+     * Если да — активирует кнопки редактирования автора и удаления заметки,
+     * иначе блокирует их и отображает поясняющие всплывающие подсказки.
+     *
+     * @param {HTMLElement} noteCard - DOM-элемент карточки заметки.
+     * @param {string} createdUser - Имя пользователя, создавшего заметку.
+     */
+    refreshNoteCardPermissions(noteCard, createdUser) {
+        const currentUser = username;
+        const authorBtn = noteCard.querySelector('.author-btn');
+        const deleteBtn = noteCard.querySelector('.delete-btn');
+
+        if (authorBtn && deleteBtn) {
+            if (currentUser === createdUser) {
+                authorBtn.disabled = false;
+                authorBtn.title = '';
+                let authorIndex = this.authors.indexOf(authorBtn.textContent);
+                if (authorIndex === -1) authorIndex = 0;
+                authorBtn.onclick = () => {
+                    authorIndex = (authorIndex + 1) % this.authors.length;
+                    authorBtn.textContent = this.authors[authorIndex];
+                };
+
+                deleteBtn.disabled = false;
+                deleteBtn.title = 'Удалить заметку';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    const noteId = noteCard.getAttribute('data-id');
+                    if (noteId) {
+                        this.deleteNoteFromServer(noteId);
+                    }
+                    noteCard.remove();
+                };
+            } else {
+                authorBtn.disabled = true;
+                authorBtn.title = 'Вы не можете менять автора этой заметки';
+                deleteBtn.disabled = true;
+                deleteBtn.title = 'Вы не можете удалить заметку, вы ее не создавали';
+            }
+        }
+    }
+
 
     /**
      * Создаёт заметку из данных (например, полученных с сервера)
@@ -442,6 +498,16 @@ export class KanbanStickyNotes {
 
     }
 
+    /**
+     * Отправляет новую заметку на сервер методом POST.
+     *
+     * Выполняет запрос с JSON-данными заметки и CSRF-токеном, ожидает ответ в формате JSON.
+     * При успешном ответе вызывает переданную функцию `onSuccess` и отображает сообщение.
+     * При ошибке выводит соответствующие сообщения об ошибках, включая ошибки валидации.
+     *
+     * @param {Object} noteData - Объект с данными заметки (например, текст, цвет, автор и т.д.).
+     * @param {Function} [onSuccess] - Необязательная функция обратного вызова, вызываемая при успешном создании заметки.
+     */
     sendNoteToServer(noteData, onSuccess) {
         fetch('', {
             method: 'POST',
@@ -525,7 +591,14 @@ export class KanbanStickyNotes {
             });
     }
 
-
+    /**
+     * Показывает временное всплывающее сообщение на странице (например, об успешном действии).
+     *
+     * Сообщение плавно появляется с анимацией, отображается 5 секунд и затем исчезает.
+     * Используются классы TailwindCSS и анимации: `flex`, `hidden`, `animate-popup`, `animate-popup-reverse`.
+     *
+     * @param {string} message - Текст сообщения, который будет показан в блоке `#server-info`.
+     */
     showSuccessMessage(message) {
         const serverInfo = document.getElementById('server-info');
         serverInfo.classList.remove('hidden', 'animate-popup-reverse');
