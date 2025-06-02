@@ -36,6 +36,9 @@ class ProjectSettings:
     LOGGER_LEVEL_FILE: Optional[str] = os.getenv(
         "LOGGER_LEVEL_FILE", "DEBUG"
     )  # Устанавливаем значение по умолчанию
+    LOGGER_ERROR_FILE: Optional[str] = os.getenv(
+        "LOGGER_ERROR_FILE", "WARNING"
+    )  # Устанавливаем значение по умолчанию
     ALLOWED_PHONE_NUMBERS: Optional[list] = os.getenv("ALLOWED_PHONE_NUMBERS")
 
     def __post_init__(self):
@@ -97,6 +100,12 @@ def default_filter(record: dict) -> bool:
         return True
 
 
+# Фильтр: только уровни ниже ERROR
+def exclude_errors(record):
+    """Фильтр, что б файл не писались ошибки ниже уровня ERROR"""
+    return record["level"].no < logger.level("WARNING").no
+
+
 # Проверка наличия директории для логов и создание, если не существует
 if not os.path.exists(settings.log_dir):
     os.makedirs(settings.log_dir)
@@ -127,6 +136,7 @@ logger.add(
 
 # Путь для файлового лога
 log_file_path = settings.log_dir / "file.log"
+log_error_file_path = settings.log_dir / "error.log"
 
 # Добавляем обработчик для записи логов в файл
 logger.add(
@@ -144,6 +154,28 @@ logger.add(
     catch=True,
     backtrace=True,
     diagnose=True,
+    filter=lambda record: (user_filter(record)
+                           or filename_filter(record)
+                           or default_filter(record))
+                          and exclude_errors(record),
+    enqueue=True,
+)
+# Добавляем обработчик для записи логов в файл
+logger.add(
+    log_error_file_path,
+    level=settings.LOGGER_ERROR_FILE,
+    format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> - "
+           "<level>{level:^8}</level> - "
+           "<cyan>{name}</cyan>:<magenta>{line}</magenta> - "
+           "<yellow>{function}</yellow> - "
+           "<white>{message}</white>"
+           "<magenta>{extra[user]:^15}</magenta> - "
+           "<magenta>{extra[filename]:^15}</magenta>",
+    rotation="1 day",  # Ротация логов
+    retention="30 days",  # Хранение логов 30 дней
+    catch=True,
+    backtrace=True,
+    diagnose=True,
     filter=lambda record: user_filter(record)
                           or filename_filter(record)
                           or default_filter(record),
@@ -157,4 +189,7 @@ if __name__ == "__main__":
     logger.bind(filename="Boris_file.txt").debug("Сообщение")
     logger.bind(user="Boris", filename="Boris_file.txt").warning("Сообщение")
     logger.debug("Сообщение")
+    logger.error('asdasd')
+    logger.bind(user="Boris").warning("Сообщение")
+    logger.bind(filename="Boris_file.txt").error("Сообщение")
     print(settings.ALLOWED_PHONE_NUMBERS)
