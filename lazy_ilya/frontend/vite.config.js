@@ -35,6 +35,10 @@ export default defineConfig({
                     if (id.includes('src/cities/js/toggleAccent.js')) {
                         return 'cities/js/toggleAccent';
                     }
+
+                    if (id.includes('src/stickers/js/utils.js')) {
+                        return 'stickers/js/utils';
+                    }
                 },
                 entryFileNames: '[name].js',
                 chunkFileNames: '[name].js',

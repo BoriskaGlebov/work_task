@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && call copy_static.bat",
+    "build": "vite build && sh copy_static.sh",
     "preview": "vite preview"
   },
   "devDependencies": {

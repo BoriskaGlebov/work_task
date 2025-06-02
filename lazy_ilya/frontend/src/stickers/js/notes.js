@@ -1,4 +1,5 @@
-import {showError} from "../../file_creator/js/utils.js";
+import {showError} from "./utils.js";
+
 
 /**
  * Класс для управления доской стикеров Kanban с возможностью создания,
