@@ -258,8 +258,6 @@ export class KanbanStickyNotes {
 
         let authorIndex = this.authors.indexOf(author);
         if (authorIndex === -1) authorIndex = 0;
-        console.log(currentUser)
-        console.log(user)
         if (currentUser === user) {
             authorBtn.addEventListener('click', () => {
                 authorIndex = (authorIndex + 1) % this.authors.length;
@@ -361,7 +359,7 @@ export class KanbanStickyNotes {
         }, (noteCard, dataToSend) => {
             this.sendNoteToServer(dataToSend, (createdNote) => {
                 noteCard.setAttribute('data-id', createdNote.id);
-                noteCard.setAttribute('data-id', createdNote.user);
+                noteCard.setAttribute('data-user', createdNote.user);
 
             });
         }, username);
@@ -419,19 +417,27 @@ export class KanbanStickyNotes {
 
                 if (!response.ok) {
                     // Если сервер вернул ошибку, выбрасываем исключение с сообщением из тела
-                    console.log(responseData)
-                    throw new Error(responseData.error || JSON.stringify(responseData.errors) || 'Ошибка при обновлении заметки');
+                    throw responseData;
                 }
 
                 return responseData;
             })
             .then(result => {
                 console.log('Заметка обновлена:', result);
-                this.showSuccessMessage(`Заметка с текстом "${result.note.text}" обновлена`);
+                this.showSuccessMessage(`Заметка с текстом "${result.data.text}" обновлена`);
             })
             .catch(error => {
-                console.error('Ошибка:', error.message);
-                showError(error.message);  // тут вызывай свою функцию показа ошибки
+                console.error('Ошибка обноавления:', error);
+                if (error?.errors) {
+                    // Можно пройтись по всем полям и показать все ошибки
+                    for (const [field, messages] of Object.entries(error.errors)) {
+                        messages.forEach(message => {
+                            showError(`Ошибка в поле "${field}" - "${message}`);
+                        });
+                    }
+                } else {
+                    showError('Произошла ошибка');
+                }
             });
 
     }
@@ -441,54 +447,81 @@ export class KanbanStickyNotes {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': this.csrfToken, // если Django
+                'X-CSRFToken': this.csrfToken,
             },
             body: JSON.stringify(noteData)
         })
-            .then(response => {
-                if (!response.ok) throw new Error('Ошибка при создании заметки');
-                return response.json();
+            .then(async response => {
+                const data = await response.json();  // парсим ответ
+
+                if (!response.ok) {
+                    // Если статус не 2xx — бросаем ошибку с объектом
+                    throw data;
+                }
+
+                return data;
             })
             .then(createdNote => {
-                console.log('Заметка создана:', createdNote);
+                const note = createdNote.data;
+                console.log('Заметка создана:', note);
                 if (typeof onSuccess === 'function') {
-                    onSuccess(createdNote.note);
+                    onSuccess(note);
                 }
-                this.showSuccessMessage(`Заметка создана: ${createdNote.note.text} `);
+                this.showSuccessMessage(`Заметка создана: ${note.id}`);
             })
-            .catch(error => {
-                console.error('Ошибка отправки:', error);
+            .catch(errorData => {
+                console.error('Ошибка при создании:', errorData);
+                if (errorData?.errors) {
+                    // Можно пройтись по всем полям и показать все ошибки
+                    for (const [field, messages] of Object.entries(errorData.errors)) {
+                        messages.forEach(message => {
+                            showError(`Ошибка в поле "${field}" - "${message}`);
+                        });
+                    }
+                } else {
+                    showError('Произошла ошибка');
+                }
             });
     }
+
 
     /**
      * Отправляет DELETE-запрос на сервер для удаления заметки.
      * @param {number|string} id - ID заметки
      */
     deleteNoteFromServer(id) {
-        fetch(`${id}`, {
+        fetch(`${id}/`, {
             method: 'DELETE',
             headers: {
                 'X-CSRFToken': this.csrfToken, // если Django
             },
         })
-            .then(response => {
-                return response.json().then(data => {
-                    if (!response.ok) {
-                        // Если ошибка, выбрасываем исключение с сообщением из data
-                        throw new Error(data.error || 'Ошибка при удалении заметки');
-                    }
-                    return data;
-                });
+            .then(async response => {
+                const data = await response.json();  // парсим ответ
+                if (!response.ok) {
+                    // Если статус не 2xx — бросаем ошибку с объектом
+                    throw data;
+                }
+
+                return data;
             })
             .then(data => {
                 // Здесь data — это распарсенный JSON от сервера
-                this.showSuccessMessage(data.message || `Заметка с ID ${id} успешно удалена с сервера`);
+                this.showSuccessMessage(data.data.message || `Заметка с ID ${id} успешно удалена с сервера`);
                 console.log(`Заметка с ID ${id} успешно удалена с сервера`);
             })
             .catch(error => {
-                console.error('Ошибка при удалении:', error.message);
-                showError(error);
+                console.error('Ошибка при удалении:', error);
+                if (error?.errors) {
+                    // Можно пройтись по всем полям и показать все ошибки
+                    for (const [field, messages] of Object.entries(error.errors)) {
+                        messages.forEach(message => {
+                            showError(`Ошибка в поле "${field}" - "${message}`);
+                        });
+                    }
+                } else {
+                    showError('Произошла ошибка');
+                }
             });
     }
 

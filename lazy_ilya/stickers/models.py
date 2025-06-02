@@ -54,7 +54,7 @@ class StickyNote(models.Model):
         """Преобразует объект в словарь."""
         return {
             "id": self.id,
-            "user": self.user.username,
+            "user": self.user.first_name if self.user.first_name else self.user.username,
             "text": self.text,
             "color": self.color,
             "position_top": self.position_top,

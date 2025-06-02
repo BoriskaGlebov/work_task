@@ -1,6 +1,7 @@
 import json
-import logging
-from django.http import JsonResponse, HttpRequest
+from typing import Union
+
+from django.http import JsonResponse, HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -14,13 +15,27 @@ from lazy_ilya.utils.settings_for_app import logger
 
 
 class StickyNoteView(LoginRequiredMixin, View):
+    """
+    Представление для работы с заметками (StickyNote).
+    Поддерживает отображение, создание, обновление и удаление заметок.
+    Доступ разрешён только аутентифицированным пользователям.
+    """
     login_url = reverse_lazy("myauth:login")
 
-    def get(self, request: HttpRequest):
+    def get(self, request: HttpRequest) -> HttpResponse:
+        """
+        Отображает HTML-страницу со списком заметок и пользователей.
+
+        :param request: Объект HTTP-запроса
+        :return: HttpResponse с HTML-шаблоном
+        """
         notes = StickyNote.objects.filter(
-            Q(user=request.user) | Q(author="Всем!") | Q(author=request.user.first_name)
+            Q(user=request.user) |
+            Q(author="Всем!") |
+            Q(author=request.user.first_name) |
+            Q(author=request.user.username)
         )
-        users = list(CustomUser.objects.filter(is_active=True).values('username','first_name'))
+        users = list(CustomUser.objects.filter(is_active=True).values('username', 'first_name'))
         notes_data = [note.to_dict() for note in notes]
 
         return render(request, "stickers/stickers.html", {
@@ -28,7 +43,13 @@ class StickyNoteView(LoginRequiredMixin, View):
             "username_list": json.dumps(users, ensure_ascii=False)
         })
 
-    def post(self, request: HttpRequest):
+    def post(self, request: HttpRequest) -> JsonResponse:
+        """
+        Создаёт новую заметку.
+
+        :param request: Объект HTTP-запроса
+        :return: JsonResponse с данными новой заметки или ошибками формы
+        """
         data = self._parse_json(request)
         if isinstance(data, JsonResponse):
             logger.bind(user=request.user.username).error(f"Невалидный JSON от {request.user.username}")
@@ -41,14 +62,18 @@ class StickyNoteView(LoginRequiredMixin, View):
             note.save()
             logger.bind(user=request.user.username).info(
                 f"Пользователь {request.user.username} создал заметку #{note.id}")
-            return JsonResponse({
-                'success': True,
-                'data': self._note_data(note)
-            }, status=201)
+            return JsonResponse({'success': True, 'data': note.to_dict()}, status=201)
+
         logger.bind(user=request.user.username).error(f"Ошибки формы от {request.user.username}: {form.errors}")
         return self._form_error_response(form)
 
-    def patch(self, request: HttpRequest):
+    def patch(self, request: HttpRequest) -> JsonResponse:
+        """
+        Обновляет существующую заметку по ID.
+
+        :param request: Объект HTTP-запроса
+        :return: JsonResponse с обновлённой заметкой или ошибками
+        """
         data = self._parse_json(request)
         if isinstance(data, JsonResponse):
             logger.bind(user=request.user.username).error(f"Невалидный JSON от {request.user.username}")
@@ -71,18 +96,23 @@ class StickyNoteView(LoginRequiredMixin, View):
             updated_note = form.save()
             logger.bind(user=request.user.username).info(
                 f"Пользователь {request.user.username} обновил заметку #{updated_note.id}")
-            return JsonResponse({
-                'success': True,
-                'data': self._note_data(updated_note)
-            })
+            return JsonResponse({'success': True, 'data': updated_note.to_dict()})
+
         logger.bind(user=request.user.username).error(f"Ошибки формы от {request.user.username}: {form.errors}")
         return self._form_error_response(form)
 
-    def delete(self, request: HttpRequest, note_id: int):
+    def delete(self, request: HttpRequest, note_id: int) -> JsonResponse:
+        """
+        Удаляет заметку по её ID.
+
+        :param request: Объект HTTP-запроса
+        :param note_id: Идентификатор заметки
+        :return: JsonResponse с результатом операции
+        """
         try:
             note = StickyNote.objects.get(id=note_id)
             note.delete()
-            logger.bind(user=request.user.username).error(
+            logger.bind(user=request.user.username).info(
                 f"Пользователь {request.user.username} удалил заметку #{note_id}")
             return JsonResponse({'success': True, 'data': {'message': f'Заметка {note_id} удалена'}})
         except StickyNote.DoesNotExist:
@@ -92,23 +122,27 @@ class StickyNoteView(LoginRequiredMixin, View):
 
     # Вспомогательные методы
 
-    def _parse_json(self, request: HttpRequest):
+    def _parse_json(self, request: HttpRequest) -> Union[dict, JsonResponse]:
+        """
+        Распарсивает JSON из тела запроса.
+
+        :param request: Объект HTTP-запроса
+        :return: Словарь с данными или JsonResponse с ошибкой
+        """
         try:
             return json.loads(request.body)
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'errors': {'json': ['Невалидный JSON']}}, status=400)
 
-    def _form_error_response(self, form):
-        errors = {field: [e['message'] for e in error.get_json_data()] for field, error in form.errors.items()}
-        return JsonResponse({'success': False, 'errors': errors}, status=400)
+    def _form_error_response(self, form: StickyNoteForm) -> JsonResponse:
+        """
+        Формирует JSON-ответ с ошибками формы.
 
-    def _note_data(self, note):
-        return {
-            'id': note.id,
-            'text': note.text,
-            'color': note.color,
-            'position_top': note.position_top,
-            'position_left': note.position_left,
-            'author': note.author,
-            'user': note.user,
+        :param form: Форма Django с ошибками
+        :return: JsonResponse с ошибками по полям
+        """
+        errors = {
+            field: [e['message'] for e in error.get_json_data()]
+            for field, error in form.errors.items()
         }
+        return JsonResponse({'success': False, 'errors': errors}, status=400)
