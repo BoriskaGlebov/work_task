@@ -31,7 +31,7 @@ export class KanbanStickyNotes {
 
         // Назначаем обработчик клика на кнопку добавления новой заметки
         this.addCardBtn.addEventListener('click', () => this.showColorPicker());
-
+        // window.addEventListener('resize', () => this.adjustNotesInsideBoard());
         /** Переменная для хранения текущей перетаскиваемой заметки */
         this.draggedNote = null;
 
@@ -182,24 +182,27 @@ export class KanbanStickyNotes {
 
         e.preventDefault();
 
-        // Получаем размеры доски
         const boardRect = this.noteBoard.getBoundingClientRect();
+        const cardRect = this.draggedNote.getBoundingClientRect();
 
-        // Вычисляем новые координаты заметки относительно доски
         let newLeft = e.clientX - boardRect.left - this.dragOffsetX;
         let newTop = e.clientY - boardRect.top - this.dragOffsetY;
 
-        // Ограничиваем движение заметки по доске
-        const maxLeft = boardRect.width - this.draggedNote.offsetWidth;
-        const maxTop = boardRect.height - this.draggedNote.offsetHeight;
+        // Ограничения в пикселях
+        const maxLeft = boardRect.width - cardRect.width;
+        const maxTop = boardRect.height - cardRect.height;
 
         newLeft = Math.min(Math.max(0, newLeft), maxLeft);
         newTop = Math.min(Math.max(0, newTop), maxTop);
 
-        // Обновляем позицию заметки
-        this.draggedNote.style.left = `${newLeft}px`;
-        this.draggedNote.style.top = `${newTop}px`;
+        // 🔥 Вычисляем %, ограничивая так, чтобы весь блок оставался в пределах
+        const leftPercent = (newLeft / (boardRect.width - cardRect.width)) * (100 - (cardRect.width / boardRect.width) * 100);
+        const topPercent = (newTop / (boardRect.height - cardRect.height)) * (100 - (cardRect.height / boardRect.height) * 100);
+
+        this.draggedNote.style.left = `${leftPercent}%`;
+        this.draggedNote.style.top = `${topPercent}%`;
     }
+
 
     /**
      * Обработчик отпускания кнопки мыши — завершает перетаскивание.
@@ -251,8 +254,8 @@ export class KanbanStickyNotes {
         noteCard.classList.add('note-card');
         noteCard.style.backgroundColor = color;
         noteCard.style.position = 'absolute';
-        noteCard.style.top = `${position_top}px`;
-        noteCard.style.left = `${position_left}px`;
+        noteCard.style.top = `${position_top}%`;
+        noteCard.style.left = `${position_left}%`;
 
         if (id !== undefined) {
             noteCard.setAttribute('data-id', id);
@@ -294,7 +297,7 @@ export class KanbanStickyNotes {
         contentDiv.setAttribute('contenteditable', 'true');
         contentDiv.setAttribute('spellcheck', 'false');
         contentDiv.classList.add('outline-none');
-        contentDiv.textContent = text;
+        contentDiv.innerHTML = text;
 
         contentDiv.addEventListener('blur', () => {
             this.sendNoteUpdate(noteCard); // отправка обновлений
@@ -339,10 +342,10 @@ export class KanbanStickyNotes {
         // Передаём наружу, если нужен ID после отправки
         if (typeof onCreate === 'function') {
             onCreate(noteCard, {
-                text: contentDiv.textContent,
+                text: contentDiv.innerHTML,
                 color: noteCard.style.backgroundColor,
-                position_top: parseFloat(noteCard.style.top),
-                position_left: parseFloat(noteCard.style.left),
+                position_top: parseFloat(noteCard.style.top) || 0,
+                position_left: parseFloat(noteCard.style.left) || 0,
                 author: authorBtn.textContent
             });
         }
@@ -356,8 +359,8 @@ export class KanbanStickyNotes {
      */
     addNoteCard(color) {
         const rect = this.noteBoard.getBoundingClientRect();
-        const position_top = rect.height / 2 - 50;
-        const position_left = rect.width / 2 - 140;
+        const position_top = ((rect.height / 2 - 50) / rect.height) * 100;
+        const position_left = ((rect.width / 2 - 140) / rect.width) * 100;
 
         const noteCard = this.buildNoteCard({
             text: 'Новая заметка...',
@@ -444,7 +447,7 @@ export class KanbanStickyNotes {
      */
     sendNoteUpdate(noteCard) {
         const id = noteCard.getAttribute('data-id');
-        const text = noteCard.querySelector('[contenteditable]').textContent;
+        const text = noteCard.querySelector('[contenteditable]').innerHTML;
         const color = noteCard.style.backgroundColor;
         const position_top = parseInt(noteCard.style.top, 10);
         const position_left = parseInt(noteCard.style.left, 10);
@@ -615,5 +618,41 @@ export class KanbanStickyNotes {
             }, 1000);
         }, 5000);
     }
+
+    adjustNotesInsideBoard() {
+        const boardRect = this.noteBoard.getBoundingClientRect();
+
+        document.querySelectorAll('.note-card').forEach(noteCard => {
+            const cardRect = noteCard.getBoundingClientRect();
+
+            // Получаем относительное положение внутри noteBoard
+            const noteLeft = parseFloat(noteCard.style.left);
+            const noteTop = parseFloat(noteCard.style.top);
+
+            const maxLeft = boardRect.width - noteCard.offsetWidth;
+            const maxTop = boardRect.height - noteCard.offsetHeight;
+
+            let adjusted = false;
+
+            let newLeft = noteLeft;
+            let newTop = noteTop;
+
+            if (noteLeft > maxLeft) {
+                newLeft = Math.max(0, maxLeft);
+                adjusted = true;
+            }
+            if (noteTop > maxTop) {
+                newTop = Math.max(0, maxTop);
+                adjusted = true;
+            }
+
+            if (adjusted) {
+                noteCard.style.left = `${newLeft}px`;
+                noteCard.style.top = `${newTop}px`;
+                this.sendNoteUpdate(noteCard); // обновим позицию на сервере
+            }
+        });
+    }
+
 
 }
