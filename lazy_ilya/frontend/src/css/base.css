@@ -93,7 +93,7 @@ h3 {
 }
 
 p {
-    @apply text-sm md:text-base;
+    @apply text-xs md:text-sm xl:text-base;
 }
 
 .nav-style {
@@ -112,7 +112,7 @@ p {
 
 .burger-button {
     @apply block text-surface dark:text-surface-dark
-    p-2 text-sm md:text-base w-full text-left font-medium
+    p-2 text-xs md:text-sm xl:text-base w-full text-left font-medium
     rounded-xl transition-colors duration-200
     hover:bg-accent dark:hover:bg-accent-dark;
 }
@@ -122,8 +122,8 @@ p {
     border border-form-color dark:border-form-color-dark
     p-8 rounded-lg
     shadow-xl shadow-secondary dark:shadow-2xl dark:shadow-secondary-dark
-    w-full max-w-lg space-y-6
-    text-sm md:text-base;
+    w-full min-w-xs max-w-[95%] sm:max-w-lg space-y-6
+    text-xs md:text-sm xl:text-base;
 }
 
 .theme-toggle {
@@ -146,7 +146,7 @@ p {
     hover:bg-primary-dark dark:hover:bg-primary
     transition-colors duration-300 active:scale-95
     focus:outline-none focus:ring-3 focus:ring-primary/50 dark:focus:ring-primary
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 }
 
 .btn-cancel {
@@ -156,7 +156,7 @@ p {
     hover:bg-secondary-dark dark:hover:bg-secondary
     transition-colors duration-300 active:scale-95
     focus:outline-none focus:ring-3 focus:ring-secondary/50 dark:focus:ring-secondary
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 }
 
 .btn-delete {
@@ -166,17 +166,17 @@ p {
     hover:bg-error-dark dark:hover:bg-error
     transition-colors duration-300 active:scale-95
     focus:outline-none focus:ring-3 focus:ring-error/50 dark:focus:ring-error
-    text-xs md:text-sm;
+    text-xs md:text-sm xl:text-base;
 }
 
 .correct_label {
     @apply text-text dark:text-text-dark
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 }
 
 .error_label {
     @apply text-error dark:text-error-dark
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 }
 
 .correct_input {
@@ -187,7 +187,7 @@ p {
     bg-background dark:bg-background-dark
     focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary-dark
     placeholder:text-secondary dark:placeholder:text-secondary-dark
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 
 }
 
@@ -199,7 +199,7 @@ p {
     bg-background dark:bg-background-dark
     focus:outline-none focus:ring-2 focus:ring-error/50 dark:focus:ring-error-dark/50
     placeholder:text-error/75 dark:placeholder:text-error-dark/75
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 }
 
 .correct_icon {
@@ -229,7 +229,7 @@ p {
 .common_error {
     @apply items-center
     absolute top-5 left-5 right-5
-    text-sm md:text-base text-start  rounded-lg p-4 mb-4
+    text-xs md:text-sm xl:text-base text-start  rounded-lg p-4 mb-4
     text-error dark:text-error-dark
     border border-error dark:border-error-dark
     bg-surface dark:bg-surface-dark;
@@ -238,7 +238,7 @@ p {
 .common_info {
     @apply items-center
     absolute top-5 left-5 right-5
-    text-sm md:text-base text-start  rounded-lg p-4 mb-4
+    text-xs md:text-sm xl:text-base text-start  rounded-lg p-4 mb-4
     text-info dark:text-info-dark
     border border-info dark:border-info-dark
     bg-surface dark:bg-surface-dark;
@@ -313,7 +313,7 @@ p {
 .li-style {
     @apply flex items-center
     text-secondary dark:text-secondary-dark space-x-2.5 cursor-pointer
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 }
 
 .li-style span {
@@ -321,13 +321,13 @@ p {
     w-8 h-8
     border border-secondary  dark:border-secondary-dark
     rounded-full shrink-0
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 }
 
 .li-style-active {
     @apply flex items-center
     text-primary dark:text-primary-dark space-x-2.5 cursor-pointer
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 }
 
 .li-style-active span {
@@ -335,13 +335,13 @@ p {
     w-8 h-8
     border border-primary dark:border-primary-dark
     rounded-full shrink-0
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 }
 
 .li-style-complete {
     @apply flex items-center
     text-success dark:text-success-dark space-x-2.5 cursor-pointer
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 }
 
 .li-style-complete span {
@@ -349,7 +349,7 @@ p {
     w-8 h-8
     border border-success dark:border-success-dark
     rounded-full shrink-0
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 }
 
 /* Начальное состояние для скрытого блока */
@@ -369,7 +369,7 @@ p {
     gap-3
     bg-surface dark:bg-surface-dark
     text-text dark:text-text-dark
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 }
 
 .file-item:hover {
@@ -383,7 +383,7 @@ p {
 .file-name {
     @apply cursor-pointer transition-colors
     duration-200 gap-3
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 }
 
 .textarea-custom {

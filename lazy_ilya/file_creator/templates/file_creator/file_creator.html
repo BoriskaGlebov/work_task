@@ -105,7 +105,8 @@
                     (.doc, .docx, .rtf)</label>
                 <input type="file" name="files" id="files" accept=".doc,.docx,.rtf" multiple
                        class="correct_input">
-                <p id="files-error" class="hidden error_message">Выберите хотя бы один файл или файлы с верным расширением</p>
+                <p id="files-error" class="hidden error_message">Выберите хотя бы один файл или файлы с верным
+                    расширением</p>
                 <!-- Контейнер для отображения выбранных файлов -->
                 <ul id="file-list" class="mt-2 text-sm text-text dark:text-text-dark list-disc"></ul>
 
@@ -166,7 +167,7 @@
     </div>
 
     <div id="step3-form"
-         class="!max-w-6xl mx-auto form-style hidden gap-3 transition-transform mt-2">
+         class="relative !max-w-6xl mx-auto form-style hidden gap-3 transition-transform mt-2">
         <div id="server-error2" class="hidden common_error"
              role="alert">
             <svg class="shrink-0 inline size-5 md:size-7 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
@@ -179,7 +180,7 @@
                 <p>Change a few things up and try submitting again.</p>
             </div>
         </div>
-        <div id="server-info2" class="hidden common_info w-full justify-center md:justify-start mx-auto"
+        <div id="server-info2" class="hidden common_info"
              role="alert">
             <svg class="shrink-0 inline w-6 h-6 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                  fill="currentColor" viewBox="0 0 20 20">
@@ -209,12 +210,12 @@
             <span class="ml-2 text-md text-text dark:text-text-dark">Загрузка файлов...</span>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3  md:gap-6 mt-4">
+        <div class="grid grid-cols-1 lg:grid-cols-3  lg:gap-6 mt-4">
 
             <!-- Левая колонка: список файлов -->
             <div class="col-span-1">
                 <div id="left-col"
-                     class="sticky top-20 bg-background dark:bg-background-dark rounded-2xl  shadow-md gap-2">
+                     class="sticky top-20 bg-background dark:bg-background-dark rounded-2xl  shadow-md gap-2 ">
 
                     <h3 class="p-4 border-b-3 border-accent text-text dark:text-text-dark">Список
                         файлов</h3>

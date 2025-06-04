@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block body %}
-    <main class="container mx-auto  flex justify-center items-center min-h-screen min-w-sm py-6">
+    <main class="container mx-auto  flex justify-center items-center min-h-screen min-w-xs py-6">
         <form method="POST" id="registration-form" action="{% url 'myauth:registration' %}"
               class="relative form-style  opacity-0 animate-fade-in">
             {% csrf_token %}
