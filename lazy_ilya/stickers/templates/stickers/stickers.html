@@ -40,7 +40,6 @@
         <h2 class="text-center">📌 Моя доска</h2>
         <!-- Header -->
         <div class="flex justify-between items-center mb-4">
-
             <div class="flex gap-2">
                 <button id="btn-notes" class="btn-submit">Стикеры
                 </button>
@@ -51,7 +50,8 @@
 
         <!-- Notes Board -->
         <div id="note-board"
-             class="relative  min-h-[400px]  border-b-2 border-b-accent transition-all ">
+             class="relative border-b-2 border-b-accent min-h-[25vh] flex flex-wrap gap-4 p-4 justify-start">
+
             {% csrf_token %}
             <!-- карточки стикеров -->
         </div>
