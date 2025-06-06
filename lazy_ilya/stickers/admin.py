@@ -13,16 +13,16 @@ class StickyNoteAdmin(admin.ModelAdmin):
     Настройка отображения модели StickyNote в админ-панели.
     """
     form = StickyNoteForm
-    list_display = ('id', 'user', 'short_text', 'color', 'author', 'created_at', 'updated_at')
-    list_filter = ('color', 'created_at', 'author')
-    search_fields = ('text', 'author', 'user__username')
+    list_display = ('id', 'owner', 'short_text', 'color', 'author_name', 'created_at', 'updated_at')
+    list_filter = ('color', 'created_at', 'author_name')
+    search_fields = ('text', 'author_name', 'owner__username')
     readonly_fields = ('created_at', 'updated_at')
     fieldsets = (
         (None, {
-            'fields': ('user', 'text', 'color', 'author')
+            'fields': ('owner', 'text', 'color', 'author_name')
         }),
         ('Позиционирование', {
-            'fields': ('position_top', 'position_left')
+            'fields': ('width', 'height','order')
         }),
         ('Системные поля', {
             'fields': ('created_at', 'updated_at')

@@ -30,10 +30,10 @@ class StickyNoteView(LoginRequiredMixin, View):
         :return: HttpResponse с HTML-шаблоном
         """
         notes = StickyNote.objects.filter(
-            Q(user=request.user) |
-            Q(author="Всем!") |
-            Q(author=request.user.first_name) |
-            Q(author=request.user.username)
+            Q(owner=request.user) |
+            Q(author_name="Всем!") |
+            Q(author_name=request.user.first_name) |
+            Q(author_name=request.user.username)
         )
         users = list(CustomUser.objects.filter(is_active=True).values('username', 'first_name'))
         notes_data = [note.to_dict() for note in notes]
@@ -58,7 +58,7 @@ class StickyNoteView(LoginRequiredMixin, View):
         form = StickyNoteForm(data)
         if form.is_valid():
             note = form.save(commit=False)
-            note.user = request.user
+            note.owner = request.user
             note.save()
             logger.bind(user=request.user.username).info(
                 f"Пользователь {request.user.username} создал заметку #{note.id}")

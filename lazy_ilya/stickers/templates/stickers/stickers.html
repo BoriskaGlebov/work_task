@@ -90,8 +90,10 @@
         {% else %}
             window.username = "Гость";
         {% endif %}
-        window.notes_data = JSON.parse('{{ notes_data|escapejs }}')
-        window.username_data = JSON.parse('{{ username_list|escapejs }}')
+        window.notes_data = JSON.parse('{{ notes_data|escapejs }}');
+        window.username_data = JSON.parse('{{ username_list|escapejs }}');
+        {#console.log(notes_data);#}
+        {#console.log(username_data);#}
     </script>
 
 {% endblock %}

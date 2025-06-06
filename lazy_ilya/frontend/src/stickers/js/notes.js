@@ -1,8 +1,8 @@
 import Sortable from 'sortablejs';
-import { showError } from "./utils.js";
+import {showError} from "./utils.js";
 
 export class KanbanStickyNotes {
-    constructor({ addButtonId, boardId, colors = [] }) {
+    constructor({addButtonId, boardId, colors = []}) {
         this.addCardBtn = document.getElementById(addButtonId);
         this.noteBoard = document.getElementById(boardId);
         this.csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
@@ -53,7 +53,7 @@ export class KanbanStickyNotes {
             colorBtn.title = color;
 
             colorBtn.addEventListener('click', () => {
-                this.buildNoteCard({ color });
+                this.buildNoteCard({color});
                 picker.remove();
             });
 
@@ -71,30 +71,34 @@ export class KanbanStickyNotes {
         setTimeout(() => document.addEventListener('click', onClickOutside), 0);
     }
 
-    buildNoteCard(noteData, onCreate, currentUser = username) {
+    buildNoteCard(noteData, currentUser = username) {
         const {
             id,
             text = 'Новая заметка...',
             color = '#FFEB3B',
-            author = this.authors[0],
-            user = username,
+            author_name = this.authors[0],
+            owner = username,
+            order,
+            width,
+            height,
         } = noteData;
-
         const noteCard = document.createElement('div');
         noteCard.classList.add('note-card');
         noteCard.style.backgroundColor = color;
+        if (width) noteCard.style.width = `${width}px`;
+        if (height) noteCard.style.height = `${height}px`;
 
         if (id !== undefined) noteCard.setAttribute('data-id', id);
-        if (user !== undefined) noteCard.setAttribute('data-user', user);
+        if (owner !== undefined) noteCard.setAttribute('data-user', owner);
 
         const authorBtn = document.createElement('button');
         authorBtn.className = 'author-btn';
-        authorBtn.textContent = author;
+        authorBtn.textContent = author_name;
 
-        let authorIndex = this.authors.indexOf(author);
+        let authorIndex = this.authors.indexOf(author_name);
         if (authorIndex === -1) authorIndex = 0;
 
-        if (currentUser === user) {
+        if (currentUser === owner) {
             authorBtn.addEventListener('click', () => {
                 authorIndex = (authorIndex + 1) % this.authors.length;
                 authorBtn.textContent = this.authors[authorIndex];
@@ -123,7 +127,7 @@ export class KanbanStickyNotes {
         deleteBtn.title = 'Удалить заметку';
         deleteBtn.className = 'delete-btn';
 
-        if (currentUser === user || currentUser === author) {
+        if (currentUser === owner || currentUser === author_name) {
             deleteBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const noteId = noteCard.getAttribute('data-id');
@@ -145,16 +149,64 @@ export class KanbanStickyNotes {
 
         this.noteBoard.appendChild(noteCard);
 
-        if (typeof onCreate === 'function') {
-            onCreate(noteCard, {
+        if (!id) {
+            this.sendNoteCreate(noteCard, {
                 text: contentDiv.innerHTML,
                 color: noteCard.style.backgroundColor,
-                author: authorBtn.textContent
+                author_name: authorBtn.textContent
             });
         }
 
         return noteCard;
     }
+
+    async sendNoteCreate(noteCard, data) {
+        const payload = {
+            text: data.text,
+            color: data.color,
+            author_name: data.author_name,
+            width: noteCard.offsetWidth,
+            height: noteCard.offsetHeight,
+            order: [...this.noteBoard.children].indexOf(noteCard),
+        };
+
+        try {
+            const response = await fetch('', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.csrfToken,
+                },
+                body: JSON.stringify(payload),
+            });
+            const result = await response.json();
+            if (!response.ok) {
+                // Ошибка с бэка, пробрасываем объект
+                throw result;
+            }
+            const createdNote = result.data ?? result;
+
+            noteCard.setAttribute('data-id', createdNote.id);
+            noteCard.setAttribute('data-user', username); // сохранить владельца
+
+            this.showSuccessMessage(`Заметка создана: ${createdNote.id}`);
+            console.log('Заметка создана:', createdNote);
+
+        } catch (errorData) {
+            console.error('Ошибка при создании заметки:', errorData);
+
+            if (errorData?.errors) {
+                for (const [field, messages] of Object.entries(errorData.errors)) {
+                    messages.forEach(message => {
+                        showError(`Ошибка в поле "${field}" - "${message}"`);
+                    });
+                }
+            } else {
+                showError('Не удалось создать заметку');
+            }
+        }
+    }
+
 
     sendNoteUpdate(noteCard) {
         // Здесь будет отправка на сервер
@@ -164,5 +216,30 @@ export class KanbanStickyNotes {
     deleteNoteFromServer(noteId) {
         // Здесь будет удаление на сервере
         console.log('Удалить заметку с ID:', noteId);
+    }
+
+    /**
+     * Показывает временное всплывающее сообщение на странице (например, об успешном действии).
+     *
+     * Сообщение плавно появляется с анимацией, отображается 5 секунд и затем исчезает.
+     * Используются классы TailwindCSS и анимации: `flex`, `hidden`, `animate-popup`, `animate-popup-reverse`.
+     *
+     * @param {string} message - Текст сообщения, который будет показан в блоке `#server-info`.
+     */
+    showSuccessMessage(message) {
+        const serverInfo = document.getElementById('server-info');
+        serverInfo.classList.remove('hidden', 'animate-popup-reverse');
+        serverInfo.classList.add('flex', 'animate-popup');
+        serverInfo.querySelector('p').textContent = message;
+        serverInfo.scrollIntoView({behavior: 'smooth', block: 'start'});
+
+        setTimeout(() => {
+            serverInfo.classList.remove('animate-popup');
+            serverInfo.classList.add('animate-popup-reverse');
+            setTimeout(() => {
+                serverInfo.classList.add('hidden');
+                serverInfo.classList.remove('flex', 'animate-popup-reverse');
+            }, 1000);
+        }, 5000);
     }
 }

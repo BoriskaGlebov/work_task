@@ -10,6 +10,6 @@ class StickyNoteForm(forms.ModelForm):
 
     class Meta:
         model = StickyNote
-        fields = ['text', 'color', 'position_top', 'position_left', 'author']
-        exclude=['user']
+        fields = ['text', 'color', 'width', 'height', 'author_name','order']
+        exclude=['owner']
 

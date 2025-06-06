@@ -442,7 +442,7 @@ p {
 .note-card {
   @apply relative flex flex-col p-4 rounded-xl shadow-md cursor-text
   select-text max-h-[1000px] duration-500 overflow-y-auto
-  transition-shadow outline-none resize both min-h-[200px]
+  transition-shadow outline-none resize min-h-[200px]
   min-w-[180px] max-w-full w-auto;
 }
 
