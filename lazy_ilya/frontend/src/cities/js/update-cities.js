@@ -269,18 +269,28 @@ export class CityModalHandler {
      */
     showSuccessMessage(message) {
         const serverInfo = document.getElementById('server-info');
+        const messageParagraph = serverInfo.querySelector('p');
+
+        // Очистка предыдущего таймера, если он ещё активен
+        if (this.successMessageTimeout) {
+            clearTimeout(this.successMessageTimeout);
+        }
+
+        // Показываем сообщение
         serverInfo.classList.remove('hidden', 'animate-popup-reverse');
         serverInfo.classList.add('flex', 'animate-popup');
-        serverInfo.querySelector('p').textContent = message;
+        messageParagraph.textContent = message;
         serverInfo.scrollIntoView({behavior: 'smooth', block: 'start'});
 
-        setTimeout(() => {
+        // Устанавливаем новый таймер скрытия
+        this.successMessageTimeout = setTimeout(() => {
             serverInfo.classList.remove('animate-popup');
             serverInfo.classList.add('animate-popup-reverse');
             setTimeout(() => {
                 serverInfo.classList.add('hidden');
                 serverInfo.classList.remove('flex', 'animate-popup-reverse');
             }, 1000);
+            this.successMessageTimeout = null; // очищаем
         }, 5000);
     }
 

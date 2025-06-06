@@ -1,7 +1,17 @@
 import Sortable from 'sortablejs';
 import {showError} from "./utils.js";
 
+/**
+ * Класс для управления стикерами (заметками) в стиле Kanban.
+ * Поддерживает создание, редактирование, удаление и сортировку заметок с синхронизацией с сервером.
+ */
 export class KanbanStickyNotes {
+    /**
+     * @param {Object} config
+     * @param {string} config.addButtonId - ID кнопки для добавления новой заметки.
+     * @param {string} config.boardId - ID контейнера доски, куда добавляются заметки.
+     * @param {string[]} [config.colors=[]] - Список цветов для новых заметок.
+     */
     constructor({addButtonId, boardId, colors = []}) {
         this.addCardBtn = document.getElementById(addButtonId);
         this.noteBoard = document.getElementById(boardId);
@@ -21,24 +31,33 @@ export class KanbanStickyNotes {
         this.currentAuthorIndex = 0;
         this.noteData = notes_data;
 
-
         this.initSortable();
     }
 
+    /**
+     * Инициализирует drag-and-drop сортировку с помощью библиотеки Sortable.js.
+     */
     initSortable() {
         Sortable.create(this.noteBoard, {
             animation: 500,
             handle: '.note-card',
             ghostClass: 'opacity-50',
+            onEnd: () => this.updateNoteOrders(),
         });
     }
 
+    /**
+     * Загружает заметки из переданных данных при инициализации.
+     */
     loadInitialNotes() {
         if (Array.isArray(this.noteData)) {
             this.noteData.forEach(note => this.buildNoteCard(note));
         }
     }
 
+    /**
+     * Показывает всплывающее меню выбора цвета для новой заметки.
+     */
     showColorPicker() {
         if (document.getElementById('color-picker')) return;
 
@@ -71,6 +90,13 @@ export class KanbanStickyNotes {
         setTimeout(() => document.addEventListener('click', onClickOutside), 0);
     }
 
+    /**
+     * Создаёт HTML-элемент заметки и добавляет его на доску.
+     *
+     * @param {Object} noteData - Данные заметки.
+     * @param {string} [currentUser=username] - Текущий пользователь.
+     * @returns {HTMLElement} Созданная заметка.
+     */
     buildNoteCard(noteData, currentUser = username) {
         const {
             id,
@@ -82,6 +108,7 @@ export class KanbanStickyNotes {
             width,
             height,
         } = noteData;
+
         const noteCard = document.createElement('div');
         noteCard.classList.add('note-card');
         noteCard.style.backgroundColor = color;
@@ -90,7 +117,9 @@ export class KanbanStickyNotes {
 
         if (id !== undefined) noteCard.setAttribute('data-id', id);
         if (owner !== undefined) noteCard.setAttribute('data-user', owner);
+        noteCard.setAttribute('data-order', order ?? [...this.noteBoard.children].length);
 
+        // Автор
         const authorBtn = document.createElement('button');
         authorBtn.className = 'author-btn';
         authorBtn.textContent = author_name;
@@ -102,6 +131,7 @@ export class KanbanStickyNotes {
             authorBtn.addEventListener('click', () => {
                 authorIndex = (authorIndex + 1) % this.authors.length;
                 authorBtn.textContent = this.authors[authorIndex];
+                this.sendNoteUpdate(noteCard);
             });
         } else {
             authorBtn.disabled = true;
@@ -112,6 +142,7 @@ export class KanbanStickyNotes {
         authorContainer.className = 'flex justify-end mb-1';
         authorContainer.appendChild(authorBtn);
 
+        // Контент
         const contentDiv = document.createElement('div');
         contentDiv.setAttribute('contenteditable', 'true');
         contentDiv.setAttribute('spellcheck', 'false');
@@ -122,6 +153,7 @@ export class KanbanStickyNotes {
             this.sendNoteUpdate(noteCard);
         });
 
+        // Удаление
         const deleteBtn = document.createElement('button');
         deleteBtn.textContent = '×';
         deleteBtn.title = 'Удалить заметку';
@@ -131,18 +163,22 @@ export class KanbanStickyNotes {
             deleteBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const noteId = noteCard.getAttribute('data-id');
-                if (noteId) this.deleteNoteFromServer(noteId);
-                noteCard.remove();
+                if (noteId) {
+                    this.deleteNoteFromServer(noteId);
+                    noteCard.remove();
+                } else {
+                    noteCard.remove();
+                }
             });
         } else {
             deleteBtn.disabled = true;
             deleteBtn.title = 'Вы не можете удалить заметку, вы ее не создавали';
         }
 
+        // Сборка карточки
         noteCard.appendChild(authorContainer);
         noteCard.appendChild(contentDiv);
         noteCard.appendChild(deleteBtn);
-
         noteCard.addEventListener('click', (e) => {
             if (!e.target.classList.contains('delete-btn')) contentDiv.focus();
         });
@@ -160,6 +196,12 @@ export class KanbanStickyNotes {
         return noteCard;
     }
 
+    /**
+     * Отправляет запрос на создание новой заметки.
+     *
+     * @param {HTMLElement} noteCard
+     * @param {Object} data
+     */
     async sendNoteCreate(noteCard, data) {
         const payload = {
             text: data.text,
@@ -179,67 +221,149 @@ export class KanbanStickyNotes {
                 },
                 body: JSON.stringify(payload),
             });
-            const result = await response.json();
-            if (!response.ok) {
-                // Ошибка с бэка, пробрасываем объект
-                throw result;
-            }
-            const createdNote = result.data ?? result;
 
+            const result = await response.json();
+            if (!response.ok) throw result;
+
+            const createdNote = result.data ?? result;
             noteCard.setAttribute('data-id', createdNote.id);
-            noteCard.setAttribute('data-user', username); // сохранить владельца
+            noteCard.setAttribute('data-user', username);
 
             this.showSuccessMessage(`Заметка создана: ${createdNote.id}`);
-            console.log('Заметка создана:', createdNote);
-
         } catch (errorData) {
-            console.error('Ошибка при создании заметки:', errorData);
-
-            if (errorData?.errors) {
-                for (const [field, messages] of Object.entries(errorData.errors)) {
-                    messages.forEach(message => {
-                        showError(`Ошибка в поле "${field}" - "${message}"`);
-                    });
-                }
-            } else {
-                showError('Не удалось создать заметку');
-            }
+            this.handleServerError(errorData, 'Не удалось создать заметку');
         }
     }
 
+    /**
+     * Отправляет PATCH-запрос на обновление заметки.
+     *
+     * @param {HTMLElement} noteCard
+     */
+    async sendNoteUpdate(noteCard) {
+        const noteId = noteCard.getAttribute('data-id');
+        if (!noteId) return;
 
-    sendNoteUpdate(noteCard) {
-        // Здесь будет отправка на сервер
-        console.log('Обновить заметку:', noteCard);
-    }
+        const contentDiv = noteCard.querySelector('[contenteditable]');
+        const authorBtn = noteCard.querySelector('.author-btn');
+        const order = [...this.noteBoard.children].indexOf(noteCard);
 
-    deleteNoteFromServer(noteId) {
-        // Здесь будет удаление на сервере
-        console.log('Удалить заметку с ID:', noteId);
+        const payload = {
+            id: noteId,
+            text: contentDiv.innerHTML,
+            color: noteCard.style.backgroundColor,
+            author_name: authorBtn.textContent,
+            width: noteCard.offsetWidth,
+            height: noteCard.offsetHeight,
+            order,
+        };
+
+        try {
+            const response = await fetch(``, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.csrfToken,
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const result = await response.json();
+            if (!response.ok) throw result;
+
+            noteCard.setAttribute('data-order', order);
+            this.showSuccessMessage(`Заметка ${noteId} обновлена`);
+        } catch (errorData) {
+            this.handleServerError(errorData, 'Не удалось обновить заметку');
+        }
     }
 
     /**
-     * Показывает временное всплывающее сообщение на странице (например, об успешном действии).
+     * Удаляет заметку с сервера по ID.
      *
-     * Сообщение плавно появляется с анимацией, отображается 5 секунд и затем исчезает.
-     * Используются классы TailwindCSS и анимации: `flex`, `hidden`, `animate-popup`, `animate-popup-reverse`.
+     * @param {string} noteId
+     */
+    async deleteNoteFromServer(noteId) {
+        try {
+            const response = await fetch(`${noteId}/`, {
+                method: 'DELETE',
+                headers: {'X-CSRFToken': this.csrfToken},
+            });
+
+            if (!response.ok) throw await response.json();
+
+            const noteCard = this.noteBoard.querySelector(`[data-id="${noteId}"]`);
+            if (noteCard) noteCard.remove();
+
+            this.showSuccessMessage(`Заметка ${noteId} удалена`);
+        } catch (errorData) {
+            this.handleServerError(errorData, 'Не удалось удалить заметку');
+        }
+    }
+
+    /**
+     * Отображает всплывающее сообщение об успешном действии.
      *
-     * @param {string} message - Текст сообщения, который будет показан в блоке `#server-info`.
+     * @param {string} message
      */
     showSuccessMessage(message) {
         const serverInfo = document.getElementById('server-info');
+        const messageParagraph = serverInfo.querySelector('p');
+
+        // Очистка предыдущего таймера, если он ещё активен
+        if (this.successMessageTimeout) {
+            clearTimeout(this.successMessageTimeout);
+        }
+
+        // Показываем сообщение
         serverInfo.classList.remove('hidden', 'animate-popup-reverse');
         serverInfo.classList.add('flex', 'animate-popup');
-        serverInfo.querySelector('p').textContent = message;
+        messageParagraph.textContent = message;
         serverInfo.scrollIntoView({behavior: 'smooth', block: 'start'});
 
-        setTimeout(() => {
+        // Устанавливаем новый таймер скрытия
+        this.successMessageTimeout = setTimeout(() => {
             serverInfo.classList.remove('animate-popup');
             serverInfo.classList.add('animate-popup-reverse');
             setTimeout(() => {
                 serverInfo.classList.add('hidden');
                 serverInfo.classList.remove('flex', 'animate-popup-reverse');
             }, 1000);
+            this.successMessageTimeout = null; // очищаем
         }, 5000);
     }
+
+
+    /**
+     * Обновляет порядок заметок на доске и отправляет обновления на сервер.
+     */
+    updateNoteOrders() {
+        [...this.noteBoard.children].forEach((noteCard, index) => {
+            const currentOrder = parseInt(noteCard.getAttribute('data-order'));
+            if (currentOrder !== index) {
+                noteCard.setAttribute('data-order', index);
+                this.sendNoteUpdate(noteCard);
+            }
+        });
+    }
+
+    /**
+     * Обрабатывает ошибки сервера и отображает соответствующие сообщения.
+     *
+     * @param {Object} errorData
+     * @param {string} fallbackMessage
+     */
+    handleServerError(errorData, fallbackMessage) {
+        console.error(fallbackMessage, errorData);
+        if (errorData?.errors) {
+            for (const [field, messages] of Object.entries(errorData.errors)) {
+                messages.forEach(message => {
+                    showError(`Ошибка в поле "${field}" - "${message}"`);
+                });
+            }
+        } else {
+            showError(fallbackMessage);
+        }
+    }
 }
+

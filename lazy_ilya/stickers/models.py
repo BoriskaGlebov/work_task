@@ -9,20 +9,21 @@ class StickyNote(models.Model):
     Модель StickyNote представляет собой стикер (заметку), размещаемую на доске пользователя.
 
     Атрибуты:
-        user (ForeignKey): Пользователь, к которому относится заметка.
+        owner (ForeignKey): Пользователь, к которому относится заметка.
         text (TextField): Основной текст заметки. По умолчанию содержит 'Новая заметка...'.
         color (CharField): Цвет фона заметки в HEX-формате. По умолчанию '#FFEB3B' (жёлтый).
-        position_top (FloatField): Вертикальная позиция заметки на доске (в пикселях или %).
-        position_left (FloatField): Горизонтальная позиция заметки на доске.
-        author (CharField): Автор или адресат заметки (например, 'Всем!', 'Для себя' и т.д.).
+        width (PositiveIntegerField): Ширина заметки.
+        height (PositiveIntegerField): Высота заметки.
+        order (PositiveIntegerField): Позиция среди других заметок.
+        author_name (CharField): Автор или адресат заметки (например, 'Всем!', 'Для себя' и т.д.).
         created_at (DateTimeField): Дата и время создания заметки.
         updated_at (DateTimeField): Дата и время последнего обновления заметки.
 
     Метаданные:
-        ordering: Сортировка заметок по дате создания (сначала последние).
+        ordering: Сортировка заметок по последовательности на экране от самого первого.
 
     Пример использования:
-        note = StickyNote.objects.create(user=some_user, text='Напомнить о встрече')
+        note = StickyNote.objects.create(owner=some_user, text='Напомнить о встрече')
 
     """
     text = models.TextField(default='Новая заметка...', blank=True, verbose_name="Текст заметки")
