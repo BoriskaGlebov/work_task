@@ -98,103 +98,163 @@ export class KanbanStickyNotes {
      * @returns {HTMLElement} Созданная заметка.
      */
     buildNoteCard(noteData, currentUser = username) {
-        const {
-            id,
-            text = 'Новая заметка...',
-            color = '#FFEB3B',
-            author_name = this.authors[0],
-            owner = username,
-            order,
-            width,
-            height,
-        } = noteData;
+    const {
+        id,
+        text = 'Новая заметка...',
+        color = '#FFEB3B',
+        author_name = this.authors[0],
+        owner = username,
+        order,
+        width,
+        height,
+    } = noteData;
 
-        const noteCard = document.createElement('div');
-        noteCard.classList.add('note-card');
-        noteCard.style.backgroundColor = color;
-        if (width) noteCard.style.width = `${width}px`;
-        if (height) noteCard.style.height = `${height}px`;
+    const noteCard = document.createElement('div');
+    noteCard.className = `note-card`;
+    noteCard.style.backgroundColor = color;
+    if (width) noteCard.style.width = `${width}px`;
+    if (height) noteCard.style.height = `${height}px`;
 
-        if (id !== undefined) noteCard.setAttribute('data-id', id);
-        if (owner !== undefined) noteCard.setAttribute('data-user', owner);
-        noteCard.setAttribute('data-order', order ?? [...this.noteBoard.children].length);
+    if (id !== undefined) noteCard.setAttribute('data-id', id);
+    if (owner !== undefined) noteCard.setAttribute('data-user', owner);
+    noteCard.setAttribute('data-order', order ?? [...this.noteBoard.children].length);
 
-        // Автор
-        const authorBtn = document.createElement('button');
-        authorBtn.className = 'author-btn';
-        authorBtn.textContent = author_name;
+    // Автор
+    const authorBtn = document.createElement('button');
+    authorBtn.className = 'relative author-btn';
+    authorBtn.textContent = author_name;
 
-        let authorIndex = this.authors.indexOf(author_name);
-        if (authorIndex === -1) authorIndex = 0;
+    let authorIndex = this.authors.indexOf(author_name);
+    if (authorIndex === -1) authorIndex = 0;
 
-        if (currentUser === owner) {
-            authorBtn.addEventListener('click', () => {
-                authorIndex = (authorIndex + 1) % this.authors.length;
-                authorBtn.textContent = this.authors[authorIndex];
-                this.sendNoteUpdate(noteCard);
-            });
-        } else {
-            authorBtn.disabled = true;
-            authorBtn.title = 'Вы не можете менять автора этой заметки';
-        }
+    const dropdown = document.createElement('div');
+    dropdown.className = `dropdown absolute z-50 bg-white border rounded-xl shadow transition-all duration-200 origin-top opacity-0 scale-y-0 invisible`;
+    document.body.appendChild(dropdown);
 
-        const authorContainer = document.createElement('div');
-        authorContainer.className = 'flex justify-end mb-1';
-        authorContainer.appendChild(authorBtn);
+    // Авто-скрытие через 10 сек
+    let authorDropdownTimeout;
 
-        // Контент
-        const contentDiv = document.createElement('div');
-        contentDiv.setAttribute('contenteditable', 'true');
-        contentDiv.setAttribute('spellcheck', 'false');
-        contentDiv.className = 'outline-none';
-        contentDiv.innerHTML = text;
+    const resetAuthorDropdownTimeout = () => {
+        clearTimeout(authorDropdownTimeout);
+        authorDropdownTimeout = setTimeout(() => {
+            hideDropdown();
+        }, 5000);
+    };
 
-        contentDiv.addEventListener('blur', () => {
+    const showDropdown = () => {
+        const rect = authorBtn.getBoundingClientRect();
+        dropdown.style.top = `${rect.bottom + 4 + window.scrollY}px`;
+        dropdown.style.left = `${rect.right - dropdown.offsetWidth + window.scrollX}px`;
+
+        dropdown.classList.remove('opacity-0', 'scale-y-0', 'invisible');
+        dropdown.classList.add('opacity-100', 'scale-y-100', 'visible');
+
+        resetAuthorDropdownTimeout();
+    };
+
+    const hideDropdown = () => {
+        clearTimeout(authorDropdownTimeout);
+        dropdown.classList.add('opacity-0', 'scale-y-0', 'invisible');
+        dropdown.classList.remove('opacity-100', 'scale-y-100', 'visible');
+    };
+
+    this.authors.forEach(name => {
+        const option = document.createElement('div');
+        option.className = 'px-2 py-1 hover:bg-gray-200 cursor-pointer';
+        option.textContent = name;
+        option.addEventListener('click', () => {
+            authorBtn.textContent = name;
+            authorIndex = this.authors.indexOf(name);
+            hideDropdown();
             this.sendNoteUpdate(noteCard);
         });
+        dropdown.appendChild(option);
+    });
 
-        // Удаление
-        const deleteBtn = document.createElement('button');
-        deleteBtn.textContent = '×';
-        deleteBtn.title = 'Удалить заметку';
-        deleteBtn.className = 'delete-btn';
-
-        if (currentUser === owner || currentUser === author_name) {
-            deleteBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const noteId = noteCard.getAttribute('data-id');
-                if (noteId) {
-                    this.deleteNoteFromServer(noteId);
-                    noteCard.remove();
-                } else {
-                    noteCard.remove();
-                }
-            });
-        } else {
-            deleteBtn.disabled = true;
-            deleteBtn.title = 'Вы не можете удалить заметку, вы ее не создавали';
-        }
-
-        // Сборка карточки
-        noteCard.appendChild(authorContainer);
-        noteCard.appendChild(contentDiv);
-        noteCard.appendChild(deleteBtn);
-        noteCard.addEventListener('click', (e) => {
-            if (!e.target.classList.contains('delete-btn')) contentDiv.focus();
+    if (currentUser === owner) {
+        authorBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const hidden = dropdown.classList.contains('invisible');
+            hidden ? showDropdown() : hideDropdown();
+            resetAuthorDropdownTimeout();
         });
-
-        this.noteBoard.appendChild(noteCard);
-
-        if (!id) {
-            this.sendNoteCreate(noteCard, {
-                text: contentDiv.innerHTML,
-                color: noteCard.style.backgroundColor,
-                author_name: authorBtn.textContent
-            });
-        }
-
-        return noteCard;
+    } else {
+        authorBtn.disabled = true;
+        authorBtn.title = 'Вы не можете менять автора этой заметки';
     }
+
+    dropdown.addEventListener('mouseenter', resetAuthorDropdownTimeout);
+
+    document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target) && !authorBtn.contains(e.target)) {
+            hideDropdown();
+        }
+    });
+
+    const authorContainer = document.createElement('div');
+    authorContainer.className = 'flex justify-end mb-1';
+    authorContainer.appendChild(authorBtn);
+
+    // Контент
+    const contentDiv = document.createElement('div');
+    contentDiv.setAttribute('contenteditable', 'true');
+    contentDiv.setAttribute('spellcheck', 'false');
+    contentDiv.className = 'content-area flex-1 overflow-y-auto outline-none max-h-[1000px] overflow-y-auto';
+    contentDiv.innerHTML = text;
+
+    contentDiv.addEventListener('blur', () => {
+        this.sendNoteUpdate(noteCard);
+    });
+
+    // Удаление
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = '×';
+    deleteBtn.title = 'Удалить заметку';
+    deleteBtn.className = 'delete-btn';
+
+    if (currentUser === owner || currentUser === author_name) {
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const noteId = noteCard.getAttribute('data-id');
+            if (noteId) {
+                this.deleteNoteFromServer(noteId);
+                noteCard.remove();
+            } else {
+                noteCard.remove();
+            }
+        });
+    } else {
+        deleteBtn.disabled = true;
+        deleteBtn.title = 'Вы не можете удалить заметку, вы ее не создавали';
+    }
+
+    // Сборка карточки
+    noteCard.appendChild(authorContainer);
+    noteCard.appendChild(contentDiv);
+    noteCard.appendChild(deleteBtn);
+
+    noteCard.addEventListener('click', (e) => {
+        if (!e.target.classList.contains('delete-btn')) contentDiv.focus();
+    });
+
+    contentDiv.addEventListener('input', () => {
+        noteCard.style.height = ''; // убираем фиксированный размер
+        noteCard.style.width = '';
+    });
+
+    this.noteBoard.appendChild(noteCard);
+
+    if (!id) {
+        this.sendNoteCreate(noteCard, {
+            text: contentDiv.innerHTML,
+            color: noteCard.style.backgroundColor,
+            author_name: authorBtn.textContent
+        });
+    }
+
+    return noteCard;
+}
+
 
     /**
      * Отправляет запрос на создание новой заметки.
@@ -272,7 +332,7 @@ export class KanbanStickyNotes {
             if (!response.ok) throw result;
 
             noteCard.setAttribute('data-order', order);
-            this.showSuccessMessage(`Заметка ${noteId} обновлена`);
+            // this.showSuccessMessage(`Заметка ${noteId} обновлена`);
         } catch (errorData) {
             this.handleServerError(errorData, 'Не удалось обновить заметку');
         }
