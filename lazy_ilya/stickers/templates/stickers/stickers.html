@@ -37,6 +37,7 @@
                 </div>
             </div>
         </div>
+
         <h2 class="text-center">📌 Моя доска</h2>
         <!-- Header -->
         <div class="flex justify-between items-center mb-4">
@@ -57,14 +58,68 @@
         </div>
 
         <!-- Tasks Board -->
-        <div id="task-board" class=" grid grid-cols-1  md:grid-cols-3 gap-4 min-h-[400px] transition-opacity">
-            <!-- карточки задач -->
-            <div class="task-card bg-white p-4  border-l-20 border-l-lime-500 rounded-xl shadow relative flex flex-col">
-                <h3 class="text-lg font-semibold mb-1">Название задачи</h3>
-                <p class="text-sm text-gray-600 flex-grow">Описание задачи или дополнительные детали.</p>
-                <div class="mt-2 text-xs text-gray-400">Срок: 2025-06-01</div>
-                <button class="delete-btn absolute top-2 right-2 text-red-500 hover:text-red-700">×</button>
+        <div id="task-board"
+             class=" grid grid-cols-1 sm:grid-cols-2  lg:grid-cols-3 gap-4 min-h-[200px] transition-opacity">
+
+            <!-- Модальное окно -->
+            <div id="task-modal" class="fixed inset-0 backdrop-blur-xs flex items-center justify-center hidden z-30">
+                <form id="task-form" class="form-style relative">
+                    <button id="close-modal"
+                            class="absolute top-2 right-3 text-gray-500 hover:text-gray-700 text-xl">
+                        &times;
+                    </button>
+
+                    <h2 class="text-center">Задача</h2>
+                    <input type="text" name="title" placeholder="Название задачи" required
+                           class="correct_input"/>
+
+                    <textarea name="desc" rows="3" placeholder="Описание..."
+                              class="correct_input"></textarea>
+
+                    <label class="correct_label">
+                        Срок исполнения:</label>
+                    <input type="date" name="deadline"
+                           class="correct_input"/>
+
+
+                    <label class="correct_label">
+                        Приоритет:</label>
+                    <select name="priority"
+                            class="correct_input">
+                        <option value="">-</option>
+                        <option value="low">👨‍🦼 Низкий</option>
+                        <option value="medium">🚶‍♂️ Средний</option>
+                        <option value="high">🔥🏃‍♂️Высокий</option>
+                    </select>
+
+
+                    <select name="assignee" id="assignee-select" class="correct_input">
+                        <option value="">-- Выберите исполнителя --</option>
+
+                    </select>
+
+{#                    <input type="text" name="tags" placeholder="Теги (через запятую)"#}
+{#                           class="correct_input"/>#}
+                    <select name="tags" id="tags-select" class="correct_input" multiple placeholder="Выберитеввв или введите теги..."></select>
+
+
+                    <label class="correct_label">
+                        <input type="checkbox" name="done"/>
+                        Выполнено
+                    </label>
+
+                    <div class="flex justify-end gap-2 mt-4">
+                        <button type="button" id="cancel-btn"
+                                class="btn-cancel">Отмена
+                        </button>
+                        <button type="submit" class="btn-submit">
+                            Сохранить
+                        </button>
+                    </div>
+                </form>
+
             </div>
+
 
         </div>
     </div>
@@ -92,8 +147,8 @@
         {% endif %}
         window.notes_data = JSON.parse('{{ notes_data|escapejs }}');
         window.username_data = JSON.parse('{{ username_list|escapejs }}');
-        {#console.log(notes_data);#}
-        {#console.log(username_data);#}
+        console.log(notes_data);
+        console.log(username_data);
     </script>
 
 {% endblock %}

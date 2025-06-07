@@ -16,6 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     // ВАЖНО: вызываем загрузку начальных заметок после инициализации
     kanban.loadInitialNotes();
-    const kanbanTask = new KanbanTasks({addButtonId: 'btn-tasks', boardId: 'task-board'});
+    const kanbanTask = new KanbanTasks({addButtonId: 'btn-tasks', boardId: 'task-board',modalId:'task-modal'});
 
 });
