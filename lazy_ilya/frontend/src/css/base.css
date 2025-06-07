@@ -203,7 +203,7 @@ p {
 }
 
 .correct_icon {
-    @apply size-5 md:size-6 text-accent dark:text-accent-dark transition-all duration-500;
+    @apply size-5 md:size-6 text-accent dark:text-accent-dark transition-discrete duration-300;
 }
 
 .error_icon {
