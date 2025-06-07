@@ -440,10 +440,20 @@ p {
 }
 
 .note-card {
-  @apply relative flex flex-col p-4 rounded-xl shadow-md cursor-text
-  select-text max-h-[1000px] duration-500 overflow-auto
-  transition-shadow outline-none resize min-h-[200px]
-  min-w-[180px] max-w-full w-auto;
+    @apply relative flex flex-col p-4 rounded-xl shadow-md cursor-text
+    select-text max-h-[1000px] duration-500 overflow-auto
+    transition-shadow outline-none resize min-h-[200px]
+    min-w-[180px] max-w-full w-auto;
+}
+
+.dropdown {
+    @apply absolute z-50 bg-form-color dark:bg-form-color-dark opacity-92 rounded-xl shadow transition-all duration-200 origin-top;
+}
+.dropdown div{
+    @apply px-2 py-1 hover:bg-accent hover:dark:bg-accent-dark rounded-xl text-text dark:text-text-dark cursor-pointer;
+}
+.content-area{
+    @apply flex-1 outline-none max-h-[1000px] overflow-y-auto;
 }
 
 

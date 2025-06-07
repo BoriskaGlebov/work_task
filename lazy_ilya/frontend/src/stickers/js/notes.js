@@ -123,7 +123,7 @@ export class KanbanStickyNotes {
         authorBtn.textContent = author_name;
 
         const dropdown = document.createElement('div');
-        dropdown.className = 'dropdown absolute z-50 bg-white border rounded-xl shadow transition-all duration-200 origin-top opacity-0 scale-y-0 invisible';
+        dropdown.className = 'dropdown  opacity-0 scale-y-0 invisible';
         document.body.appendChild(dropdown);
 
         let authorDropdownTimeout;
@@ -152,7 +152,6 @@ export class KanbanStickyNotes {
 
         this.authors.forEach(name => {
             const option = document.createElement('div');
-            option.className = 'px-2 py-1 hover:bg-gray-200 cursor-pointer';
             option.textContent = name;
             option.addEventListener('click', () => {
                 authorBtn.textContent = name;
@@ -186,7 +185,7 @@ export class KanbanStickyNotes {
 
         // --- Контент ---
         const contentDiv = document.createElement('div');
-        contentDiv.className = 'content-area flex-1 outline-none max-h-[1000px] overflow-y-auto';
+        contentDiv.className = 'content-area ';
         contentDiv.contentEditable = true;
         contentDiv.spellcheck = false;
         contentDiv.innerHTML = text;
