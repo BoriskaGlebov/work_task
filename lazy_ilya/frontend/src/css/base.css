@@ -488,5 +488,53 @@ p {
     @apply bg-surface dark:bg-surface-dark p-4 rounded-xl shadow relative cursor-pointer border-l-10;
 }
 
+/* Внешний контейнер */
+.choices {
+    @apply border border-form-color dark:border-form-color-dark
+    rounded-lg p-2 bg-background dark:bg-background-dark;
+}
+
+/* Внутренняя часть */
+.choices__inner {
+    @apply !bg-background dark:!bg-background-dark text-text dark:text-text-dark
+    p-2 rounded-md !border-none ;
+}
+
+/* Поле ввода (input) */
+.choices__input--cloned {
+    @apply text-base p-2 text-text dark:text-text-dark
+    !bg-transparent placeholder-text dark:placeholder-text-dark
+    !border-none !ring-0 !outline-none focus:!ring-0 focus:!outline-none focus:!border-none w-full;
+}
+
+.choices__list--multiple {
+    @apply flex flex-wrap gap-1 mt-2 ;
+}
+
+
+.choices__item {
+    @apply bg-background dark:bg-background-dark text-text dark:text-text-dark  px-2 py-1 text-sm rounded;
+}
+
+.choices__list--dropdown {
+    @apply !bg-background dark:!bg-background-dark border border-form-color dark:border-form-color-dark
+    rounded-xl shadow-lg mt-1 ;
+}
+
+.choices__item--choice {
+    @apply px-3 py-2 text-sm cursor-pointer hover:!bg-accent dark:hover:!bg-accent-dark;
+}
+
+.choices__item--choice.is-highlighted {
+    @apply !bg-accent text-white dark:!bg-accent-dark;
+}
+/*!* Тег с кнопкой удаления (выбранный элемент) *!*/
+/*.choices__item--selectable {*/
+/*    @apply !bg-accent text-white dark:!bg-accent-dark dark:text-white*/
+/*    text-sm px-3 py-1 rounded-lg flex items-center gap-2;*/
+/*}*/
+
+
+
 
 
