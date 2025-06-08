@@ -1,5 +1,9 @@
-import TomSelect from "tom-select";
-import "tom-select/dist/css/tom-select.css";
+// import TomSelect from "tom-select";
+// import "tom-select/dist/css/tom-select.css";
+
+import Choices from 'choices.js';
+import 'choices.js/public/assets/styles/choices.min.css';
+
 
 export class KanbanTasks {
     constructor({addButtonId, boardId, modalId}) {
@@ -27,97 +31,34 @@ export class KanbanTasks {
             e.preventDefault();
             this.saveTask();
         });
-        const tagsSelectElement = this.taskForm.querySelector('select[name="tags"]');
-        if (tagsSelectElement) {
-            this.tagsSelect = new TomSelect(tagsSelectElement, {
-                plugins: ['remove_button'],
-                delimiter: ',',
-                persist: false,
-                create: true,
-                placeholder: 'Выберите или введите теги...',
-                options: [
-                    {value: 'urgent', text: 'urgent'},
-                    {value: 'backend', text: 'backend'},
-                    {value: 'frontend', text: 'frontend'},
-                ],
-                render: {
-                    option: function (data, escape) {
-                        return `<div class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer text-text dark:text-text-dark">${escape(data.text)}</div>`;
-                    },
-                    item: function (data, escape) {
-                        return `<div class="inline-flex items-center bg-primary/20 text-primary dark:bg-primary-dark/20 dark:text-primary-dark rounded-lg px-3 py-1 text-xs md:text-sm xl:text-base font-medium mr-1">${escape(data.text)}</div>`;
-                    },
-                    no_results: function (data, escape) {
-                        return `<div class="p-2 text-secondary dark:text-secondary-dark">Ничего не найдено</div>`;
-                    },
-                },
-                onInitialize: function () {
-                    // Основные стили для контейнера
-                    this.wrapper.classList.add(
-                        'w-full',
-                        '!rounded-4xl',
-                        'transition-all',
-                        'border',
-                        'border-form-color',
-                        'dark:border-form-color-dark',
-                        '!bg-background',
-                        'dark:!bg-background-dark',
-                        'focus-within:outline-none',
-                        'focus-within:ring-2',
-                        'focus-within:ring-primary',
-                        'dark:focus-within:ring-primary-dark'
-                    );
-
-                    // Стили для поля ввода
-                    this.control_input.classList.add(
-                        'text-text',
-                        'rounded-3xl',
-                        'dark:text-text-dark',
-                        'bg-transparent',
-                        'placeholder:text-secondary',
-                        'dark:placeholder:text-secondary-dark',
-                        'text-xs',
-                        'md:text-sm',
-                        'xl:text-base',
-                        'py-2',
-                        'px-3'
-                    );
-
-                    // Стили для выпадающего списка
-                    this.dropdown.classList.add(
-                        'border',
-                        'border-form-color',
-                        'dark:border-form-color-dark',
-                        'bg-background',
-                        'dark:bg-background-dark',
-                        'rounded-lg',
-                        'shadow-lg',
-                        'mt-1'
-                    );
-
-                    // Стили для активного элемента в выпадающем списке
-                    this.dropdown_content.querySelectorAll('.active').forEach(el => {
-                        el.classList.add(
-                            'bg-primary/10',
-                            'dark:bg-primary-dark/10'
-                        );
-                    });
-                },
-                onFocus: function () {
-                    this.wrapper.classList.add('ring-2', 'ring-primary', 'dark:ring-primary-dark');
-                },
-                onBlur: function () {
-                    this.wrapper.classList.remove('ring-2', 'ring-primary', 'dark:ring-primary-dark');
-                }
-
-            });
+        // Инициализация Choices.js
+        const select = this.taskForm.querySelector('select[name="tags"]'); // <-- исправлено, берём select из формы
+        if (!select) {
+            throw new Error('Select с name="tags" не найден в форме');
         }
+
+        this.tagsSelect = new Choices(select, {
+            removeItemButton: true,
+            duplicateItemsAllowed: false,
+            addItems: true,
+            addItemFilter: value => value.trim().length > 0,
+            addChoices: true,
+            searchEnabled: true,
+            shouldSort: false,
+            placeholderValue: 'Введите или выберите теги...',
+            choices: [
+                {value: 'frontend', label: 'frontend'},
+                {value: 'backend', label: 'backend'},
+                {value: 'urgent', label: 'urgent'}
+            ]
+        });
+
 
         // Клик по карточке открывает модалку для редактирования
         this.taskBoard.addEventListener('click', (e) => {
             const card = e.target.closest('.task-card');
             if (card) {
-                const id = card.dataset.id;
+                const id = card.dataset.cardId;
                 this.openModal(id);
             }
         });
@@ -137,17 +78,17 @@ export class KanbanTasks {
             this.taskForm.priority.value = task.priority;
             this.taskForm.done.checked = task.done;
 
-            // Устанавливаем теги через Tom Select
+            // Обновляем теги через Choices.js
             if (this.tagsSelect) {
-                // tags в виде строки с разделением запятой
                 const tagsArray = task.tags ? task.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
-                this.tagsSelect.clear(); // очищаем выделение
-                this.tagsSelect.addItems(tagsArray); // ставим выделенные теги
-            } else {
-                // Если Tom Select еще не инициализирован — просто запишем строку в select (на всякий случай)
-                this.taskForm.tags.value = task.tags || '';
-            }
+                // Удаляем выбранные теги в виджете
+                this.tagsSelect.removeActiveItems();
 
+                // Добавляем выбранные теги
+                tagsArray.forEach(tag => {
+                    this.tagsSelect.setChoiceByValue(tag);
+                });
+            }
 
         } else {
             // Новая задача — очистить форму
@@ -155,7 +96,7 @@ export class KanbanTasks {
 
             // Очистить теги в Tom Select, если он есть
             if (this.tagsSelect) {
-                this.tagsSelect.clear();
+                this.tagsSelect.removeActiveItems();
             }
         }
 
@@ -206,11 +147,12 @@ export class KanbanTasks {
             deadline: formData.get('deadline'),
             priority: formData.get('priority'),
             assignee: formData.get('assignee'),
-            tags: this.tagsSelect ? this.tagsSelect.getValue().join(',') : '',
+            tags: this.tagsSelect ? this.tagsSelect.getValue(true).join(',') : '', // getValue(true) — вернёт массив строк значений
             done: formData.get('done') === 'on',
         };
 
         if (this.currentEditId) {
+
             // Обновить задачу
             this.tasks[this.currentEditId] = taskData;
             this.renderTaskCard(this.currentEditId, taskData, true);
@@ -226,13 +168,12 @@ export class KanbanTasks {
     }
 
     renderTaskCard(id, taskData, isUpdate = false) {
-        let card = this.taskBoard.querySelector(`[data-id="${id}"]`);
-
+        let card = this.taskBoard.querySelector(`[data-card-id="${id}"]`);
         if (!card) {
             // Карточки ещё нет — создаём
             card = document.createElement('div');
             card.className = 'task-card';
-            card.dataset.id = id;
+            card.dataset.cardId = id;
             this.taskBoard.appendChild(card);
         } else {
             // Очистим содержимое, если обновляем
