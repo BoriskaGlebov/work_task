@@ -1,6 +1,3 @@
-// import TomSelect from "tom-select";
-// import "tom-select/dist/css/tom-select.css";
-
 import Choices from 'choices.js';
 import 'choices.js/public/assets/styles/choices.min.css';
 

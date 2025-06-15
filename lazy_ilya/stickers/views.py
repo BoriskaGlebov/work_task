@@ -146,3 +146,13 @@ class StickyNoteView(LoginRequiredMixin, View):
             for field, error in form.errors.items()
         }
         return JsonResponse({'success': False, 'errors': errors}, status=400)
+
+
+class TaskView(LoginRequiredMixin, View):
+    login_url = reverse_lazy("myauth:login")
+
+    def get(self, request: HttpRequest):
+        pass
+
+    def post(self, request: HttpRequest):
+        pass

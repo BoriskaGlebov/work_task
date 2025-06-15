@@ -97,20 +97,21 @@
                         <option value="">-- Выберите исполнителя --</option>
 
                     </select>
-                    <select id="tags-select" name="tags" multiple ></select>
-
-
-                    <label class="correct_label">
-                        <input type="checkbox" name="done"/>
-                        Выполнено
-                    </label>
+                    <select id="tags-select" name="tags" multiple></select>
+                    <div class="flex justify-start items-center gap-5">
+                        <input type="checkbox" class="correct_icon rounded-full text-x" name="done"/>
+                        <label class="correct_label">
+                            Выполнено
+                        </label>
+                    </div>
 
                     <div class="flex justify-end gap-2 mt-4">
-                        <button type="button" id="cancel-btn"
-                                class="btn-cancel">Отмена
-                        </button>
+
                         <button type="submit" class="btn-submit">
                             Сохранить
+                        </button>
+                        <button type="button" id="cancel-btn"
+                                class="btn-cancel">Отмена
                         </button>
                     </div>
                 </form>

@@ -66,3 +66,39 @@ class StickyNote(models.Model):
             "order": self.order,
 
         }
+
+
+class Task(models.Model):
+    PRIORITY_CHOICES = [
+        ('low', '‍🦼 Низкий'),
+        ('medium', '‍🚶‍♂️ Средний'),
+        ('high', '🔥🏃‍♂️Высокий'),
+    ]
+
+    class Meta:
+        verbose_name = "Таблица задач пользователей"
+
+    title = models.CharField(max_length=255, verbose_name="Заголовок задачи")
+    desc = models.TextField(blank=True, verbose_name="Содержание задачи")
+    deadline = models.DateField(null=True, blank=True, verbose_name="Срок исполнения")
+    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium',
+                                verbose_name="Приоритет задачи")
+    done = models.BooleanField(default=False, verbose_name="Отметка об исполнении")
+
+    assignee = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='tasks',
+                                 verbose_name="Исполнитель")
+    tags = models.ManyToManyField('Tag', blank=True, related_name='tasks', verbose_name="Теги")
+
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления последнего")
+
+    def __str__(self):
+        return self.title
+
+
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True, verbose_name="Название Тега")
+    class Meta:
+        verbose_name="Таблица Тегов"
+    def __str__(self):
+        return self.name
