@@ -6,7 +6,6 @@ export class KanbanTasks {
     constructor({addButtonId, boardId, modalId}) {
         this.taskIdCounter = 1;
         this.tasks = {};  // храним задачи в объекте {id: taskData}
-
         this.addTaskBtn = document.getElementById(addButtonId);
         this.taskBoard = document.getElementById(boardId);
         this.taskModal = document.getElementById(modalId);
@@ -34,6 +33,7 @@ export class KanbanTasks {
             throw new Error('Select с name="tags" не найден в форме');
         }
 
+
         this.tagsSelect = new Choices(select, {
             removeItemButton: true,
             duplicateItemsAllowed: false,
@@ -59,9 +59,27 @@ export class KanbanTasks {
                 this.openModal(id);
             }
         });
+        this.loadTasksFromBackend(tasks_data || []);
 
     }
 
+    loadTasksFromBackend(tasksArray) {
+        tasksArray.forEach(task => {
+            const id = this.taskIdCounter++;
+            // Сохраняем задачу
+            this.tasks[id] = {
+                title: task.title,
+                desc: task.desc,
+                deadline: task.deadline,
+                priority: task.priority,
+                assignee: task.assignee,
+                tags: task.tags.map(tag => tag.name).join(','),  // <-- важно!
+                done: task.done
+            };
+            // Отрисовываем карточку
+            this.renderTaskCard(id, this.tasks[id]);
+        });
+    }
 
     openModal(taskId = null) {
         this.currentEditId = taskId;
@@ -81,10 +99,12 @@ export class KanbanTasks {
                 // Удаляем выбранные теги в виджете
                 this.tagsSelect.removeActiveItems();
 
-                // Добавляем выбранные теги
-                tagsArray.forEach(tag => {
-                    this.tagsSelect.setChoiceByValue(tag);
-                });
+                // // Добавляем выбранные теги
+                // tagsArray.forEach(tag => {
+                //     this.tagsSelect.setChoiceByValue(tag);
+                // });
+                // Добавить теги как выбранные значения
+                this.tagsSelect.setValue(tagsArray.map(tag => ({value: tag, label: tag})));
             }
 
         } else {
@@ -166,6 +186,8 @@ export class KanbanTasks {
 
     renderTaskCard(id, taskData, isUpdate = false) {
         let card = this.taskBoard.querySelector(`[data-card-id="${id}"]`);
+        console.log('asddasddadas')
+        console.log(card || []);
         if (!card) {
             // Карточки ещё нет — создаём
             card = document.createElement('div');

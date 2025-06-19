@@ -145,8 +145,10 @@
         {% endif %}
         window.notes_data = JSON.parse('{{ notes_data|escapejs }}');
         window.username_data = JSON.parse('{{ username_list|escapejs }}');
+        window.tasks_data = JSON.parse('{{ tasks_list|escapejs }}');
         console.log(notes_data);
         console.log(username_data);
+        console.log(tasks_data);
     </script>
 
 {% endblock %}

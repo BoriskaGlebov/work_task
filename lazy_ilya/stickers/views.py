@@ -1,4 +1,5 @@
 import json
+from pprint import pprint
 from typing import Union
 
 from django.http import JsonResponse, HttpRequest, HttpResponse
@@ -9,7 +10,7 @@ from django.urls import reverse_lazy
 from django.db.models import Q
 
 from myauth.models import CustomUser
-from .models import StickyNote
+from .models import StickyNote, Task
 from .forms import StickyNoteForm
 from lazy_ilya.utils.settings_for_app import logger
 
@@ -37,10 +38,12 @@ class StickyNoteView(LoginRequiredMixin, View):
         )
         users = list(CustomUser.objects.filter(is_active=True).values('username', 'first_name'))
         notes_data = [note.to_dict() for note in notes]
-
+        tasks = Task.objects.select_related("assignee").prefetch_related("tags").all()
+        tasks_list = [task.to_dict() for task in tasks]
         return render(request, "stickers/stickers.html", {
             "notes_data": json.dumps(notes_data, ensure_ascii=False),
-            "username_list": json.dumps(users, ensure_ascii=False)
+            "username_list": json.dumps(users, ensure_ascii=False),
+            "tasks_list": json.dumps(tasks_list, ensure_ascii=False),
         })
 
     def post(self, request: HttpRequest) -> JsonResponse:

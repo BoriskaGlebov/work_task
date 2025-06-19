@@ -9,6 +9,7 @@ import {KanbanTasks} from "./task.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     toggleAccentClasses('a-stickers', 'a-stickers-mob');
+
     const kanban = new KanbanStickyNotes({
         addButtonId: 'add-card',
         boardId: 'note-board',
@@ -16,6 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     // ВАЖНО: вызываем загрузку начальных заметок после инициализации
     kanban.loadInitialNotes();
-    const kanbanTask = new KanbanTasks({addButtonId: 'btn-tasks', boardId: 'task-board',modalId:'task-modal'});
+    const kanbanTask = new KanbanTasks({addButtonId: 'btn-tasks', boardId: 'task-board', modalId: 'task-modal'});
 
 });

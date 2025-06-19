@@ -95,10 +95,25 @@ class Task(models.Model):
     def __str__(self):
         return self.title
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'desc': self.desc,
+            'deadline': self.deadline.isoformat() if self.deadline else None,
+            'priority': self.priority,
+            'done': self.done,
+            'assignee': self.assignee.username if self.assignee else None,
+            'tags': [{'id': tag.id, 'name': tag.name} for tag in self.tags.all()],
+
+        }
+
 
 class Tag(models.Model):
     name = models.CharField(max_length=50, unique=True, verbose_name="Название Тега")
+
     class Meta:
-        verbose_name="Таблица Тегов"
+        verbose_name = "Таблица Тегов"
+
     def __str__(self):
         return self.name
