@@ -191,6 +191,14 @@ export class KanbanTasks {
                 this.deleteTaskCard(id);
             }
         });
+        // Если задача выполнена — отображаем только статус
+        if (taskData.done) {
+            const doneEl = document.createElement('div');
+            doneEl.className = 'text-xs font-semibold text-green-700';
+            doneEl.textContent = 'Выполнено';
+            card.appendChild(doneEl);
+            return;
+        }
 
         // Цвет бордера в зависимости от приоритета
         const priorityBorderMap = {
@@ -212,6 +220,20 @@ export class KanbanTasks {
             const deadlineEl = document.createElement('div');
             deadlineEl.className = 'text-xs text-text dark:text-text-dark mb-1';
             deadlineEl.textContent = 'Срок исполнения: ' + taskData.deadline;
+            const today = new Date();
+            const deadlineDate = taskData.deadline ? new Date(taskData.deadline) : null;
+            // Истёк срок
+            if (deadlineDate < today.setHours(0, 0, 0, 0)) {
+                deadlineEl.classList.add('!text-red-600', '!font-semibold');
+                card.classList.add('!bg-red-200', 'dark:!bg-red-900/20');
+            } else {
+                // Осталось <= 3 дней
+                const diffInDays = Math.ceil((deadlineDate - new Date()) / (1000 * 60 * 60 * 24));
+                if (diffInDays <= 3) {
+                    deadlineEl.classList.add('!text-yellow-600', '!font-medium');
+                    card.classList.add('!bg-yellow-200', 'dark:!bg-yellow-600/20');
+                }
+            }
             card.appendChild(deadlineEl);
         }
 
@@ -316,7 +338,7 @@ export class KanbanTasks {
                 this.renderTaskCard(this.currentEditId, result, true);
                 this.showSuccessMessage(`Задача успешно обновлена ${result.id}`);
             } else {
-                console.log(result)
+                // console.log(result)
                 const id = result.id;
                 this.tasks[id] = result;
                 this.renderTaskCard(id, result);

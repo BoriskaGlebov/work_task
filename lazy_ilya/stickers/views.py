@@ -8,7 +8,7 @@ from django.shortcuts import render
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-from django.db.models import Q
+from django.db.models import Q, Case, When, Value, IntegerField
 
 from myauth.models import CustomUser
 from .models import StickyNote, Task, Tag
@@ -39,7 +39,21 @@ class StickyNoteView(LoginRequiredMixin, View):
         )
         users = list(CustomUser.objects.filter(is_active=True).values('username', 'first_name'))
         notes_data = [note.to_dict() for note in notes]
-        tasks = Task.objects.select_related("assignee").prefetch_related("tags").all()
+        tasks = Task.objects.annotate(
+            priority_order=Case(
+                When(priority='high', then=Value(0)),
+                When(priority='medium', then=Value(1)),
+                When(priority='low', then=Value(2)),
+                default=Value(3),
+                output_field=IntegerField()
+            ),
+            done_order=Case(
+                When(done=True, then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField()
+            )
+        ).select_related("assignee").prefetch_related("tags") \
+            .order_by('done_order', 'priority_order', 'deadline')
         tasks_list = [task.to_dict() for task in tasks]
         tags = Tag.objects.all()
         tags_list = [tag.to_dict() for tag in tags]
@@ -193,7 +207,8 @@ class TaskView(LoginRequiredMixin, View):
             if not assignee:
                 assignee = CustomUser.objects.filter(first_name=assignee_identifier).first()
             if not assignee:
-                logger.bind(user=request.user.username).error(f"Тот кому назначена задача не найдет - '{assignee_identifier}'")
+                logger.bind(user=request.user.username).error(
+                    f"Тот кому назначена задача не найдет - '{assignee_identifier}'")
                 errors["assignee"] = [f"Пользователь с username или именем '{assignee_identifier}' не найден"]
 
         if errors:
