@@ -203,8 +203,13 @@ export class KanbanStickyNotes {
         deleteBtn.className = 'delete-btn';
 
         if (currentUser === owner || currentUser === author_name) {
-            deleteBtn.addEventListener('click', (e) => {
+            deleteBtn.addEventListener('click', async (e) => {
                 e.stopPropagation();
+                const data = {
+                    stickerData: contentDiv.textContent.slice(0, 30) || 'заметку'
+                }
+                const confirmed = await this.showDeleteConfirmation(data);
+                if (!confirmed) return;
                 const noteId = noteCard.dataset.id;
                 if (noteId) this.deleteNoteFromServer(noteId);
                 noteCard.remove();
@@ -409,5 +414,71 @@ export class KanbanStickyNotes {
             showError(fallbackMessage);
         }
     }
+
+    async showDeleteConfirmation(data) {
+        return new Promise((resolve) => {
+            console.log(data)
+            const serverInfo = document.getElementById('server-info');
+            serverInfo.classList.remove('hidden', 'animate-popup-reverse');
+            serverInfo.classList.add('flex', 'animate-popup');
+            serverInfo.querySelector('h3').textContent = 'Подтверждение удаления стикера';
+            serverInfo.querySelector('p').textContent =
+                `Вы уверены, что хотите удалить "${data.stickerData}"?`;
+            serverInfo.scrollIntoView({behavior: 'smooth', block: 'start'});
+
+            const divBtn = document.getElementById('btn-div');
+            divBtn.innerHTML = '';
+
+            const confirmBtn = document.createElement('button');
+            confirmBtn.id = 'confirm-delete';
+            confirmBtn.textContent = 'Удалить';
+            confirmBtn.classList.add('btn-submit', '!p-1', '!font-medium');
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.id = 'cancel-delete';
+            cancelBtn.textContent = 'Отмена';
+            cancelBtn.classList.add('btn-cancel', '!p-1', '!font-medium');
+
+            divBtn.appendChild(confirmBtn);
+            divBtn.appendChild(cancelBtn);
+
+            let resolved = false;
+
+            const cleanup = () => {
+                return new Promise((res) => {
+                    serverInfo.classList.remove('animate-popup');
+                    serverInfo.classList.add('animate-popup-reverse');
+                    setTimeout(() => {
+                        divBtn.innerHTML = '';
+                        serverInfo.querySelector('h3').textContent = '';
+                        serverInfo.querySelector('p').textContent = '';
+                        serverInfo.classList.add('hidden');
+                        res();
+                    }, 1000);
+                });
+            };
+
+            const timeoutId = setTimeout(() => {
+                if (resolved) return;
+                resolved = true;
+                cleanup().then(() => resolve(false));
+            }, 30000); // 30 секунд
+
+            confirmBtn.addEventListener('click', () => {
+                if (resolved) return;
+                resolved = true;
+                clearTimeout(timeoutId);
+                cleanup().then(() => resolve(true));
+            });
+
+            cancelBtn.addEventListener('click', () => {
+                if (resolved) return;
+                resolved = true;
+                clearTimeout(timeoutId);
+                cleanup().then(() => resolve(false));
+            });
+        });
+    }
+
 }
 

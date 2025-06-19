@@ -165,6 +165,7 @@ class TaskView(LoginRequiredMixin, View):
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
+            logger.bind(user=request.user.username).error(f"Невалидный JSON от {request.user.username}")
             return HttpResponseBadRequest(json.dumps({
                 "errors": {"__all__": ["Неверный формат JSON"]}
             }), content_type="application/json")
@@ -173,6 +174,7 @@ class TaskView(LoginRequiredMixin, View):
 
         title = data.get("title")
         if not title:
+            logger.bind(user=request.user.username).error(f"Поле title обязательно")
             errors["title"] = ["Поле title обязательно"]
 
         deadline_str = data.get("deadline")
@@ -181,6 +183,7 @@ class TaskView(LoginRequiredMixin, View):
             try:
                 deadline = datetime.fromisoformat(deadline_str).date()
             except ValueError:
+                logger.bind(user=request.user.username).error(f"Неверно указан deadline")
                 errors["deadline"] = ["Неверный формат даты deadline"]
 
         assignee_identifier = data.get("assignee")
@@ -190,6 +193,7 @@ class TaskView(LoginRequiredMixin, View):
             if not assignee:
                 assignee = CustomUser.objects.filter(first_name=assignee_identifier).first()
             if not assignee:
+                logger.bind(user=request.user.username).error(f"Тот кому назначена задача не найдет - '{assignee_identifier}'")
                 errors["assignee"] = [f"Пользователь с username или именем '{assignee_identifier}' не найден"]
 
         if errors:
@@ -213,17 +217,20 @@ class TaskView(LoginRequiredMixin, View):
             task.tags.add(tag)
 
         task.save()
+        logger.bind(user=request.user.username).info("Создал задачу успешно")
         return JsonResponse(task.to_dict(), status=201)
 
     def patch(self, request, task_id):
         try:
             task = Task.objects.get(pk=task_id)
         except Task.DoesNotExist:
+            logger.bind(user=request.user.username).error(f"Такой задачи не найдено")
             return JsonResponse({"errors": {"__all__": ["Задача не найдена"]}}, status=404)
 
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
+            logger.bind(user=request.user.username).error(f"Невалидный JSON от {request.user.username}")
             return HttpResponseBadRequest(json.dumps({
                 "errors": {"__all__": ["Неверный формат JSON"]}
             }), content_type="application/json")
@@ -233,6 +240,7 @@ class TaskView(LoginRequiredMixin, View):
         if "title" in data:
             title = data.get("title")
             if title is None or title == "":
+                logger.bind(user=request.user.username).error(f"Поле title обязательно")
                 errors["title"] = ["Поле title не может быть пустым"]
             else:
                 task.title = title
@@ -246,6 +254,7 @@ class TaskView(LoginRequiredMixin, View):
                 try:
                     task.deadline = datetime.fromisoformat(deadline_str).date()
                 except ValueError:
+                    logger.bind(user=request.user.username).error(f"Неверно указан deadline")
                     errors["deadline"] = ["Неверный формат даты deadline"]
             else:
                 task.deadline = None
@@ -264,6 +273,8 @@ class TaskView(LoginRequiredMixin, View):
                 if not assignee:
                     assignee = CustomUser.objects.filter(first_name=assignee_identifier).first()
                 if not assignee:
+                    logger.bind(user=request.user.username).error(
+                        f"Тот кома назначена задача не найдет - '{assignee_identifier}'")
                     errors["assignee"] = [f"Пользователь '{assignee_identifier}' не найден"]
             task.assignee = assignee
 
@@ -283,15 +294,18 @@ class TaskView(LoginRequiredMixin, View):
             return JsonResponse({"errors": errors}, status=400)
 
         task.save()
+        logger.bind(user=request.user.username).info(f"Обновлена задача {task.pk}")
         return JsonResponse(task.to_dict(), status=200)
 
     def delete(self, request, task_id):
         try:
             task = Task.objects.get(pk=task_id)
         except Task.DoesNotExist:
+            logger.bind(user=request.user.username).error(f"Такой задачи не найдено - {task_id}")
             return JsonResponse({"errors": {"__all__": ["Задача не найдена"]}}, status=404)
 
         task.delete()
         # Обычно при успешном удалении 204 No Content возвращает пустой ответ,
         # но можно вернуть сообщение, если нужно.
+        logger.bind(user=request.user.username).info(f"Запись удалена")
         return JsonResponse({"success": f"Задача {task_id} удалена"}, status=200)
