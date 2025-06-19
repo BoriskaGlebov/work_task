@@ -326,7 +326,7 @@ export class KanbanTasks {
 
         } catch (error) {
             console.error('Ошибка сети:', error);
-            this.showErrorMessage('Ошибка сети при сохранении задачи!');
+            this.handleServerError('Ошибка сети при сохранении задачи!');
         }
     }
 
@@ -350,11 +350,11 @@ export class KanbanTasks {
             } else {
                 const errorText = await response.text();
                 console.error(`Ошибка при удалении задачи ${id}:`, errorText);
-                this.showErrorMessage(`Ошибка при удалении: ${errorText}`);
+                this.handleServerError(`Ошибка при удалении: ${errorText}`);
             }
         } catch (error) {
             console.error('Ошибка при удалении задачи:', error);
-            this.showErrorMessage('Сетевая ошибка при удалении задачи!');
+            this.handleServerError('Сетевая ошибка при удалении задачи!');
         }
     }
 
@@ -404,6 +404,17 @@ export class KanbanTasks {
                 messages.forEach(message => {
                     showError(`Ошибка в поле "${field}" - "${message}"`, 'server-error2');
                 });
+                const fieldError = document.querySelector(`input[name="${field}"]`);
+                if (fieldError) {
+                    fieldError.classList.remove("correct_input");
+                    fieldError.classList.add("error_input");
+                    setTimeout(() => {
+                        fieldError.classList.remove("error_input");
+                        fieldError.classList.add("correct_input");
+                        fieldError.focus();
+                    }, 4000);
+                }
+
             }
         } else {
             showError(fallbackMessage, 'server-error2');
