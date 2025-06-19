@@ -315,6 +315,9 @@ p {
     text-secondary dark:text-secondary-dark space-x-2.5 cursor-pointer
     text-xs md:text-sm xl:text-base;
 }
+.li-style h3{
+    @apply text-xs md:text-sm xl:text-base;
+}
 
 .li-style span {
     @apply flex items-center justify-center
@@ -329,6 +332,10 @@ p {
     text-primary dark:text-primary-dark space-x-2.5 cursor-pointer
     text-xs md:text-sm xl:text-base;
 }
+.li-style-active h3 {
+    @apply text-primary dark:text-primary-dark
+    text-xs md:text-sm xl:text-base;
+}
 
 .li-style-active span {
     @apply flex items-center justify-center
@@ -341,6 +348,10 @@ p {
 .li-style-complete {
     @apply flex items-center
     text-success dark:text-success-dark space-x-2.5 cursor-pointer
+    text-xs md:text-sm xl:text-base;
+}
+.li-style-complete h3 {
+    @apply text-success dark:text-success-dark
     text-xs md:text-sm xl:text-base;
 }
 

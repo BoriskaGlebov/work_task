@@ -4,7 +4,7 @@ import 'choices.js/public/assets/styles/choices.min.css';
 
 export class KanbanTasks {
     constructor({addButtonId, boardId, modalId}) {
-        this.taskIdCounter = 1;
+        // this.taskIdCounter = 1;
         this.tasks = {};  // храним задачи в объекте {id: taskData}
         this.addTaskBtn = document.getElementById(addButtonId);
         this.taskBoard = document.getElementById(boardId);
@@ -12,6 +12,7 @@ export class KanbanTasks {
         this.taskForm = this.taskModal.querySelector('#task-form');
         this.cancelBtn = this.taskModal.querySelector('#cancel-btn');
         this.closeBtn = this.taskModal.querySelector('#close-modal');
+        this.csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
         this.currentEditId = null; // id задачи в редактировании, null если новая
 
@@ -32,7 +33,10 @@ export class KanbanTasks {
         if (!select) {
             throw new Error('Select с name="tags" не найден в форме');
         }
-
+        // this.tags_list = window.tags_list;
+        // if (!select) {
+        //     throw new Error('Select с name="tags" не найден в форме');
+        // }
 
         this.tagsSelect = new Choices(select, {
             removeItemButton: true,
@@ -43,12 +47,19 @@ export class KanbanTasks {
             searchEnabled: true,
             shouldSort: false,
             placeholderValue: 'Введите или выберите теги...',
-            choices: [
-                {value: 'frontend', label: 'frontend'},
-                {value: 'backend', label: 'backend'},
-                {value: 'urgent', label: 'urgent'}
-            ]
+            choices: window.tags_list.map(tag => ({
+                value: tag.name,
+                label: tag.name
+            }))
         });
+        // // Преобразование тегов с бэка
+        // const choicesFromBackend = this.tags_list.map(tag => ({
+        //     value: String(tag.name),
+        //     label: tag.name,
+        // }));
+
+        // Добавление этих choices в Select
+        // this.tagsSelect.setChoices(choicesFromBackend, 'value', 'label', false);
 
 
         // Клик по карточке открывает модалку для редактирования
@@ -65,7 +76,7 @@ export class KanbanTasks {
 
     loadTasksFromBackend(tasksArray) {
         tasksArray.forEach(task => {
-            const id = this.taskIdCounter++;
+            const id = task.id;
             // Сохраняем задачу
             this.tasks[id] = {
                 title: task.title,
@@ -95,17 +106,19 @@ export class KanbanTasks {
 
             // Обновляем теги через Choices.js
             if (this.tagsSelect) {
-                const tagsArray = task.tags ? task.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
-                // Удаляем выбранные теги в виджете
-                this.tagsSelect.removeActiveItems();
+                const tagsArray = Array.isArray(task.tags)
+                    ? task.tags.map(tag => tag.name)
+                    : (typeof task.tags === 'string'
+                        ? task.tags.split(',').map(t => t.trim()).filter(Boolean)
+                        : []);
 
-                // // Добавляем выбранные теги
-                // tagsArray.forEach(tag => {
-                //     this.tagsSelect.setChoiceByValue(tag);
-                // });
-                // Добавить теги как выбранные значения
+                this.tagsSelect.removeActiveItems();
+                tagsArray.forEach(tag => {
+                    this.tagsSelect.setChoiceByValue(tag);
+                });
                 this.tagsSelect.setValue(tagsArray.map(tag => ({value: tag, label: tag})));
             }
+
 
         } else {
             // Новая задача — очистить форму
@@ -156,7 +169,7 @@ export class KanbanTasks {
         this.taskModal.classList.add('hidden');
     }
 
-    saveTask() {
+    async saveTask() {
         const formData = new FormData(this.taskForm);
         const taskData = {
             title: formData.get('title'),
@@ -164,30 +177,92 @@ export class KanbanTasks {
             deadline: formData.get('deadline'),
             priority: formData.get('priority'),
             assignee: formData.get('assignee'),
-            tags: this.tagsSelect ? this.tagsSelect.getValue(true).join(',') : '', // getValue(true) — вернёт массив строк значений
+            tags: this.tagsSelect ? this.tagsSelect.getValue(true).join(',') : '',
             done: formData.get('done') === 'on',
         };
+        console.log(taskData.tags)
+        try {
+            let response;
 
-        if (this.currentEditId) {
+            if (this.currentEditId) {
+                // Обновление задачи
+                response = await fetch(`tasks/${this.currentEditId}/`, {
+                    method: 'PATCH', // или PATCH
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': this.csrfToken,
+                    },
+                    body: JSON.stringify(taskData),
+                });
+            } else {
+                // Создание новой задачи
+                response = await fetch('tasks/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': this.csrfToken,
+                    },
+                    body: JSON.stringify(taskData),
+                });
+            }
 
-            // Обновить задачу
-            this.tasks[this.currentEditId] = taskData;
-            this.renderTaskCard(this.currentEditId, taskData, true);
+            if (!response.ok) {
+                const errorData = await response.json();
 
-        } else {
-            // Создать новую задачу
-            const id = this.taskIdCounter++;
-            this.tasks[id] = taskData;
-            this.renderTaskCard(id, taskData);
+                console.error('Ошибка при сохранении задачи:', errorData);
+                alert('Ошибка при сохранении задачи!');
+                return;
+            }
+
+            const savedTask = await response.json();
+
+            if (this.currentEditId) {
+                // Обновляем локальную задачу и карточку данными с бэка
+                this.tasks[this.currentEditId] = savedTask;
+                this.renderTaskCard(this.currentEditId, savedTask, true);
+            } else {
+                // Используем id из savedTask, добавляем и рендерим
+                const id = savedTask.id;
+                this.tasks[id] = savedTask;
+                this.renderTaskCard(id, savedTask);
+            }
+
+            this.closeModal();
+
+        } catch (error) {
+            console.error('Ошибка сети:', error);
+            alert('Ошибка сети при сохранении задачи!');
         }
-
-        this.closeModal();
     }
+
+    async deleteTaskCard(id) {
+        try {
+            const response = await fetch(`tasks/delete/${id}/`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.csrfToken,
+                },
+            });
+
+            if (response.ok) {
+                const card = this.taskBoard.querySelector(`[data-card-id="${id}"]`);
+                if (card) {
+                    card.remove(); // Удаляем элемент из DOM
+                }
+            } else {
+                console.error(`Ошибка при удалении задачи ${id}:`, await response.text());
+            }
+        } catch (error) {
+            console.error('Ошибка при удалении задачи:', error);
+        }
+    }
+
 
     renderTaskCard(id, taskData, isUpdate = false) {
         let card = this.taskBoard.querySelector(`[data-card-id="${id}"]`);
-        console.log('asddasddadas')
-        console.log(card || []);
+        // console.log('asddasddadas')
+        // console.log(card || []);
         if (!card) {
             // Карточки ещё нет — создаём
             card = document.createElement('div');
@@ -200,6 +275,18 @@ export class KanbanTasks {
             card.className = 'task-card';
             card.dataset.id = id;
         }
+        // --- Удаление ---
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = '×';
+        deleteBtn.title = 'Удалить заметку';
+        deleteBtn.className = 'delete-btn';
+        card.appendChild(deleteBtn)
+        deleteBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            if (confirm('Вы точно хотите удалить эту задачу?')) {
+                this.deleteTaskCard(id);
+            }
+        });
 
         // Цвет бордера в зависимости от приоритета
         const priorityBorderMap = {
@@ -260,14 +347,19 @@ export class KanbanTasks {
             tagsEl.className = 'text-xs mb-1 flex flex-wrap gap-1';
 
             const tagColors = ['text-red-500', 'text-green-500', 'text-blue-500', 'text-yellow-600', 'text-purple-500'];
-            const tagsArray = taskData.tags.split(',').map(tag => tag.trim()).filter(Boolean);
 
-            tagsArray.forEach((tag, index) => {
+            // Проверим: tags — это массив объектов с name
+            const tagsArray = Array.isArray(taskData.tags)
+                ? taskData.tags.map(tag => tag.name)
+                : (typeof taskData.tags === 'string' ? taskData.tags.split(',') : []);
+
+            tagsArray.filter(Boolean).forEach((tag, index) => {
                 const tagSpan = document.createElement('span');
                 tagSpan.textContent = `#${tag}`;
                 tagSpan.className = tagColors[index % tagColors.length];
                 tagsEl.appendChild(tagSpan);
             });
+
 
             card.appendChild(tagsEl);
         }

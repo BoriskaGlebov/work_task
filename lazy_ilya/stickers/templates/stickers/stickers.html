@@ -64,6 +64,7 @@
             <!-- Модальное окно -->
             <div id="task-modal" class="fixed inset-0 backdrop-blur-xs flex items-center justify-center hidden z-30">
                 <form id="task-form" class="form-style relative">
+                    {% csrf_token %}
                     <button id="close-modal"
                             class="absolute top-2 right-3 text-gray-500 hover:text-gray-700 text-xl">
                         &times;
@@ -146,9 +147,11 @@
         window.notes_data = JSON.parse('{{ notes_data|escapejs }}');
         window.username_data = JSON.parse('{{ username_list|escapejs }}');
         window.tasks_data = JSON.parse('{{ tasks_list|escapejs }}');
-        console.log(notes_data);
-        console.log(username_data);
-        console.log(tasks_data);
+        window.tags_list = JSON.parse('{{ tags_list|escapejs }}');
+        {#console.log(notes_data);#}
+        {#console.log(username_data);#}
+        {#console.log(tasks_data);#}
+        {#console.log(tags_list);#}
     </script>
 
 {% endblock %}

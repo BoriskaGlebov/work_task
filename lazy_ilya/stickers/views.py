@@ -1,8 +1,9 @@
 import json
+from datetime import datetime
 from pprint import pprint
 from typing import Union
 
-from django.http import JsonResponse, HttpRequest, HttpResponse
+from django.http import JsonResponse, HttpRequest, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -10,7 +11,7 @@ from django.urls import reverse_lazy
 from django.db.models import Q
 
 from myauth.models import CustomUser
-from .models import StickyNote, Task
+from .models import StickyNote, Task, Tag
 from .forms import StickyNoteForm
 from lazy_ilya.utils.settings_for_app import logger
 
@@ -40,10 +41,13 @@ class StickyNoteView(LoginRequiredMixin, View):
         notes_data = [note.to_dict() for note in notes]
         tasks = Task.objects.select_related("assignee").prefetch_related("tags").all()
         tasks_list = [task.to_dict() for task in tasks]
+        tags = Tag.objects.all()
+        tags_list = [tag.to_dict() for tag in tags]
         return render(request, "stickers/stickers.html", {
             "notes_data": json.dumps(notes_data, ensure_ascii=False),
             "username_list": json.dumps(users, ensure_ascii=False),
             "tasks_list": json.dumps(tasks_list, ensure_ascii=False),
+            "tags_list": json.dumps(tags_list, ensure_ascii=False),
         })
 
     def post(self, request: HttpRequest) -> JsonResponse:
@@ -157,5 +161,119 @@ class TaskView(LoginRequiredMixin, View):
     def get(self, request: HttpRequest):
         pass
 
-    def post(self, request: HttpRequest):
-        pass
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return HttpResponseBadRequest("Неверный формат JSON")
+
+        title = data.get("title")
+        if not title:
+            return JsonResponse({"error": "Поле title обязательно"}, status=400)
+
+        deadline_str = data.get("deadline")
+        deadline = None
+        if deadline_str:
+            try:
+                deadline = datetime.fromisoformat(deadline_str).date()
+            except ValueError:
+                return JsonResponse({"error": "Неверный формат даты deadline"}, status=400)
+
+        assignee_identifier = data.get("assignee")
+        assignee = None
+        if assignee_identifier:
+            assignee = CustomUser.objects.filter(username=assignee_identifier).first()
+            if not assignee:
+                assignee = CustomUser.objects.filter(first_name=assignee_identifier).first()
+            if not assignee:
+                return JsonResponse({"error": f"Пользователь с username или именем '{assignee_identifier}' не найден"},
+                                    status=400)
+
+        task = Task.objects.create(
+            title=title,
+            desc=data.get("desc", ""),
+            deadline=deadline,
+            priority=data.get("priority", "medium"),
+            done=bool(data.get("done", False)),
+            assignee=assignee,
+        )
+
+        tags_names = data.get("tags", [])
+        if isinstance(tags_names, str):
+            tags_names = [name.strip() for name in tags_names.split(",") if name.strip()]
+
+        for tag_name in tags_names:
+            tag, _ = Tag.objects.get_or_create(name=tag_name)
+            task.tags.add(tag)
+
+        task.save()
+        return JsonResponse(task.to_dict(), status=201)
+
+    def patch(self, request, task_id):
+        try:
+            task = Task.objects.get(pk=task_id)
+        except Task.DoesNotExist:
+            return JsonResponse({"error": "Задача не найдена"}, status=404)
+
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return HttpResponseBadRequest("Неверный формат JSON")
+
+        title = data.get("title")
+        if title is not None:
+            task.title = title
+
+        if "desc" in data:
+            task.desc = data["desc"]
+
+        if "deadline" in data:
+            deadline_str = data.get("deadline")
+            if deadline_str:
+                try:
+                    task.deadline = datetime.fromisoformat(deadline_str).date()
+                except ValueError:
+                    return JsonResponse({"error": "Неверный формат даты deadline"}, status=400)
+            else:
+                task.deadline = None  # Очистка
+
+        if "priority" in data:
+            task.priority = data["priority"]
+
+        if "done" in data:
+            task.done = bool(data["done"])
+
+        if "assignee" in data:
+            assignee_identifier = data.get("assignee")
+            assignee = None
+            if assignee_identifier:
+                assignee = CustomUser.objects.filter(username=assignee_identifier).first()
+                if not assignee:
+                    assignee = CustomUser.objects.filter(first_name=assignee_identifier).first()
+                if not assignee:
+                    return JsonResponse({"error": f"Пользователь '{assignee_identifier}' не найден"}, status=400)
+            task.assignee = assignee
+
+        if "tags" in data:
+            tags_names = data["tags"]
+            if isinstance(tags_names, str):
+                tags_names = [name.strip() for name in tags_names.split(",") if name.strip()]
+
+            tag_objs = []
+            for tag_name in tags_names:
+                tag, _ = Tag.objects.get_or_create(name=tag_name)
+                tag_objs.append(tag)
+
+            task.tags.set(tag_objs)
+
+        task.save()
+        return JsonResponse(task.to_dict(), status=200)
+
+    def delete(self, request, task_id):
+        try:
+            task = Task.objects.get(pk=task_id)
+        except Task.DoesNotExist:
+            return JsonResponse({"error": "Задача не найдена"}, status=404)
+
+        task.delete()
+        return JsonResponse({"success": f"Задача {task_id} удалена"}, status=204)

@@ -1,18 +1,13 @@
 from django.urls import path
 
-from stickers.views import StickyNoteView
+from stickers.views import StickyNoteView, TaskView
 
 app_name = "stickers"
 urlpatterns = [
     path("", StickyNoteView.as_view(), name="stickers"),
-    path("<int:note_id>/",StickyNoteView.as_view(), name="delete_stickers")
-    # path("cities/<int:table_id>/<int:dock_num>/", Cities.as_view(), name="edit_city"),
-    # path(
-    #     "cities/delete/<int:table_id>/<int:dock_num>/",
-    #     Cities.as_view(),
-    #     name="delete_city",
-    # ),
-    # path("admin/", CitiesAdmin.as_view(), name="admin_city"),
-    # path("admin/city-info/", CityInfoView.as_view(), name="city_info"),
-    # path("api/city-counter/", increment_city_counters, name="city-counter"),
+    path("<int:note_id>/", StickyNoteView.as_view(), name="delete_stickers"),
+    path("tasks/", TaskView.as_view(), name="tasks"),
+    path("tasks/<int:task_id>/", TaskView.as_view(), name="tasks_edit"),
+    path("tasks/delete/<int:task_id>/", TaskView.as_view(), name="tasks_edit"),
+
 ]
