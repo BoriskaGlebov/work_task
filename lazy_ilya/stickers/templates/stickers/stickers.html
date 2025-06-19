@@ -57,6 +57,38 @@
             <!-- карточки стикеров -->
         </div>
 
+        <!-- Панель фильтров и сортировки -->
+        <div id="filter-panel" class="flex flex-wrap gap-4 mb-4 justify-center">
+            <select id="filter-deadline" class="correct_input" aria-label="Фильтр по дате">
+                <option value="">Срок исполнения: все</option>
+                <option value="asc">По возрастанию</option>
+                <option value="desc">По убыванию</option>
+            </select>
+
+            <select id="filter-priority" class="correct_input" aria-label="Фильтр по приоритету">
+                <option value="">Приоритет: все</option>
+                <option value="high">Высокий</option>
+                <option value="medium">Средний</option>
+                <option value="low">Низкий</option>
+            </select>
+
+            <select id="filter-assignee" class="correct_input" aria-label="Фильтр по исполнителю">
+                <option value="">Исполнитель: все</option>
+                {% for user in username_list %}
+                <option value="{{ user }}">{{ user }}</option>
+                {% endfor %}
+            </select>
+
+            <select id="filter-tags" multiple class="correct_input" aria-label="Фильтр по тегам" multiple>
+                {% for tag in tags_list %}
+                <option value="{{ tag }}">{{ tag }}</option>
+                {% endfor %}
+            </select>
+
+            <button id="clear-filters" class="btn-cancel ml-2">Очистить фильтры</button>
+        </div>
+
+
         <!-- Tasks Board -->
         <div id="task-board"
              class=" grid grid-cols-1 sm:grid-cols-2  lg:grid-cols-3 gap-4 min-h-[200px] transition-opacity">
@@ -163,8 +195,8 @@
         window.tags_list = JSON.parse('{{ tags_list|escapejs }}');
         {#console.log(notes_data);#}
         {#console.log(username_data);#}
-        console.log(tasks_data);
-        {#console.log(tags_list);#}
+        {#console.log(tasks_data);#}
+        console.log(tags_list);
     </script>
 
 {% endblock %}

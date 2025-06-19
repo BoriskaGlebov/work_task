@@ -178,6 +178,19 @@ export class KanbanTasks {
             card.className = 'task-card';
             card.dataset.id = id;
         }
+        // Добавляем data-* атрибуты для фильтрации
+        card.dataset.assignee = taskData.assignee || '';
+        card.dataset.priority = taskData.priority || '';
+        card.dataset.deadline = taskData.deadline || '';
+        // Для тегов — передаём строку с тегами через запятую
+        if (Array.isArray(taskData.tags)) {
+            // Если tags — массив объектов с name
+            card.dataset.tags = taskData.tags.map(t => t.name).join(',');
+        } else if (typeof taskData.tags === 'string') {
+            card.dataset.tags = taskData.tags;
+        } else {
+            card.dataset.tags = '';
+        }
         // --- Удаление ---
         const deleteBtn = document.createElement('button');
         deleteBtn.textContent = '×';
@@ -510,3 +523,117 @@ export class KanbanTasks {
 
 
 }
+
+
+export class TaskFilter {
+    constructor({tasksContainerId}) {
+        this.container = document.getElementById(tasksContainerId);
+        this.cards = Array.from(this.container.querySelectorAll('.task-card'));
+
+        this.filters = {
+            assignee: document.getElementById('filter-assignee'),
+            priority: document.getElementById('filter-priority'),
+            date: document.getElementById('filter-deadline'),
+            tags: document.getElementById('filter-tags'), // <select multiple> для тегов
+        };
+
+        this.populateAssigneeOptions();
+        this.populateTagOptions();
+
+        this.attachEvents();
+    }
+
+    populateAssigneeOptions() {
+        const assigneeSelect = this.filters.assignee;
+        if (!assigneeSelect || !window.username_data) return;
+
+        while (assigneeSelect.options.length > 1) {
+            assigneeSelect.remove(1);
+        }
+
+        window.username_data.forEach(user => {
+            const option = document.createElement('option');
+            option.value = user.id || user.username || user.name;
+            option.textContent = user.name || user.full_name || option.value;
+            assigneeSelect.appendChild(option);
+        });
+    }
+
+    populateTagOptions() {
+        const tagsSelect = this.filters.tags;
+        if (!tagsSelect || !window.tags_list) return;
+
+        while (tagsSelect.options.length > 0) {
+            tagsSelect.remove(0);
+        }
+
+        window.tags_list.forEach(tag => {
+            const option = document.createElement('option');
+            option.value = tag.name;      // используем name
+            option.textContent = tag.name;
+            tagsSelect.appendChild(option);
+        });
+    }
+
+    attachEvents() {
+        Object.values(this.filters).forEach(filter =>
+            filter?.addEventListener('change', () => this.applyFilters())
+        );
+
+        const clearBtn = document.getElementById('clear-filters');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                Object.values(this.filters).forEach(filter => {
+                    if (filter) {
+                        if (filter.multiple) {
+                            Array.from(filter.options).forEach(opt => opt.selected = false);
+                        } else {
+                            filter.value = '';
+                        }
+                    }
+                });
+                this.applyFilters();
+            });
+        }
+    }
+
+
+    applyFilters() {
+        const assigneeVal = this.filters.assignee?.value.trim().toLowerCase() || '';
+        const priorityVal = this.filters.priority?.value.trim().toLowerCase() || '';
+        const dateVal = this.filters.date?.value || '';
+
+        // Получаем массив выбранных тегов из мультиселекта
+        const selectedOptions = Array.from(this.filters.tags.selectedOptions);
+        const filterTags = selectedOptions.map(opt => opt.value.toLowerCase());
+
+        this.cards.forEach(card => {
+            const cardAssignee = (card.dataset.assignee || '').toLowerCase();
+            const cardPriority = (card.dataset.priority || '').toLowerCase();
+            const cardDate = card.dataset.deadline || '';
+            const cardTags = (card.dataset.tags || '')
+                .toLowerCase()
+                .split(',')
+                .map(t => t.trim())
+                .filter(Boolean);
+
+            const matchAssignee = !assigneeVal || cardAssignee === assigneeVal;
+            const matchPriority = !priorityVal || cardPriority === priorityVal;
+            const matchDate = !dateVal || cardDate === dateVal;
+
+            // Проверяем, что все выбранные теги присутствуют в карточке
+            const matchTags = filterTags.length === 0 || filterTags.every(t => cardTags.includes(t));
+
+            if (matchAssignee && matchPriority && matchDate && matchTags) {
+                card.classList.remove('hidden');
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+    }
+}
+
+
+
+
+

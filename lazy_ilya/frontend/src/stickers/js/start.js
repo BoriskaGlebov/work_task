@@ -1,7 +1,7 @@
 import '../../css/base.css';
 import {toggleAccentClasses} from "../../cities/js/toggleAccent.js";
 import {KanbanStickyNotes} from "./notes.js";
-import {KanbanTasks} from "./task.js";
+import {KanbanTasks, TaskFilter} from "./task.js";
 
 // import {toggleAccentClasses} from "./toggleAccent.js";
 // import {CityAutocomplete} from "./city-search.js";
@@ -17,6 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     // ВАЖНО: вызываем загрузку начальных заметок после инициализации
     kanban.loadInitialNotes();
+
     const kanbanTask = new KanbanTasks({addButtonId: 'btn-tasks', boardId: 'task-board', modalId: 'task-modal'});
+    const taskFilter = new TaskFilter({tasksContainerId: 'task-board'});
 
 });
