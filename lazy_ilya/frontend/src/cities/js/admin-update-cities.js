@@ -106,7 +106,6 @@ export class CityFormHandler {
         this.saveCity.addEventListener('click', async () => {
             if (!this.tableSelect.value) {
                 showError('Пожалуйста, выберите название таблицы');
-                // this.tableSelect.focus();
                 this.tableSelect.classList.remove("correct_input");
                 this.tableSelect.classList.add("error_input");
                 setTimeout(() => {
@@ -150,9 +149,23 @@ export class CityFormHandler {
                 } else {
                     const errorData = await response.json();
                     let errorMsg = '';
+                    console.log(errorData)
                     for (const field in errorData.errors) {
                         errorMsg += `${field}: ${errorData.errors[field].join(', ')}\n`;
+                        if (field === "some_number") {
+                            const input = document.querySelector(`input[name="${field}"]`);
+                            if (input) {
+                                input.classList.remove("correct_input");
+                                input.classList.add("error_input");
+                                setTimeout(() => {
+                                    input.classList.remove("error_input");
+                                    input.classList.add("correct_input");
+                                    input.focus();
+                                }, 4000);
+                            }
+                        }
                     }
+
                     showError('Ошибка при сохранении:\n' + errorMsg);
                 }
             } catch (err) {
