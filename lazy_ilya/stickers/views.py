@@ -165,11 +165,15 @@ class TaskView(LoginRequiredMixin, View):
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
-            return HttpResponseBadRequest("Неверный формат JSON")
+            return HttpResponseBadRequest(json.dumps({
+                "errors": {"__all__": ["Неверный формат JSON"]}
+            }), content_type="application/json")
+
+        errors = {}
 
         title = data.get("title")
         if not title:
-            return JsonResponse({"error": "Поле title обязательно"}, status=400)
+            errors["title"] = ["Поле title обязательно"]
 
         deadline_str = data.get("deadline")
         deadline = None
@@ -177,7 +181,7 @@ class TaskView(LoginRequiredMixin, View):
             try:
                 deadline = datetime.fromisoformat(deadline_str).date()
             except ValueError:
-                return JsonResponse({"error": "Неверный формат даты deadline"}, status=400)
+                errors["deadline"] = ["Неверный формат даты deadline"]
 
         assignee_identifier = data.get("assignee")
         assignee = None
@@ -186,8 +190,10 @@ class TaskView(LoginRequiredMixin, View):
             if not assignee:
                 assignee = CustomUser.objects.filter(first_name=assignee_identifier).first()
             if not assignee:
-                return JsonResponse({"error": f"Пользователь с username или именем '{assignee_identifier}' не найден"},
-                                    status=400)
+                errors["assignee"] = [f"Пользователь с username или именем '{assignee_identifier}' не найден"]
+
+        if errors:
+            return JsonResponse({"errors": errors}, status=400)
 
         task = Task.objects.create(
             title=title,
@@ -213,16 +219,23 @@ class TaskView(LoginRequiredMixin, View):
         try:
             task = Task.objects.get(pk=task_id)
         except Task.DoesNotExist:
-            return JsonResponse({"error": "Задача не найдена"}, status=404)
+            return JsonResponse({"errors": {"__all__": ["Задача не найдена"]}}, status=404)
 
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
-            return HttpResponseBadRequest("Неверный формат JSON")
+            return HttpResponseBadRequest(json.dumps({
+                "errors": {"__all__": ["Неверный формат JSON"]}
+            }), content_type="application/json")
 
-        title = data.get("title")
-        if title is not None:
-            task.title = title
+        errors = {}
+
+        if "title" in data:
+            title = data.get("title")
+            if title is None or title == "":
+                errors["title"] = ["Поле title не может быть пустым"]
+            else:
+                task.title = title
 
         if "desc" in data:
             task.desc = data["desc"]
@@ -233,9 +246,9 @@ class TaskView(LoginRequiredMixin, View):
                 try:
                     task.deadline = datetime.fromisoformat(deadline_str).date()
                 except ValueError:
-                    return JsonResponse({"error": "Неверный формат даты deadline"}, status=400)
+                    errors["deadline"] = ["Неверный формат даты deadline"]
             else:
-                task.deadline = None  # Очистка
+                task.deadline = None
 
         if "priority" in data:
             task.priority = data["priority"]
@@ -251,7 +264,7 @@ class TaskView(LoginRequiredMixin, View):
                 if not assignee:
                     assignee = CustomUser.objects.filter(first_name=assignee_identifier).first()
                 if not assignee:
-                    return JsonResponse({"error": f"Пользователь '{assignee_identifier}' не найден"}, status=400)
+                    errors["assignee"] = [f"Пользователь '{assignee_identifier}' не найден"]
             task.assignee = assignee
 
         if "tags" in data:
@@ -266,6 +279,9 @@ class TaskView(LoginRequiredMixin, View):
 
             task.tags.set(tag_objs)
 
+        if errors:
+            return JsonResponse({"errors": errors}, status=400)
+
         task.save()
         return JsonResponse(task.to_dict(), status=200)
 
@@ -273,7 +289,9 @@ class TaskView(LoginRequiredMixin, View):
         try:
             task = Task.objects.get(pk=task_id)
         except Task.DoesNotExist:
-            return JsonResponse({"error": "Задача не найдена"}, status=404)
+            return JsonResponse({"errors": {"__all__": ["Задача не найдена"]}}, status=404)
 
         task.delete()
-        return JsonResponse({"success": f"Задача {task_id} удалена"}, status=204)
+        # Обычно при успешном удалении 204 No Content возвращает пустой ответ,
+        # но можно вернуть сообщение, если нужно.
+        return JsonResponse({"success": f"Задача {task_id} удалена"}, status=200)

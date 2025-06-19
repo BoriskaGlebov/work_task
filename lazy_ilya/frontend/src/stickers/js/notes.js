@@ -32,6 +32,10 @@ export class KanbanStickyNotes {
         this.noteData = notes_data;
 
         this.initSortable();
+        document.getElementById('btn-notes').addEventListener('click', () => {
+            const itemName = document.getElementById('item-name');
+            itemName.scrollIntoView({behavior: 'smooth', block: 'start'});
+        });
     }
 
     /**

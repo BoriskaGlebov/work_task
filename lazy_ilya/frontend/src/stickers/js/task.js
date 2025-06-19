@@ -1,5 +1,6 @@
 import Choices from 'choices.js';
 import 'choices.js/public/assets/styles/choices.min.css';
+import {showError} from "./utils.js";
 
 
 export class KanbanTasks {
@@ -33,10 +34,11 @@ export class KanbanTasks {
         if (!select) {
             throw new Error('Select с name="tags" не найден в форме');
         }
-        // this.tags_list = window.tags_list;
-        // if (!select) {
-        //     throw new Error('Select с name="tags" не найден в форме');
-        // }
+        this.taskModal.addEventListener('click', (e) => {
+            if (!this.taskForm.contains(e.target)) {
+                this.taskModal.classList.add('hidden');
+            }
+        });
 
         this.tagsSelect = new Choices(select, {
             removeItemButton: true,
@@ -52,15 +54,6 @@ export class KanbanTasks {
                 label: tag.name
             }))
         });
-        // // Преобразование тегов с бэка
-        // const choicesFromBackend = this.tags_list.map(tag => ({
-        //     value: String(tag.name),
-        //     label: tag.name,
-        // }));
-
-        // Добавление этих choices в Select
-        // this.tagsSelect.setChoices(choicesFromBackend, 'value', 'label', false);
-
 
         // Клик по карточке открывает модалку для редактирования
         this.taskBoard.addEventListener('click', (e) => {
@@ -168,96 +161,6 @@ export class KanbanTasks {
     closeModal() {
         this.taskModal.classList.add('hidden');
     }
-
-    async saveTask() {
-        const formData = new FormData(this.taskForm);
-        const taskData = {
-            title: formData.get('title'),
-            desc: formData.get('desc'),
-            deadline: formData.get('deadline'),
-            priority: formData.get('priority'),
-            assignee: formData.get('assignee'),
-            tags: this.tagsSelect ? this.tagsSelect.getValue(true).join(',') : '',
-            done: formData.get('done') === 'on',
-        };
-        console.log(taskData.tags)
-        try {
-            let response;
-
-            if (this.currentEditId) {
-                // Обновление задачи
-                response = await fetch(`tasks/${this.currentEditId}/`, {
-                    method: 'PATCH', // или PATCH
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': this.csrfToken,
-                    },
-                    body: JSON.stringify(taskData),
-                });
-            } else {
-                // Создание новой задачи
-                response = await fetch('tasks/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': this.csrfToken,
-                    },
-                    body: JSON.stringify(taskData),
-                });
-            }
-
-            if (!response.ok) {
-                const errorData = await response.json();
-
-                console.error('Ошибка при сохранении задачи:', errorData);
-                alert('Ошибка при сохранении задачи!');
-                return;
-            }
-
-            const savedTask = await response.json();
-
-            if (this.currentEditId) {
-                // Обновляем локальную задачу и карточку данными с бэка
-                this.tasks[this.currentEditId] = savedTask;
-                this.renderTaskCard(this.currentEditId, savedTask, true);
-            } else {
-                // Используем id из savedTask, добавляем и рендерим
-                const id = savedTask.id;
-                this.tasks[id] = savedTask;
-                this.renderTaskCard(id, savedTask);
-            }
-
-            this.closeModal();
-
-        } catch (error) {
-            console.error('Ошибка сети:', error);
-            alert('Ошибка сети при сохранении задачи!');
-        }
-    }
-
-    async deleteTaskCard(id) {
-        try {
-            const response = await fetch(`tasks/delete/${id}/`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': this.csrfToken,
-                },
-            });
-
-            if (response.ok) {
-                const card = this.taskBoard.querySelector(`[data-card-id="${id}"]`);
-                if (card) {
-                    card.remove(); // Удаляем элемент из DOM
-                }
-            } else {
-                console.error(`Ошибка при удалении задачи ${id}:`, await response.text());
-            }
-        } catch (error) {
-            console.error('Ошибка при удалении задачи:', error);
-        }
-    }
-
 
     renderTaskCard(id, taskData, isUpdate = false) {
         let card = this.taskBoard.querySelector(`[data-card-id="${id}"]`);
@@ -369,6 +272,142 @@ export class KanbanTasks {
         doneEl.className = 'text-xs font-semibold ' + (taskData.done ? 'text-green-700' : 'text-red-600');
         doneEl.textContent = taskData.done ? 'Выполнено' : 'В процессе';
         card.appendChild(doneEl);
+    }
+
+    async saveTask() {
+        const formData = new FormData(this.taskForm);
+        const taskData = {
+            title: formData.get('title'),
+            desc: formData.get('desc'),
+            deadline: formData.get('deadline'),
+            priority: formData.get('priority'),
+            assignee: formData.get('assignee'),
+            tags: this.tagsSelect ? this.tagsSelect.getValue(true).join(',') : '',
+            done: formData.get('done') === 'on',
+        };
+
+        try {
+            let response;
+            let isUpdate = !!this.currentEditId;
+
+            const url = isUpdate ? `tasks/${this.currentEditId}/` : 'tasks/';
+            const method = isUpdate ? 'PATCH' : 'POST';
+
+            response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.csrfToken,
+                },
+                body: JSON.stringify(taskData),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                console.error('Ошибка при сохранении задачи:', result);
+                this.handleServerError(result);
+                return;
+            }
+
+            if (isUpdate) {
+                this.tasks[this.currentEditId] = result;
+                this.renderTaskCard(this.currentEditId, result, true);
+                this.showSuccessMessage(`Задача успешно обновлена ${result.id}`);
+            } else {
+                console.log(result)
+                const id = result.id;
+                this.tasks[id] = result;
+                this.renderTaskCard(id, result);
+                this.showSuccessMessage(`Задача успешно создана ${result.id}`);
+            }
+
+            this.closeModal();
+
+        } catch (error) {
+            console.error('Ошибка сети:', error);
+            this.showErrorMessage('Ошибка сети при сохранении задачи!');
+        }
+    }
+
+
+    async deleteTaskCard(id) {
+        try {
+            const response = await fetch(`tasks/delete/${id}/`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.csrfToken,
+                },
+            });
+
+            if (response.ok) {
+                const card = this.taskBoard.querySelector(`[data-card-id="${id}"]`);
+                if (card) {
+                    card.remove();
+                }
+                this.showSuccessMessage('Задача успешно удалена');
+            } else {
+                const errorText = await response.text();
+                console.error(`Ошибка при удалении задачи ${id}:`, errorText);
+                this.showErrorMessage(`Ошибка при удалении: ${errorText}`);
+            }
+        } catch (error) {
+            console.error('Ошибка при удалении задачи:', error);
+            this.showErrorMessage('Сетевая ошибка при удалении задачи!');
+        }
+    }
+
+
+    /**
+     * Отображает всплывающее сообщение об успешном действии.
+     *
+     * @param {string} message
+     */
+    showSuccessMessage(message) {
+        const serverInfo = document.getElementById('server-info');
+        const messageParagraph = serverInfo.querySelector('p');
+
+        // Очистка предыдущего таймера, если он ещё активен
+        if (this.successMessageTimeout) {
+            clearTimeout(this.successMessageTimeout);
+        }
+
+        // Показываем сообщение
+        serverInfo.classList.remove('hidden', 'animate-popup-reverse');
+        serverInfo.classList.add('flex', 'animate-popup');
+        messageParagraph.textContent = message;
+        serverInfo.scrollIntoView({behavior: 'smooth', block: 'start'});
+
+        // Устанавливаем новый таймер скрытия
+        this.successMessageTimeout = setTimeout(() => {
+            serverInfo.classList.remove('animate-popup');
+            serverInfo.classList.add('animate-popup-reverse');
+            setTimeout(() => {
+                serverInfo.classList.add('hidden');
+                serverInfo.classList.remove('flex', 'animate-popup-reverse');
+            }, 1000);
+            this.successMessageTimeout = null; // очищаем
+        }, 5000);
+    }
+
+    /**
+     * Обрабатывает ошибки сервера и отображает соответствующие сообщения.
+     *
+     * @param {Object} errorData
+     * @param {string} fallbackMessage
+     */
+    handleServerError(errorData, fallbackMessage) {
+        console.error(fallbackMessage, errorData);
+        if (errorData?.errors) {
+            for (const [field, messages] of Object.entries(errorData.errors)) {
+                messages.forEach(message => {
+                    showError(`Ошибка в поле "${field}" - "${message}"`, 'server-error2');
+                });
+            }
+        } else {
+            showError(fallbackMessage, 'server-error2');
+        }
     }
 
 

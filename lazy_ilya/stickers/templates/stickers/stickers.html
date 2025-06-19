@@ -38,9 +38,9 @@
             </div>
         </div>
 
-        <h2 class="text-center">📌 Моя доска</h2>
+        <h2 id="item-name" class="text-center">📌 Моя доска</h2>
         <!-- Header -->
-        <div class="flex justify-between items-center mb-4">
+        <div class="sticky top-10 z-10 flex justify-between items-center mb-4">
             <div class="flex gap-2">
                 <button id="btn-notes" class="btn-submit">Стикеры
                 </button>
@@ -63,7 +63,21 @@
 
             <!-- Модальное окно -->
             <div id="task-modal" class="fixed inset-0 backdrop-blur-xs flex items-center justify-center hidden z-30">
+
                 <form id="task-form" class="form-style relative">
+                    <div id="server-error2" class="hidden common_error"
+                         role="alert">
+                        <svg class="shrink-0 inline size-5 md:size-7 me-3" aria-hidden="true"
+                             xmlns="http://www.w3.org/2000/svg"
+                             fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"></path>
+                        </svg>
+                        <span class="sr-only">Info</span>
+                        <div>
+                            <span class="!font-bold">Danger alert!</span>
+                            <p>Change a few things up and try submitting again.</p>
+                        </div>
+                    </div>
                     {% csrf_token %}
                     <button id="close-modal"
                             class="absolute top-2 right-3 text-gray-500 hover:text-gray-700 text-xl">
@@ -71,10 +85,10 @@
                     </button>
 
                     <h2 class="text-center">Задача</h2>
-                    <input type="text" name="title" placeholder="Название задачи" required
+                    <input type="text" name="title" placeholder="Название задачи"
                            class="correct_input"/>
 
-                    <textarea name="desc" rows="3" placeholder="Описание..."
+                    <textarea name="desc" rows="10" placeholder="Описание..."
                               class="correct_input"></textarea>
 
                     <label class="correct_label">
@@ -99,12 +113,11 @@
 
                     </select>
                     <select id="tags-select" name="tags" multiple></select>
-                    <div class="flex justify-start items-center gap-5">
+                    <label class="flex justify-start items-center gap-5 cursor-pointer">
                         <input type="checkbox" class="correct_icon rounded-full text-x" name="done"/>
-                        <label class="correct_label">
-                            Выполнено
-                        </label>
-                    </div>
+                        <span class="correct_label">Выполнено</span>
+                    </label>
+
 
                     <div class="flex justify-end gap-2 mt-4">
 
