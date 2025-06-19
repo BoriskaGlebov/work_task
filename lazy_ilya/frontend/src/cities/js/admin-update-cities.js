@@ -106,7 +106,14 @@ export class CityFormHandler {
         this.saveCity.addEventListener('click', async () => {
             if (!this.tableSelect.value) {
                 showError('Пожалуйста, выберите название таблицы');
-                this.tableSelect.focus();
+                // this.tableSelect.focus();
+                this.tableSelect.classList.remove("correct_input");
+                this.tableSelect.classList.add("error_input");
+                setTimeout(() => {
+                    this.tableSelect.classList.remove("error_input");
+                    this.tableSelect.classList.add("correct_input");
+                    this.tableSelect.focus();
+                }, 4000);
                 return;
             }
 
