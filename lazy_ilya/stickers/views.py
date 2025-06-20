@@ -37,7 +37,7 @@ class StickyNoteView(LoginRequiredMixin, View):
             Q(author_name=request.user.first_name) |
             Q(author_name=request.user.username)
         )
-        users = list(CustomUser.objects.filter(is_active=True).values('username', 'first_name','last_name'))
+        users = list(CustomUser.objects.filter(is_active=True).values('username', 'first_name', 'last_name'))
         notes_data = [note.to_dict() for note in notes]
         tasks = Task.objects.annotate(
             priority_order=Case(
@@ -221,6 +221,7 @@ class TaskView(LoginRequiredMixin, View):
             priority=data.get("priority", "medium"),
             done=bool(data.get("done", False)),
             assignee=assignee,
+            author=CustomUser.objects.get(username=request.user.username),
         )
 
         tags_names = data.get("tags", [])

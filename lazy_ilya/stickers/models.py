@@ -108,6 +108,7 @@ class Task(models.Model):
             'author':self.author.username,
             'assignee': self.assignee.username if self.assignee else None,
             'tags': [{'id': tag.id, 'name': tag.name} for tag in self.tags.all()],
+            'created_at':self.created_at.isoformat(),
 
         }
 

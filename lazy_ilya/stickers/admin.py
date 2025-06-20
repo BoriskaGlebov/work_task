@@ -50,6 +50,7 @@ class TaskAdmin(admin.ModelAdmin):
         "deadline",
         "done",
         "display_tags",
+        "author",
     )
     list_filter = ("priority", "done", "tags", "assignee")
     search_fields = ("title", "desc")

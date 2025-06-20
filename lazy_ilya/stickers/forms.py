@@ -20,15 +20,6 @@ class TagForm(forms.ModelForm):
     class Meta:
         model = Tag
         fields = ["name"]
-        labels = {"name": "Название тега"}
-        widgets = {
-            "name": forms.TextInput(
-                attrs={
-                    "class": "block w-full rounded border p-2",
-                    "placeholder": "Введите название тега…",
-                }
-            )
-        }
 
     def clean_name(self):
         # гарантируем уникальность без учёта регистра
@@ -79,33 +70,7 @@ class TaskForm(forms.ModelForm):
             "tags",
             "done",
         ]
-        labels = {
-            "title": "Название",
-            "desc": "Описание",
-            "priority": "Приоритет",
-            "assignee": "Исполнитель",
-        }
-        widgets = {
-            "title": forms.TextInput(
-                attrs={
-                    "class": "w-full rounded border p-2",
-                    "placeholder": "Например: «Сверстать главную страницу»",
-                }
-            ),
-            "desc": forms.Textarea(
-                attrs={
-                    "class": "w-full rounded border p-2",
-                    "rows": 4,
-                    "placeholder": "Краткое описание задачи…",
-                }
-            ),
-            "priority": forms.Select(
-                attrs={"class": "w-full rounded border p-2"}
-            ),
-            "assignee": forms.Select(
-                attrs={"class": "w-full rounded border p-2"}
-            ),
-        }
+
 
     def clean_title(self):
         # дополнительная валидация (по желанию)

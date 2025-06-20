@@ -81,7 +81,9 @@ export class KanbanTasks {
                 priority: task.priority,
                 assignee: task.assignee,
                 tags: task.tags.map(tag => tag.name).join(','),  // <-- важно!
-                done: task.done
+                done: task.done,
+                createdAt: task.created_at,  // или new Date(task.created_at)
+                author: task.author,         // <-- добавили автора
             };
             // console.log(this.tasks[id]);
             // Отрисовываем карточку
@@ -292,6 +294,49 @@ export class KanbanTasks {
             assigneeEl.textContent = 'Исполнитель: ' + displayName;
             card.appendChild(assigneeEl);
         }
+        // Автор задачи
+        if (taskData.author) {
+            const authorEl = document.createElement('div');
+            authorEl.className = 'text-xs text-text dark:text-text-dark mb-1';
+
+            // Найдём пользователя в списке по username
+            const authorData = window.username_data.find(user => user.username === taskData.author);
+            const authorName = authorData
+                ? [authorData.first_name, authorData.second_name].filter(Boolean).join(' ').trim() || authorData.username
+                : taskData.author;
+
+            authorEl.textContent = 'Автор: ' + authorName;
+            card.appendChild(authorEl);
+        }
+        // Дата создания
+        const createdAtEl = document.createElement('div');
+        createdAtEl.className = 'text-xs text-gray-500 dark:text-gray-400 mb-1';
+
+        let date = taskData.createdAt ? new Date(taskData.createdAt) : new Date();
+
+// Если дата некорректна — ставим сегодня
+        if (isNaN(date.getTime())) {
+            date = new Date();
+        }
+
+        const today = new Date();
+        const isToday =
+            date.getDate() === today.getDate() &&
+            date.getMonth() === today.getMonth() &&
+            date.getFullYear() === today.getFullYear();
+
+        const formattedDate = isToday
+            ? 'Сегодня'
+            : date.toLocaleDateString('ru-RU', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+            });
+
+        createdAtEl.textContent = 'Создано: ' + formattedDate;
+        card.appendChild(createdAtEl);
+
+
         // Теги
         if (taskData.tags) {
             const tagsEl = document.createElement('div');
