@@ -83,6 +83,7 @@ export class KanbanTasks {
                 tags: task.tags.map(tag => tag.name).join(','),  // <-- важно!
                 done: task.done
             };
+            console.log(this.tasks[id]);
             // Отрисовываем карточку
             this.renderTaskCard(id, this.tasks[id]);
         });
@@ -163,12 +164,11 @@ export class KanbanTasks {
 
     closeModal() {
         this.taskModal.classList.add('hidden');
+        this.taskFilterInstance.applyFilters();
     }
 
     renderTaskCard(id, taskData, isUpdate = false) {
         let card = this.taskBoard.querySelector(`[data-card-id="${id}"]`);
-        // console.log('asddasddadas')
-        // console.log(card || []);
         if (!card) {
             // Карточки ещё нет — создаём
             card = document.createElement('div');
@@ -275,15 +275,19 @@ export class KanbanTasks {
             priorityEl.innerHTML = `<span class="${colorClass} font-medium">Приоритет: ${priorityText}</span>`;
             card.appendChild(priorityEl);
         }
-
         // Исполнитель
         if (taskData.assignee) {
             const assigneeEl = document.createElement('div');
             assigneeEl.className = 'text-xs text-text dark:text-text-dark mb-1';
-            assigneeEl.textContent = 'Исполнитель: ' + taskData.assignee;
+
+            // Найдём пользователя в списке по username
+            const userData = window.username_data.find(user => user.username === taskData.assignee);
+
+            const displayName = userData && userData.first_name ? userData.first_name : taskData.assignee;
+
+            assigneeEl.textContent = 'Исполнитель: ' + displayName;
             card.appendChild(assigneeEl);
         }
-
         // Теги
         if (taskData.tags) {
             const tagsEl = document.createElement('div');
@@ -353,9 +357,8 @@ export class KanbanTasks {
             if (isUpdate) {
                 this.tasks[this.currentEditId] = result;
                 this.renderTaskCard(this.currentEditId, result, true);
-                this.showSuccessMessage(`Задача успешно обновлена ${result.id}`);
+                // this.showSuccessMessage(`Задача успешно обновлена ${result.id}`);
             } else {
-                // console.log(result)
                 const id = result.id;
                 this.tasks[id] = result;
                 this.renderTaskCard(id, result);
@@ -407,7 +410,6 @@ export class KanbanTasks {
     showSuccessMessage(message) {
         const serverInfo = document.getElementById('server-info');
         const messageParagraph = serverInfo.querySelector('p');
-        this.taskFilterInstance.applyFilters();
         // this.setTaskFilterInstance.applyFilters();
         // Очистка предыдущего таймера, если он ещё активен
         if (this.successMessageTimeout) {
