@@ -24,10 +24,17 @@ export class KanbanStickyNotes {
         this.authors = [
             username,
             ...username_data
-                .filter(user => user.username !== username && user.first_name !== username)
-                .map(user => user.first_name.trim() !== '' ? user.first_name : user.username),
+                .filter(user => user.username !== username)
+                .map(user => {
+                    const labelParts = [];
+                    if (user.first_name?.trim()) labelParts.push(user.first_name.trim());
+                    if (user.last_name?.trim()) labelParts.push(user.last_name.trim());
+
+                    return labelParts.length > 0 ? labelParts.join(' ') : user.username;
+                }),
             'Всем!'
         ];
+
         this.currentAuthorIndex = 0;
         this.noteData = notes_data;
 
@@ -145,14 +152,38 @@ export class KanbanStickyNotes {
 
         const showDropdown = () => {
             const rect = authorBtn.getBoundingClientRect();
-            dropdown.style.top = `${rect.bottom + 4 + window.scrollY}px`;
-            dropdown.style.left = `${rect.right - dropdown.offsetWidth + window.scrollX}px`;
+            const dropdownWidth = dropdown.offsetWidth;
+            const dropdownHeight = dropdown.offsetHeight;
+
+            let left = rect.right - dropdownWidth + window.scrollX;
+            let top = rect.bottom + 4 + window.scrollY;
+
+            // Проверка выхода за левую границу
+            if (left < 0) {
+                left = rect.left + window.scrollX;  // ставим слева от кнопки
+            }
+
+            // Проверка выхода за правую границу
+            const screenRight = window.innerWidth + window.scrollX;
+            if (left + dropdownWidth > screenRight) {
+                left = screenRight - dropdownWidth - 10; // отступ 10px от края
+            }
+
+            // Проверка выхода вниз за экран (по желанию)
+            const screenBottom = window.innerHeight + window.scrollY;
+            if (top + dropdownHeight > screenBottom) {
+                top = rect.top - dropdownHeight - 4 + window.scrollY; // открыть вверх
+            }
+
+            dropdown.style.top = `${top}px`;
+            dropdown.style.left = `${left}px`;
 
             dropdown.classList.remove('opacity-0', 'scale-y-0', 'invisible');
             dropdown.classList.add('opacity-100', 'scale-y-100', 'visible');
 
             resetAuthorDropdownTimeout();
         };
+
 
         this.authors.forEach(name => {
             const option = document.createElement('div');

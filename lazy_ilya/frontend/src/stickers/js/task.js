@@ -83,7 +83,7 @@ export class KanbanTasks {
                 tags: task.tags.map(tag => tag.name).join(','),  // <-- важно!
                 done: task.done
             };
-            console.log(this.tasks[id]);
+            // console.log(this.tasks[id]);
             // Отрисовываем карточку
             this.renderTaskCard(id, this.tasks[id]);
         });
@@ -138,7 +138,11 @@ export class KanbanTasks {
 
             window.username_data.forEach(user => {
                 const option = document.createElement('option');
-                const label = user.first_name?.trim() ? user.first_name : user.username;
+                const labelParts = [];
+                if (user.first_name?.trim()) labelParts.push(user.first_name.trim());
+                if (user.last_name?.trim()) labelParts.push(user.last_name.trim());
+
+                const label = labelParts.length > 0 ? labelParts.join(' ') : user.username;
 
                 option.value = user.username;
                 option.textContent = label;

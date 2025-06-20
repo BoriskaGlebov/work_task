@@ -84,6 +84,8 @@ class Task(models.Model):
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium',
                                 verbose_name="Приоритет задачи")
     done = models.BooleanField(default=False, verbose_name="Отметка об исполнении")
+    author=models.ForeignKey(User, on_delete=models.CASCADE,  related_name='tasks_author',
+                                 verbose_name="Автор")
 
     assignee = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='tasks',
                                  verbose_name="Исполнитель")
@@ -103,6 +105,7 @@ class Task(models.Model):
             'deadline': self.deadline.isoformat() if self.deadline else None,
             'priority': self.priority,
             'done': self.done,
+            'author':self.author.username,
             'assignee': self.assignee.username if self.assignee else None,
             'tags': [{'id': tag.id, 'name': tag.name} for tag in self.tags.all()],
 
