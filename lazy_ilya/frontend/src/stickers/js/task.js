@@ -249,12 +249,14 @@ export class KanbanTasks {
             if (deadlineDate < today.setHours(0, 0, 0, 0)) {
                 deadlineEl.classList.add('!text-red-600', '!font-semibold');
                 card.classList.add('!bg-red-200', 'dark:!bg-red-900/20');
+                deadlineEl.textContent = 'Срок исполнения: ' + taskData.deadline+ '!!!ПРОСРОЧЕНО!!!';
             } else {
                 // Осталось <= 3 дней
                 const diffInDays = Math.ceil((deadlineDate - new Date()) / (1000 * 60 * 60 * 24));
                 if (diffInDays <= 3) {
                     deadlineEl.classList.add('!text-yellow-600', '!font-medium');
                     card.classList.add('!bg-yellow-200', 'dark:!bg-yellow-600/20');
+                    deadlineEl.textContent = 'Срок исполнения: ' + taskData.deadline+ '!!!Менее 3 дней осталось!!!';
                 }
             }
             card.appendChild(deadlineEl);
