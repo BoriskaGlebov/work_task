@@ -627,12 +627,11 @@ export class TaskFilter {
 
         window.tags_list.forEach(tag => {
             const label = document.createElement('label');
-            label.className = 'flex items-center space-x-2 mb-1';
-
+            label.className = 'correct_label flex items-center space-x-2 mb-3';
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.value = tag.name || tag;
-            checkbox.classList.add('tag-checkbox');
+            checkbox.className = 'tag-checkbox correct_icon rounded-full text-xl';
 
             const span = document.createElement('span');
             span.textContent = tag.name || tag;

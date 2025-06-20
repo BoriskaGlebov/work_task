@@ -96,11 +96,11 @@
         </span>
                 </button>
                 <div id="dropdownMenu"
-                     class="absolute z-30 mt-2 w-full bg-white border rounded shadow hidden">
+                     class="absolute z-30 mt-2 w-full bg-background dark:bg-background-dark border rounded shadow hidden">
                     <div class="p-2 max-h-60 overflow-y-auto">
                         {% for tag in tags_list %}
                         <label class="flex items-center space-x-2 mb-1">
-                            <input type="checkbox" value="{{ tag }}" class="tag-checkbox">
+                            <input type="checkbox" value="{{ tag }}" class="correct_input">
                             <span>{{ tag }}</span>
                         </label>
                         {% endfor %}
@@ -114,7 +114,7 @@
             </select>
 
 
-            <button id="clear-filters" class="btn-cancel w-full">Очистить фильтры</button>
+            <button id="clear-filters" class="btn-cancel">Очистить фильтры</button>
         </div>
 
 
@@ -224,7 +224,7 @@
         window.tags_list = JSON.parse('{{ tags_list|escapejs }}');
         {#console.log(notes_data);#}
         {#console.log(username_data);#}
-        console.log(tasks_data);
+        {#console.log(tasks_data);#}
         {#console.log(tags_list);#}
     </script>
 
