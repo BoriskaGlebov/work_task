@@ -58,34 +58,63 @@
         </div>
 
         <!-- Панель фильтров и сортировки -->
-        <div id="filter-panel" class="flex flex-wrap gap-4 mb-4 justify-center">
-            <select id="filter-deadline" class="correct_input" aria-label="Фильтр по дате">
+        <div id="filter-panel"
+             class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
+
+            <select id="filter-deadline" class="correct_input w-full">
                 <option value="">Срок исполнения: все</option>
                 <option value="asc">По возрастанию</option>
                 <option value="desc">По убыванию</option>
             </select>
 
-            <select id="filter-priority" class="correct_input" aria-label="Фильтр по приоритету">
+            <select id="filter-priority" class="correct_input w-full">
                 <option value="">Приоритет: все</option>
                 <option value="high">Высокий</option>
                 <option value="medium">Средний</option>
                 <option value="low">Низкий</option>
             </select>
 
-            <select id="filter-assignee" class="correct_input" aria-label="Фильтр по исполнителю">
+            <select id="filter-assignee" class="correct_input w-full">
                 <option value="">Исполнитель: все</option>
                 {% for user in username_list %}
                 <option value="{{ user }}">{{ user }}</option>
                 {% endfor %}
             </select>
 
-            <select id="filter-tags" multiple class="correct_input" aria-label="Фильтр по тегам" multiple>
-                {% for tag in tags_list %}
-                <option value="{{ tag }}">{{ tag }}</option>
-                {% endfor %}
+            <div class="relative w-full">
+                <button id="dropdownToggle" type="button"
+                        class="correct_input w-full px-4 py-3 text-left appearance-none border rounded bg-white pr-10 relative focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        aria-haspopup="true">
+                    Выберите теги
+                    <span class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+            <!-- Галочка, как у select -->
+            <svg class="w-7 h-7 font-bold text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd"
+                      d="M5.23 7.21a.75.75 0 011.06.02L10 10.939l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.23 8.27a.75.75 0 01.02-1.06z"
+                      clip-rule="evenodd"/>
+            </svg>
+        </span>
+                </button>
+                <div id="dropdownMenu"
+                     class="absolute z-30 mt-2 w-full bg-white border rounded shadow hidden">
+                    <div class="p-2 max-h-60 overflow-y-auto">
+                        {% for tag in tags_list %}
+                        <label class="flex items-center space-x-2 mb-1">
+                            <input type="checkbox" value="{{ tag }}" class="tag-checkbox">
+                            <span>{{ tag }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <select id="filter-status" class="correct_input">
+                <option value="">Все</option>
+                <option value="true">Выполнено</option>
+                <option value="false">В процессе</option>
             </select>
 
-            <button id="clear-filters" class="btn-cancel ml-2">Очистить фильтры</button>
+
+            <button id="clear-filters" class="btn-cancel w-full">Очистить фильтры</button>
         </div>
 
 
@@ -195,8 +224,8 @@
         window.tags_list = JSON.parse('{{ tags_list|escapejs }}');
         {#console.log(notes_data);#}
         {#console.log(username_data);#}
-        {#console.log(tasks_data);#}
-        console.log(tags_list);
+        console.log(tasks_data);
+        {#console.log(tags_list);#}
     </script>
 
 {% endblock %}

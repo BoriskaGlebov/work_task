@@ -5,7 +5,6 @@ import {showError} from "./utils.js";
 
 export class KanbanTasks {
     constructor({addButtonId, boardId, modalId}) {
-        // this.taskIdCounter = 1;
         this.tasks = {};  // храним задачи в объекте {id: taskData}
         this.addTaskBtn = document.getElementById(addButtonId);
         this.taskBoard = document.getElementById(boardId);
@@ -65,6 +64,10 @@ export class KanbanTasks {
         });
         this.loadTasksFromBackend(tasks_data || []);
 
+    }
+
+    setTaskFilterInstance(taskFilterInstance) {
+        this.taskFilterInstance = taskFilterInstance;
     }
 
     loadTasksFromBackend(tasksArray) {
@@ -182,6 +185,7 @@ export class KanbanTasks {
         card.dataset.assignee = taskData.assignee || '';
         card.dataset.priority = taskData.priority || '';
         card.dataset.deadline = taskData.deadline || '';
+        card.dataset.done = taskData.done === true ? 'true' : 'false';
         // Для тегов — передаём строку с тегами через запятую
         if (Array.isArray(taskData.tags)) {
             // Если tags — массив объектов с name
@@ -403,7 +407,8 @@ export class KanbanTasks {
     showSuccessMessage(message) {
         const serverInfo = document.getElementById('server-info');
         const messageParagraph = serverInfo.querySelector('p');
-
+        this.taskFilterInstance.applyFilters();
+        // this.setTaskFilterInstance.applyFilters();
         // Очистка предыдущего таймера, если он ещё активен
         if (this.successMessageTimeout) {
             clearTimeout(this.successMessageTimeout);
@@ -534,45 +539,61 @@ export class TaskFilter {
             assignee: document.getElementById('filter-assignee'),
             priority: document.getElementById('filter-priority'),
             date: document.getElementById('filter-deadline'),
-            tags: document.getElementById('filter-tags'), // <select multiple> для тегов
+            status: document.getElementById('filter-status'),  // новый фильтр
         };
+
+        this.tagContainer = document.querySelector('#dropdownMenu .p-2');
+        this.dropdownToggle = document.getElementById('dropdownToggle');
+        this.dropdownMenu = document.getElementById('dropdownMenu');
 
         this.populateAssigneeOptions();
         this.populateTagOptions();
-
         this.attachEvents();
+        this.initTagDropdown();  // <--- вызываем здесь
     }
 
     populateAssigneeOptions() {
         const assigneeSelect = this.filters.assignee;
         if (!assigneeSelect || !window.username_data) return;
 
+        // Удаляем все, кроме первого "все"
         while (assigneeSelect.options.length > 1) {
             assigneeSelect.remove(1);
         }
 
         window.username_data.forEach(user => {
             const option = document.createElement('option');
-            option.value = user.id || user.username || user.name;
-            option.textContent = user.name || user.full_name || option.value;
+            option.value = user.username || user.first_name;
+            option.textContent = user.first_name || user.username;
             assigneeSelect.appendChild(option);
         });
     }
 
     populateTagOptions() {
-        const tagsSelect = this.filters.tags;
-        if (!tagsSelect || !window.tags_list) return;
+        if (!this.tagContainer || !window.tags_list) return;
 
-        while (tagsSelect.options.length > 0) {
-            tagsSelect.remove(0);
-        }
+        this.tagContainer.innerHTML = ''; // очистим контейнер
 
         window.tags_list.forEach(tag => {
-            const option = document.createElement('option');
-            option.value = tag.name;      // используем name
-            option.textContent = tag.name;
-            tagsSelect.appendChild(option);
+            const label = document.createElement('label');
+            label.className = 'flex items-center space-x-2 mb-1';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = tag.name || tag;
+            checkbox.classList.add('tag-checkbox');
+
+            const span = document.createElement('span');
+            span.textContent = tag.name || tag;
+
+            label.appendChild(checkbox);
+            label.appendChild(span);
+            this.tagContainer.appendChild(label);
         });
+
+        // Обновим ссылку на чекбоксы тегов
+        this.tagCheckboxes = Array.from(this.tagContainer.querySelectorAll('.tag-checkbox'));
+
     }
 
     attachEvents() {
@@ -580,58 +601,124 @@ export class TaskFilter {
             filter?.addEventListener('change', () => this.applyFilters())
         );
 
+        this.tagCheckboxes?.forEach(cb =>
+            cb.addEventListener('change', () => this.applyFilters())
+        );
+
         const clearBtn = document.getElementById('clear-filters');
         if (clearBtn) {
             clearBtn.addEventListener('click', () => {
                 Object.values(this.filters).forEach(filter => {
-                    if (filter) {
-                        if (filter.multiple) {
-                            Array.from(filter.options).forEach(opt => opt.selected = false);
-                        } else {
-                            filter.value = '';
-                        }
-                    }
+                    if (filter) filter.value = '';
                 });
+
+                this.tagCheckboxes.forEach(cb => cb.checked = false);
+
                 this.applyFilters();
             });
         }
     }
 
+    getSelectedTags() {
+        return this.tagCheckboxes
+            .filter(cb => cb.checked)
+            .map(cb => cb.value.toLowerCase());
+    }
 
     applyFilters() {
         const assigneeVal = this.filters.assignee?.value.trim().toLowerCase() || '';
         const priorityVal = this.filters.priority?.value.trim().toLowerCase() || '';
-        const dateVal = this.filters.date?.value || '';
+        const dateVal = this.filters.date?.value || '';  // asc/desc/пусто
+        const statusVal = this.filters.status?.value || ''; // '' | 'true' | 'false'
 
-        // Получаем массив выбранных тегов из мультиселекта
-        const selectedOptions = Array.from(this.filters.tags.selectedOptions);
-        const filterTags = selectedOptions.map(opt => opt.value.toLowerCase());
+        const selectedTags = this.getSelectedTags();
 
-        this.cards.forEach(card => {
+        // Фильтрация карточек по параметрам, включая статус по data-done
+        let filteredCards = this.cards.filter(card => {
             const cardAssignee = (card.dataset.assignee || '').toLowerCase();
             const cardPriority = (card.dataset.priority || '').toLowerCase();
-            const cardDate = card.dataset.deadline || '';
-            const cardTags = (card.dataset.tags || '')
-                .toLowerCase()
-                .split(',')
-                .map(t => t.trim())
-                .filter(Boolean);
+            const cardDone = (card.dataset.done || 'false').toLowerCase(); // ожидаем 'true' или 'false' как строки
+            const cardTags = (card.dataset.tags || '').toLowerCase().split(',').map(t => t.trim()).filter(Boolean);
 
             const matchAssignee = !assigneeVal || cardAssignee === assigneeVal;
             const matchPriority = !priorityVal || cardPriority === priorityVal;
-            const matchDate = !dateVal || cardDate === dateVal;
+            const matchTags = selectedTags.length === 0 || selectedTags.every(t => cardTags.includes(t));
+            // фильтр статуса по data-done: completed = done === 'true', pending = done !== 'true'
+            const matchStatus = !statusVal ||
+                (statusVal === 'true' ? cardDone === 'true' : cardDone !== 'true');
 
-            // Проверяем, что все выбранные теги присутствуют в карточке
-            const matchTags = filterTags.length === 0 || filterTags.every(t => cardTags.includes(t));
+            return matchAssignee && matchPriority && matchTags && matchStatus;
+        });
 
-            if (matchAssignee && matchPriority && matchDate && matchTags) {
-                card.classList.remove('hidden');
-            } else {
-                card.classList.add('hidden');
+        // Сортировка по дате (если выбрана)
+        if (dateVal === 'asc' || dateVal === 'desc') {
+            filteredCards.sort((a, b) => {
+                const dateA = new Date(a.dataset.deadline);
+                const dateB = new Date(b.dataset.deadline);
+
+                if (isNaN(dateA)) return 1;
+                if (isNaN(dateB)) return -1;
+
+                return dateVal === 'asc' ? dateA - dateB : dateB - dateA;
+            });
+        } else {
+            // Сортировка по приоритету по умолчанию (например, от высокого к низкому)
+            // Приоритеты: high > medium > low
+            const priorityOrder = {'high': 1, 'medium': 2, 'low': 3};
+
+            filteredCards.sort((a, b) => {
+                const prioA = priorityOrder[a.dataset.priority?.toLowerCase()] || 99;
+                const prioB = priorityOrder[b.dataset.priority?.toLowerCase()] || 99;
+
+                if (prioA !== prioB) {
+                    return prioA - prioB; // чем меньше значение, тем выше приоритет
+                }
+
+                // Если приоритет одинаковый — сортируем по дате дедлайна по возрастанию
+                const dateA = new Date(a.dataset.deadline);
+                const dateB = new Date(b.dataset.deadline);
+
+                if (isNaN(dateA)) return 1;
+                if (isNaN(dateB)) return -1;
+
+                return dateA - dateB;
+            });
+        }
+        // Перемещаем выполненные задачи в конец
+        filteredCards.sort((a, b) => {
+            const doneA = (a.dataset.done || 'false').toLowerCase();
+            const doneB = (b.dataset.done || 'false').toLowerCase();
+
+            if (doneA === 'true' && doneB !== 'true') return 1;
+            if (doneA !== 'true' && doneB === 'true') return -1;
+            return 0;
+        });
+        // Обновляем отображение карточек
+        this.cards.forEach(card => card.classList.add('hidden'));
+        filteredCards.forEach(card => card.classList.remove('hidden'));
+
+        // Обновляем порядок карточек в контейнере
+        filteredCards.forEach(card => this.container.appendChild(card));
+    }
+
+
+    initTagDropdown() {
+        if (!this.dropdownToggle || !this.dropdownMenu) return;
+
+        this.dropdownToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.dropdownMenu.classList.toggle('hidden');
+        });
+
+        // Закрыть меню, если клик вне его
+        document.addEventListener('click', (e) => {
+            if (!this.dropdownMenu.contains(e.target) && !this.dropdownToggle.contains(e.target)) {
+                this.dropdownMenu.classList.add('hidden');
             }
         });
     }
 }
+
 
 
 

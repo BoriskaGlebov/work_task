@@ -20,5 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const kanbanTask = new KanbanTasks({addButtonId: 'btn-tasks', boardId: 'task-board', modalId: 'task-modal'});
     const taskFilter = new TaskFilter({tasksContainerId: 'task-board'});
+    kanbanTask.setTaskFilterInstance(taskFilter);
 
 });
