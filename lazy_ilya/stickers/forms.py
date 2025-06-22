@@ -1,5 +1,5 @@
 # forms.py
-from typing import Type
+from typing import Type, List
 
 from django import forms
 from .models import StickyNote, Tag, Task
@@ -27,7 +27,7 @@ class StickyNoteForm(forms.ModelForm):
 
     class Meta:
         model: Type[StickyNote] = StickyNote
-        fields: list[str] = ['text', 'color', 'width', 'height', 'author_name', 'order']
+        fields: List[str] = ['text', 'color', 'width', 'height', 'author_name', 'order']
         # exclude = ['owner']  # Можно использовать вместо `fields`, если необходимо исключить поле
 
 
@@ -41,7 +41,7 @@ class TagForm(forms.ModelForm):
 
     class Meta:
         model: Type[Tag] = Tag
-        fields: list[str] = ["name"]
+        fields: List[str] = ["name"]
 
     def clean_name(self) -> str:
         """
@@ -98,7 +98,7 @@ class TaskForm(forms.ModelForm):
 
     class Meta:
         model: Type[Task] = Task
-        fields: list[str] = [
+        fields: List[str] = [
             "title",
             "desc",
             "deadline",
