@@ -213,22 +213,25 @@ export class KanbanTasks {
                 this.deleteTaskCard(id);
             }
         });
-        // Если задача выполнена — отображаем только статус
-        if (taskData.done) {
-            const doneEl = document.createElement('div');
-            doneEl.className = 'text-xs font-semibold text-green-700';
-            doneEl.textContent = 'Выполнено';
-            card.appendChild(doneEl);
-            return;
-        }
+        // // Если задача выполнена — отображаем только статус
+        // if (taskData.done) {
+        //     const doneEl = document.createElement('div');
+        //     doneEl.className = 'text-xs font-semibold text-green-700';
+        //     doneEl.textContent = 'Выполнено';
+        //     card.appendChild(doneEl);
+        //     return;
+        // }
 
         // Цвет бордера в зависимости от приоритета
         const priorityBorderMap = {
             low: 'border-l-success dark:border-l-success-dark',
             medium: 'border-l-warning dark:border-l-warning-dark',
             high: 'border-l-error dark:border-l-error-dark',
+            done: 'border-l-green-900 dark:border-l-green-700', // или другой цвет
         };
-        const borderClass = priorityBorderMap[taskData.priority] || 'border-l-gray-300';
+        const borderClass = taskData.done
+            ? priorityBorderMap.done
+            : (priorityBorderMap[taskData.priority] || 'border-l-gray-300');
         borderClass.split(' ').forEach(cls => card.classList.add(cls));
 
         // Заголовок
@@ -238,7 +241,7 @@ export class KanbanTasks {
         card.appendChild(titleEl);
 
         // Срок исполнения
-        if (taskData.deadline) {
+        if (taskData.deadline  && !taskData.done) {
             const deadlineEl = document.createElement('div');
             deadlineEl.className = 'text-xs text-text dark:text-text-dark mb-1';
             deadlineEl.textContent = 'Срок исполнения: ' + taskData.deadline;
@@ -264,9 +267,9 @@ export class KanbanTasks {
         // Приоритет
         if (taskData.priority) {
             const priorityMap = {
-                low: '‍🦼 Низкий',
-                medium: '🚶‍♂️ Средний',
-                high: '🔥🏃‍♂️Высокий'
+                low: '🟢 Низкий',
+                medium: '🟡 Средний',
+                high: '🔴 Высокий',
             };
             const priorityColorMap = {
                 low: 'text-green-600',
@@ -315,7 +318,7 @@ export class KanbanTasks {
 
         let date = taskData.createdAt ? new Date(taskData.createdAt) : new Date();
 
-// Если дата некорректна — ставим сегодня
+        // Если дата некорректна — ставим сегодня
         if (isNaN(date.getTime())) {
             date = new Date();
         }
@@ -341,11 +344,21 @@ export class KanbanTasks {
         // Теги
         if (taskData.tags) {
             const tagsEl = document.createElement('div');
-            tagsEl.className = 'text-xs mb-1 flex flex-wrap gap-1';
+            tagsEl.className = 'text-xs mb-1 flex flex-wrap items-center gap-1';
+
+            // Добавим SVG иконку перед всеми тегами
+            const icon = document.createElement('span');
+            icon.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+             class="w-4 h-4 text-accent dark:text-accent-dark">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5" />
+        </svg>`;
+            tagsEl.appendChild(icon);
 
             const tagColors = ['text-red-500', 'text-green-500', 'text-blue-500', 'text-yellow-600', 'text-purple-500'];
 
-            // Проверим: tags — это массив объектов с name
             const tagsArray = Array.isArray(taskData.tags)
                 ? taskData.tags.map(tag => tag.name)
                 : (typeof taskData.tags === 'string' ? taskData.tags.split(',') : []);
@@ -357,15 +370,29 @@ export class KanbanTasks {
                 tagsEl.appendChild(tagSpan);
             });
 
-
             card.appendChild(tagsEl);
         }
 
+
         // Статус выполнения
         const doneEl = document.createElement('div');
-        doneEl.className = 'text-xs font-semibold ' + (taskData.done ? 'text-green-700' : 'text-red-600');
-        doneEl.textContent = taskData.done ? 'Выполнено' : 'В процессе';
+        doneEl.className = 'text-xs font-semibold flex items-center gap-1 ' + (taskData.done ? 'text-green-700' : 'text-red-600');
+
+        const statusIcon = document.createElement('span');
+        statusIcon.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+            </svg>
+            `;
+
+        const statusText = document.createElement('span');
+        statusText.textContent = taskData.done ? 'Выполнено' : 'В процессе';
+
+        doneEl.appendChild(statusIcon);
+        doneEl.appendChild(statusText);
         card.appendChild(doneEl);
+
     }
 
     async saveTask() {

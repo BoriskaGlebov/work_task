@@ -70,9 +70,9 @@ class StickyNote(models.Model):
 
 class Task(models.Model):
     PRIORITY_CHOICES = [
-        ('low', '‍🦼 Низкий'),
-        ('medium', '‍🚶‍♂️ Средний'),
-        ('high', '🔥🏃‍♂️Высокий'),
+        ('low', '🟢 Низкий'),
+        ('medium', '🟡 Средний'),
+        ('high', '🔴 Высокий'),
     ]
 
     class Meta:
