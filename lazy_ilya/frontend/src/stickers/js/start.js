@@ -9,7 +9,7 @@ import {KanbanTasks, TaskFilter} from "./task.js";
 // import {CityModalHandler} from "./update-cities.js";
 
 document.addEventListener('DOMContentLoaded', () => {
-    toggleAccentClasses('a-stickers', 'a-stickers-mob');
+    toggleAccentClasses('a-main', 'a-main-mob');
 
     const kanban = new KanbanStickyNotes({
         addButtonId: 'add-card',
