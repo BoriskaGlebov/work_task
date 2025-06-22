@@ -6,98 +6,104 @@ User = get_user_model()
 
 class StickyNote(models.Model):
     """
-    Модель StickyNote представляет собой стикер (заметку), размещаемую на доске пользователя.
+    Стикер (заметка), размещаемый пользователем на своей доске.
 
     Атрибуты:
-        owner (ForeignKey): Пользователь, к которому относится заметка.
-        text (TextField): Основной текст заметки. По умолчанию содержит 'Новая заметка...'.
-        color (CharField): Цвет фона заметки в HEX-формате. По умолчанию '#FFEB3B' (жёлтый).
-        width (PositiveIntegerField): Ширина заметки.
-        height (PositiveIntegerField): Высота заметки.
-        order (PositiveIntegerField): Позиция среди других заметок.
-        author_name (CharField): Автор или адресат заметки (например, 'Всем!', 'Для себя' и т.д.).
-        created_at (DateTimeField): Дата и время создания заметки.
-        updated_at (DateTimeField): Дата и время последнего обновления заметки.
-
-    Метаданные:
-        ordering: Сортировка заметок по последовательности на экране от самого первого.
-
-    Пример использования:
-        note = StickyNote.objects.create(owner=some_user, text='Напомнить о встрече')
-
+        owner (User): Пользователь, которому принадлежит заметка.
+        text (str): Содержимое заметки.
+        color (str): Цвет фона в HEX-формате.
+        width (int): Ширина заметки в пикселях.
+        height (int): Высота заметки в пикселях.
+        order (int): Порядковый номер для сортировки.
+        author_name (str): Кому адресована заметка.
+        created_at (datetime): Дата создания.
+        updated_at (datetime): Последнее обновление.
     """
-    text = models.TextField(default='Новая заметка...', blank=True, verbose_name="Текст заметки")
-    color = models.CharField(max_length=20, default='#FFEB3B', verbose_name="Цвет заметки")
-    author_name = models.CharField(max_length=500, blank=True, verbose_name="Кому назначена")
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sticky_notes',
-                              verbose_name="Автор заметки")
-    width = models.PositiveIntegerField(default=300, verbose_name="Ширина")  # в пикселях
-    height = models.PositiveIntegerField(default=200, verbose_name="Высота")  # в пикселях
-    order = models.PositiveIntegerField(default=0)  # позиция среди других заметок
 
+    text: str = models.TextField(default='Новая заметка...', blank=True, verbose_name="Текст заметки")
+    color: str = models.CharField(max_length=20, default='#FFEB3B', verbose_name="Цвет заметки")
+    author_name: str = models.CharField(max_length=500, blank=True, verbose_name="Кому назначена")
+    owner: User = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sticky_notes',
+                                    verbose_name="Автор заметки")
+    width: int = models.PositiveIntegerField(default=300, verbose_name="Ширина (px)")
+    height: int = models.PositiveIntegerField(default=200, verbose_name="Высота (px)")
+    order: int = models.PositiveIntegerField(default=0, verbose_name="Порядок отображения")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата изменения")
 
     class Meta:
         ordering = ['order']
-        verbose_name = "Таблица стикеров заметок"
+        verbose_name = "Стикер"
+        verbose_name_plural = "Стикеры"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Заметка пользователя {self.owner.username} (id={self.id})"
 
-    def save(self, *args, **kwargs):
-        if not self.owner:
-            if self.user.first_name:
-                self.author = self.user.first_name
-            else:
-                self.author = self.owner.username
+    def save(self, *args, **kwargs) -> None:
+        if not self.author_name and self.owner:
+            self.author_name = self.owner.first_name or self.owner.username
         super().save(*args, **kwargs)
 
     def to_dict(self) -> dict:
-        """Преобразует объект в словарь."""
         return {
             "id": self.id,
-            "owner": self.owner.first_name if self.owner.first_name else self.owner.username,
+            "owner": self.owner.first_name or self.owner.username,
             "text": self.text,
             "color": self.color,
             "width": self.width,
             "height": self.height,
             "author_name": self.author_name,
             "order": self.order,
-
         }
 
 
+
 class Task(models.Model):
+    """
+    Задача пользователя с возможностью назначения, тегов и приоритета.
+
+    Атрибуты:
+        title (str): Заголовок задачи.
+        desc (str): Описание.
+        deadline (date): Срок исполнения.
+        priority (str): Приоритет ('low', 'medium', 'high').
+        done (bool): Отметка выполнения.
+        author (User): Создатель задачи.
+        assignee (User | None): Назначенный исполнитель.
+        tags (ManyToMany): Теги задачи.
+        created_at (datetime): Дата создания.
+        updated_at (datetime): Последнее обновление.
+    """
+
     PRIORITY_CHOICES = [
         ('low', '🟢 Низкий'),
         ('medium', '🟡 Средний'),
         ('high', '🔴 Высокий'),
     ]
 
-    class Meta:
-        verbose_name = "Таблица задач пользователей"
-
-    title = models.CharField(max_length=255, verbose_name="Заголовок задачи")
-    desc = models.TextField(blank=True, verbose_name="Содержание задачи")
+    title: str = models.CharField(max_length=255, verbose_name="Заголовок задачи")
+    desc: str = models.TextField(blank=True, verbose_name="Содержание задачи")
     deadline = models.DateField(null=True, blank=True, verbose_name="Срок исполнения")
-    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium',
-                                verbose_name="Приоритет задачи")
-    done = models.BooleanField(default=False, verbose_name="Отметка об исполнении")
-    author=models.ForeignKey(User, on_delete=models.CASCADE,  related_name='tasks_author',
-                                 verbose_name="Автор")
+    priority: str = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium', verbose_name="Приоритет")
+    done: bool = models.BooleanField(default=False, verbose_name="Отметка об исполнении")
 
-    assignee = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='tasks',
-                                 verbose_name="Исполнитель")
+    author: User = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tasks_author', verbose_name="Автор")
+    assignee: User = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                       related_name='tasks', verbose_name="Исполнитель")
+
     tags = models.ManyToManyField('Tag', blank=True, related_name='tasks', verbose_name="Теги")
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления последнего")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
 
-    def __str__(self):
+    class Meta:
+        verbose_name = "Задача"
+        verbose_name_plural = "Задачи"
+
+    def __str__(self) -> str:
         return self.title
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             'id': self.id,
             'title': self.title,
@@ -105,25 +111,32 @@ class Task(models.Model):
             'deadline': self.deadline.isoformat() if self.deadline else None,
             'priority': self.priority,
             'done': self.done,
-            'author':self.author.username,
+            'author': self.author.username,
             'assignee': self.assignee.username if self.assignee else None,
             'tags': [{'id': tag.id, 'name': tag.name} for tag in self.tags.all()],
-            'created_at':self.created_at.isoformat(),
-
+            'created_at': self.created_at.isoformat(),
         }
 
 
 class Tag(models.Model):
-    name = models.CharField(max_length=50, unique=True, verbose_name="Название Тега")
+    """
+    Тег для группировки и фильтрации задач.
+
+    Атрибуты:
+        name (str): Название тега, уникальное.
+    """
+    name: str = models.CharField(max_length=50, unique=True, verbose_name="Название тега")
 
     class Meta:
-        verbose_name = "Таблица Тегов"
+        verbose_name = "Тег"
+        verbose_name_plural = "Теги"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             'id': self.id,
             'name': self.name,
         }
+

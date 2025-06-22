@@ -35,7 +35,7 @@ class FileCreatorActionLoggingMiddleware:
                 body_data = f"[Не удалось прочитать тело запроса: {str(e)}]"
 
         # Только для адресов, связанных с file_creator
-        if path == "/" and user.is_authenticated:
+        if path == "/file-creator/" and user.is_authenticated:
             if method == "GET":
                 logger.bind(user=user_name).info(
                     f"📄 GET-запрос на страницу загрузки документов {path} с IP {ip}"
@@ -55,10 +55,10 @@ class FileCreatorActionLoggingMiddleware:
                 f"❌ Ошибка при обработке запроса {method} {path} с IP {ip}: {str(e)}"
             )
             raise
-        if path == "/" and user.is_authenticated:
+        if path == "/file-creator/" and user.is_authenticated:
             if method in ["POST", "PUT"]:
                 self.log_response(response, user_name, method, path, ip)
-            elif path == "/":
+            elif path == "/file-creator/":
                 logger.bind(user=user_name).info(
                     f"✅ {user_name} успешно выполнил {method}-запрос на {path} "
                     f"с IP {ip}. Статус: {response.status_code}"

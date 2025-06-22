@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from pprint import pprint
-from typing import Union
+from typing import Union, Optional
 
 from django.http import JsonResponse, HttpRequest, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render
@@ -27,9 +27,6 @@ class StickyNoteView(LoginRequiredMixin, View):
     def get(self, request: HttpRequest) -> HttpResponse:
         """
         Отображает HTML-страницу со списком заметок и пользователей.
-
-        :param request: Объект HTTP-запроса
-        :return: HttpResponse с HTML-шаблоном
         """
         notes = StickyNote.objects.filter(
             Q(owner=request.user) |
@@ -37,8 +34,13 @@ class StickyNoteView(LoginRequiredMixin, View):
             Q(author_name=request.user.first_name) |
             Q(author_name=request.user.username)
         )
-        users = list(CustomUser.objects.filter(is_active=True).values('username', 'first_name', 'last_name'))
+
+        users = list(CustomUser.objects.filter(is_active=True).values(
+            'username', 'first_name', 'last_name'
+        ))
+
         notes_data = [note.to_dict() for note in notes]
+
         tasks = Task.objects.annotate(
             priority_order=Case(
                 When(priority='high', then=Value(0)),
@@ -54,9 +56,12 @@ class StickyNoteView(LoginRequiredMixin, View):
             )
         ).select_related("assignee").prefetch_related("tags") \
             .order_by('done_order', 'priority_order', 'deadline')
+
         tasks_list = [task.to_dict() for task in tasks]
+
         tags = Tag.objects.all()
         tags_list = [tag.to_dict() for tag in tags]
+
         return render(request, "stickers/stickers.html", {
             "notes_data": json.dumps(notes_data, ensure_ascii=False),
             "username_list": json.dumps(users, ensure_ascii=False),
@@ -67,13 +72,10 @@ class StickyNoteView(LoginRequiredMixin, View):
     def post(self, request: HttpRequest) -> JsonResponse:
         """
         Создаёт новую заметку.
-
-        :param request: Объект HTTP-запроса
-        :return: JsonResponse с данными новой заметки или ошибками формы
         """
         data = self._parse_json(request)
         if isinstance(data, JsonResponse):
-            logger.bind(user=request.user.username).error(f"Невалидный JSON от {request.user.username}")
+            logger.bind(user=request.user.username).error("Невалидный JSON")
             return data
 
         form = StickyNoteForm(data)
@@ -81,64 +83,52 @@ class StickyNoteView(LoginRequiredMixin, View):
             note = form.save(commit=False)
             note.owner = request.user
             note.save()
-            logger.bind(user=request.user.username).info(
-                f"Пользователь {request.user.username} создал заметку #{note.id}")
+            logger.bind(user=request.user.username).info(f"Создана заметка #{note.id}")
             return JsonResponse({'success': True, 'data': note.to_dict()}, status=201)
 
-        logger.bind(user=request.user.username).error(f"Ошибки формы от {request.user.username}: {form.errors}")
+        logger.bind(user=request.user.username).error(f"Ошибки формы: {form.errors}")
         return self._form_error_response(form)
 
     def patch(self, request: HttpRequest) -> JsonResponse:
         """
         Обновляет существующую заметку по ID.
-
-        :param request: Объект HTTP-запроса
-        :return: JsonResponse с обновлённой заметкой или ошибками
         """
         data = self._parse_json(request)
         if isinstance(data, JsonResponse):
-            logger.bind(user=request.user.username).error(f"Невалидный JSON от {request.user.username}")
+            logger.bind(user=request.user.username).error("Невалидный JSON")
             return data
 
         note_id = data.get("id")
         if not note_id:
-            logger.bind(user=request.user.username).error(f"Не передан ID от {request.user.username}")
+            logger.bind(user=request.user.username).error("Не передан ID заметки")
             return JsonResponse({'success': False, 'errors': {'id': ['ID заметки обязателен']}}, status=400)
 
         try:
             note = StickyNote.objects.get(id=note_id)
         except StickyNote.DoesNotExist:
-            logger.bind(user=request.user.username).error(
-                f"Заметка #{note_id} не найдена (пользователь: {request.user.username})")
+            logger.bind(user=request.user.username).error(f"Заметка #{note_id} не найдена")
             return JsonResponse({'success': False, 'errors': {'id': ['Заметка не найдена']}}, status=404)
 
         form = StickyNoteForm(data, instance=note)
         if form.is_valid():
             updated_note = form.save()
-            logger.bind(user=request.user.username).info(
-                f"Пользователь {request.user.username} обновил заметку #{updated_note.id}")
+            logger.bind(user=request.user.username).info(f"Обновлена заметка #{updated_note.id}")
             return JsonResponse({'success': True, 'data': updated_note.to_dict()})
 
-        logger.bind(user=request.user.username).error(f"Ошибки формы от {request.user.username}: {form.errors}")
+        logger.bind(user=request.user.username).error(f"Ошибки формы: {form.errors}")
         return self._form_error_response(form)
 
     def delete(self, request: HttpRequest, note_id: int) -> JsonResponse:
         """
         Удаляет заметку по её ID.
-
-        :param request: Объект HTTP-запроса
-        :param note_id: Идентификатор заметки
-        :return: JsonResponse с результатом операции
         """
         try:
             note = StickyNote.objects.get(id=note_id)
             note.delete()
-            logger.bind(user=request.user.username).info(
-                f"Пользователь {request.user.username} удалил заметку #{note_id}")
+            logger.bind(user=request.user.username).info(f"Удалена заметка #{note_id}")
             return JsonResponse({'success': True, 'data': {'message': f'Заметка {note_id} удалена'}})
         except StickyNote.DoesNotExist:
-            logger.bind(user=request.user.username).error(
-                f"Заметка #{note_id} не найдена (пользователь: {request.user.username})")
+            logger.bind(user=request.user.username).error(f"Заметка #{note_id} не найдена")
             return JsonResponse({'success': False, 'errors': {'id': ['Заметка не найдена']}}, status=404)
 
     # Вспомогательные методы
@@ -146,9 +136,6 @@ class StickyNoteView(LoginRequiredMixin, View):
     def _parse_json(self, request: HttpRequest) -> Union[dict, JsonResponse]:
         """
         Распарсивает JSON из тела запроса.
-
-        :param request: Объект HTTP-запроса
-        :return: Словарь с данными или JsonResponse с ошибкой
         """
         try:
             return json.loads(request.body)
@@ -158,9 +145,6 @@ class StickyNoteView(LoginRequiredMixin, View):
     def _form_error_response(self, form: StickyNoteForm) -> JsonResponse:
         """
         Формирует JSON-ответ с ошибками формы.
-
-        :param form: Форма Django с ошибками
-        :return: JsonResponse с ошибками по полям
         """
         errors = {
             field: [e['message'] for e in error.get_json_data()]
@@ -170,45 +154,70 @@ class StickyNoteView(LoginRequiredMixin, View):
 
 
 class TaskView(LoginRequiredMixin, View):
+    """
+    Вью для управления задачами: создание (POST), обновление (PATCH), удаление (DELETE).
+    Требуется аутентификация пользователя.
+    """
     login_url = reverse_lazy("myauth:login")
 
-    def get(self, request: HttpRequest):
-        pass
+    def get(self, request: HttpRequest) -> HttpResponse:
+        """
+        Пока не реализован (заглушка).
+        """
+        return HttpResponse(status=204)  # No Content
 
-    def post(self, request):
+    def post(self, request: HttpRequest) -> JsonResponse:
+        """
+        Создание новой задачи.
+
+        Ожидается JSON с полями:
+        - title (str, обязательное)
+        - desc (str, опционально)
+        - deadline (str в формате ISO, опционально)
+        - priority (str, опционально, по умолчанию "medium")
+        - done (bool, опционально)
+        - assignee (str - username или first_name пользователя, опционально)
+        - tags (список или строка с тегами, опционально)
+
+        Возвращает:
+        - 201 с созданной задачей при успехе
+        - 400 с ошибками валидации
+        - 400 при неверном формате JSON
+        """
         try:
-            data = json.loads(request.body)
+            data: dict = json.loads(request.body)
         except json.JSONDecodeError:
-            logger.bind(user=request.user.username).error(f"Невалидный JSON от {request.user.username}")
+            logger.bind(user=request.user.username).error("Невалидный JSON в POST /task от пользователя")
             return HttpResponseBadRequest(json.dumps({
                 "errors": {"__all__": ["Неверный формат JSON"]}
             }), content_type="application/json")
 
         errors = {}
 
-        title = data.get("title")
+        title: Optional[str] = data.get("title")
         if not title:
-            logger.bind(user=request.user.username).error(f"Поле title обязательно")
+            logger.bind(user=request.user.username).error("POST /task: отсутствует обязательное поле title")
             errors["title"] = ["Поле title обязательно"]
 
-        deadline_str = data.get("deadline")
-        deadline = None
+        deadline_str: Optional[str] = data.get("deadline")
+        deadline: Optional[datetime.date] = None
         if deadline_str:
             try:
                 deadline = datetime.fromisoformat(deadline_str).date()
             except ValueError:
-                logger.bind(user=request.user.username).error(f"Неверно указан deadline")
+                logger.bind(user=request.user.username).error("POST /task: неверный формат даты deadline")
                 errors["deadline"] = ["Неверный формат даты deadline"]
 
-        assignee_identifier = data.get("assignee")
-        assignee = None
+        assignee_identifier: Optional[str] = data.get("assignee")
+        assignee: Optional[CustomUser] = None
         if assignee_identifier:
             assignee = CustomUser.objects.filter(username=assignee_identifier).first()
             if not assignee:
                 assignee = CustomUser.objects.filter(first_name=assignee_identifier).first()
             if not assignee:
                 logger.bind(user=request.user.username).error(
-                    f"Тот кому назначена задача не найдет - '{assignee_identifier}'")
+                    f"POST /task: пользователь для назначения задачи не найден: '{assignee_identifier}'"
+                )
                 errors["assignee"] = [f"Пользователь с username или именем '{assignee_identifier}' не найден"]
 
         if errors:
@@ -221,10 +230,10 @@ class TaskView(LoginRequiredMixin, View):
             priority=data.get("priority", "medium"),
             done=bool(data.get("done", False)),
             assignee=assignee,
-            author=CustomUser.objects.get(username=request.user.username),
+            author=request.user,
         )
 
-        tags_names = data.get("tags", [])
+        tags_names: Union[list[str], str] = data.get("tags", [])
         if isinstance(tags_names, str):
             tags_names = [name.strip() for name in tags_names.split(",") if name.strip()]
 
@@ -233,20 +242,32 @@ class TaskView(LoginRequiredMixin, View):
             task.tags.add(tag)
 
         task.save()
-        logger.bind(user=request.user.username).info("Создал задачу успешно")
+        logger.bind(user=request.user.username).info(f"POST /task: задача {task.pk} создана успешно")
         return JsonResponse(task.to_dict(), status=201)
 
-    def patch(self, request, task_id):
+    def patch(self, request: HttpRequest, task_id: int) -> JsonResponse:
+        """
+        Частичное обновление задачи по ID.
+
+        Принимает JSON с любыми из полей:
+        title, desc, deadline, priority, done, assignee, tags.
+
+        Возвращает:
+        - 200 и обновленную задачу при успехе
+        - 400 с ошибками валидации
+        - 404, если задача не найдена
+        - 400 при неверном формате JSON
+        """
         try:
             task = Task.objects.get(pk=task_id)
         except Task.DoesNotExist:
-            logger.bind(user=request.user.username).error(f"Такой задачи не найдено")
+            logger.bind(user=request.user.username).error(f"PATCH /task/{task_id}: задача не найдена")
             return JsonResponse({"errors": {"__all__": ["Задача не найдена"]}}, status=404)
 
         try:
-            data = json.loads(request.body)
+            data: dict = json.loads(request.body)
         except json.JSONDecodeError:
-            logger.bind(user=request.user.username).error(f"Невалидный JSON от {request.user.username}")
+            logger.bind(user=request.user.username).error(f"PATCH /task/{task_id}: неверный JSON")
             return HttpResponseBadRequest(json.dumps({
                 "errors": {"__all__": ["Неверный формат JSON"]}
             }), content_type="application/json")
@@ -255,8 +276,8 @@ class TaskView(LoginRequiredMixin, View):
 
         if "title" in data:
             title = data.get("title")
-            if title is None or title == "":
-                logger.bind(user=request.user.username).error(f"Поле title обязательно")
+            if not title:
+                logger.bind(user=request.user.username).error(f"PATCH /task/{task_id}: пустое поле title")
                 errors["title"] = ["Поле title не может быть пустым"]
             else:
                 task.title = title
@@ -270,7 +291,8 @@ class TaskView(LoginRequiredMixin, View):
                 try:
                     task.deadline = datetime.fromisoformat(deadline_str).date()
                 except ValueError:
-                    logger.bind(user=request.user.username).error(f"Неверно указан deadline")
+                    logger.bind(user=request.user.username).error(
+                        f"PATCH /task/{task_id}: неверный формат даты deadline")
                     errors["deadline"] = ["Неверный формат даты deadline"]
             else:
                 task.deadline = None
@@ -290,7 +312,8 @@ class TaskView(LoginRequiredMixin, View):
                     assignee = CustomUser.objects.filter(first_name=assignee_identifier).first()
                 if not assignee:
                     logger.bind(user=request.user.username).error(
-                        f"Тот кома назначена задача не найдет - '{assignee_identifier}'")
+                        f"PATCH /task/{task_id}: пользователь для назначения задачи не найден - '{assignee_identifier}'"
+                    )
                     errors["assignee"] = [f"Пользователь '{assignee_identifier}' не найден"]
             task.assignee = assignee
 
@@ -310,18 +333,23 @@ class TaskView(LoginRequiredMixin, View):
             return JsonResponse({"errors": errors}, status=400)
 
         task.save()
-        logger.bind(user=request.user.username).info(f"Обновлена задача {task.pk}")
+        logger.bind(user=request.user.username).info(f"PATCH /task/{task_id}: задача обновлена")
         return JsonResponse(task.to_dict(), status=200)
 
-    def delete(self, request, task_id):
+    def delete(self, request: HttpRequest, task_id: int) -> JsonResponse:
+        """
+        Удаление задачи по ID.
+
+        Возвращает:
+        - 200 с сообщением об успешном удалении
+        - 404, если задача не найдена
+        """
         try:
             task = Task.objects.get(pk=task_id)
         except Task.DoesNotExist:
-            logger.bind(user=request.user.username).error(f"Такой задачи не найдено - {task_id}")
+            logger.bind(user=request.user.username).error(f"DELETE /task/{task_id}: задача не найдена")
             return JsonResponse({"errors": {"__all__": ["Задача не найдена"]}}, status=404)
 
         task.delete()
-        # Обычно при успешном удалении 204 No Content возвращает пустой ответ,
-        # но можно вернуть сообщение, если нужно.
-        logger.bind(user=request.user.username).info(f"Запись удалена")
+        logger.bind(user=request.user.username).info(f"DELETE /task/{task_id}: задача удалена")
         return JsonResponse({"success": f"Задача {task_id} удалена"}, status=200)
