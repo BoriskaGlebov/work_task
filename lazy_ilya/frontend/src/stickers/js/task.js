@@ -241,7 +241,7 @@ export class KanbanTasks {
         card.appendChild(titleEl);
 
         // Срок исполнения
-        if (taskData.deadline  && !taskData.done) {
+        if (taskData.deadline && !taskData.done) {
             const deadlineEl = document.createElement('div');
             deadlineEl.className = 'text-xs text-text dark:text-text-dark mb-1';
             deadlineEl.textContent = 'Срок исполнения: ' + taskData.deadline;
@@ -293,11 +293,20 @@ export class KanbanTasks {
             // Найдём пользователя в списке по username
             const userData = window.username_data.find(user => user.username === taskData.assignee);
 
-            const displayName = userData && userData.first_name ? userData.first_name : taskData.assignee;
+            let displayName;
+            if (userData) {
+                const parts = [];
+                if (userData.first_name?.trim()) parts.push(userData.first_name.trim());
+                if (userData.last_name?.trim()) parts.push(userData.last_name.trim());
+                displayName = parts.length > 0 ? parts.join(' ') : taskData.assignee;
+            } else {
+                displayName = taskData.assignee;
+            }
 
             assigneeEl.textContent = 'Исполнитель: ' + displayName;
             card.appendChild(assigneeEl);
         }
+
         // Автор задачи
         if (taskData.author) {
             const authorEl = document.createElement('div');
@@ -305,13 +314,21 @@ export class KanbanTasks {
 
             // Найдём пользователя в списке по username
             const authorData = window.username_data.find(user => user.username === taskData.author);
-            const authorName = authorData
-                ? [authorData.first_name, authorData.second_name].filter(Boolean).join(' ').trim() || authorData.username
-                : taskData.author;
+
+            let authorName;
+            if (authorData) {
+                const parts = [];
+                if (authorData.first_name?.trim()) parts.push(authorData.first_name.trim());
+                if (authorData.last_name?.trim()) parts.push(authorData.last_name.trim());
+                authorName = parts.length > 0 ? parts.join(' ') : authorData.username;
+            } else {
+                authorName = taskData.author;
+            }
 
             authorEl.textContent = 'Автор: ' + authorName;
             card.appendChild(authorEl);
         }
+
         // Дата создания
         const createdAtEl = document.createElement('div');
         createdAtEl.className = 'text-xs text-gray-500 dark:text-gray-400 mb-1';
@@ -646,10 +663,24 @@ export class TaskFilter {
 
         window.username_data.forEach(user => {
             const option = document.createElement('option');
-            option.value = user.username || user.first_name;
-            option.textContent = user.first_name || user.username;
+            option.value = user.username;
+
+            const nameParts = [];
+            if (user.first_name?.trim()) {
+                nameParts.push(user.first_name.trim());
+            }
+
+            if (user.last_name?.trim()) {
+                nameParts.push(user.last_name);
+            }
+
+            option.textContent = nameParts.length > 0
+                ? nameParts.join(' ')
+                : user.username;
+
             assigneeSelect.appendChild(option);
         });
+
     }
 
     populateTagOptions() {
