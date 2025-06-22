@@ -77,7 +77,7 @@
             <select id="filter-assignee" class="correct_input w-full">
                 <option value="">Исполнитель: все</option>
                 {% for user in username_list %}
-                <option value="{{ user }}">{{ user }}</option>
+                    <option value="{{ user }}">{{ user }}</option>
                 {% endfor %}
             </select>
 
@@ -99,10 +99,10 @@
                      class="absolute z-30 mt-2 w-full bg-background dark:bg-background-dark border rounded shadow hidden">
                     <div class="p-2 max-h-60 overflow-y-auto">
                         {% for tag in tags_list %}
-                        <label class="flex items-center space-x-2 mb-1">
-                            <input type="checkbox" value="{{ tag }}" class="correct_input">
-                            <span>{{ tag }}</span>
-                        </label>
+                            <label class="flex items-center space-x-2 mb-1">
+                                <input type="checkbox" value="{{ tag }}" class="correct_input">
+                                <span>{{ tag }}</span>
+                            </label>
                         {% endfor %}
                     </div>
                 </div>
@@ -211,10 +211,10 @@
         <script type="module" crossorigin src="{% static 'stickers/js/start.js' %}"></script>
     {% endif %}
     <script>
-        {% if user.first_name %}
-            window.username = "{{ user.first_name }}";
+        {% if user.first_name or user.last_name %}
+            window.username = "{% if user.first_name %}{{ user.first_name|escapejs }}{% endif %}{% if user.last_name %}{% if user.first_name %} {% endif %}{{ user.last_name|escapejs }}{% endif %}";
         {% elif user.username %}
-            window.username = "{{ user.username }}";
+            window.username = "{{ user.username|escapejs }}";
         {% else %}
             window.username = "Гость";
         {% endif %}
@@ -224,6 +224,7 @@
         window.tags_list = JSON.parse('{{ tags_list|escapejs }}');
         {#console.log(notes_data);#}
         {#console.log(username_data);#}
+        {#console.log(username)#}
         {#console.log(tasks_data);#}
         {#console.log(tags_list);#}
     </script>

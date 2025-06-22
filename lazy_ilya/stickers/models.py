@@ -28,9 +28,9 @@ class StickyNote(models.Model):
     """
     text = models.TextField(default='Новая заметка...', blank=True, verbose_name="Текст заметки")
     color = models.CharField(max_length=20, default='#FFEB3B', verbose_name="Цвет заметки")
-    author_name = models.CharField(max_length=500, blank=True, verbose_name="Автор")
+    author_name = models.CharField(max_length=500, blank=True, verbose_name="Кому назначена")
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sticky_notes',
-                              verbose_name="Пользователь")
+                              verbose_name="Автор заметки")
     width = models.PositiveIntegerField(default=300, verbose_name="Ширина")  # в пикселях
     height = models.PositiveIntegerField(default=200, verbose_name="Высота")  # в пикселях
     order = models.PositiveIntegerField(default=0)  # позиция среди других заметок

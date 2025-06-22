@@ -24,16 +24,21 @@ export class KanbanStickyNotes {
         this.authors = [
             username,
             ...username_data
-                .filter(user => user.username !== username)
+                .filter(user => {
+                    const fullName = [user.first_name?.trim(), user.last_name?.trim()].filter(Boolean).join(' ');
+                    return user.username !== username && fullName !== username;
+                })
                 .map(user => {
                     const labelParts = [];
                     if (user.first_name?.trim()) labelParts.push(user.first_name.trim());
                     if (user.last_name?.trim()) labelParts.push(user.last_name.trim());
 
+                    // Возвращаем "Имя Фамилия" или просто "Имя" или просто "Фамилия", если только оно есть
                     return labelParts.length > 0 ? labelParts.join(' ') : user.username;
                 }),
             'Всем!'
         ];
+
 
         this.currentAuthorIndex = 0;
         this.noteData = notes_data;
@@ -119,6 +124,9 @@ export class KanbanStickyNotes {
                       height,
                   }, currentUser = username) {
         const noteCard = document.createElement('div');
+        console.log(owner)
+        console.log(author_name)
+        console.log(currentUser === owner);
         noteCard.className = 'note-card';
         noteCard.style.backgroundColor = color;
         if (width) noteCard.style.width = `${width}px`;
