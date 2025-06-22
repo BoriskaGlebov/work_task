@@ -47,7 +47,14 @@
                     <h3 class="text-center text-text dark:text-text-dark">Сэкономлено времени</h3>
                 </div>
                 <div class="text-4xl font-bold text-primary dark:text-primary-dark mt-4 text-center">
-                    <p class="!text-2xl text-success dark:text-success-dark font-medium text-center">Выпито кружек ☕</p>
+                    <p class="!text-2xl text-success dark:text-success-dark font-medium flex items-center justify-center gap-2">
+                        Выпито кружек
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-6 text-success dark:text-success-dark"
+                             viewBox="0 0 640 512" fill="currentColor">
+                            <path d="M144 80l288 0 0 208c0 26.5-21.5 48-48 48l-192 0c-26.5 0-48-21.5-48-48l0-208zM128 32c-17.7 0-32 14.3-32 32l0 224c0 53 43 96 96 96l192 0c53 0 96-43 96-96l32 0c70.7 0 128-57.3 128-128s-57.3-128-128-128l-64 0L128 32zM512 240l-32 0 0-160 32 0c44.2 0 80 35.8 80 80s-35.8 80-80 80zM24 432c-13.3 0-24 10.7-24 24s10.7 24 24 24l528 0c13.3 0 24-10.7 24-24s-10.7-24-24-24L24 432z"/>
+                        </svg>
+                    </p>
+
                     <span class="count-up" data-target="{{ coffee_cups }}">0</span>
 
                 </div>
@@ -61,27 +68,27 @@
         <h2 class="mb-6 text-center">Топ запросов по городам</h2>
 
         <!-- Топ-3 популярных города -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 lg:max-w-4xl mx-auto gap-3 pb-3 ">
-        {% for counter in top_cities %}
-            <div class="stat-card">
-                <div>
-                    <h3 class="text-center text-text dark:text-text-dark">Город №{{ forloop.counter }}</h3>
+        <div class="grid grid-cols-1 lg:grid-cols-3 lg:max-w-4xl mx-auto gap-3 pb-3 ">
+            {% for counter in top_cities %}
+                <div class="stat-card">
+                    <div>
+                        <h3 class="text-center text-text dark:text-text-dark">Город №{{ forloop.counter }}</h3>
+                    </div>
+                    <div class="mt-4 space-y-2">
+                        <!-- Название города -->
+                        <p class="!text-2xl text-center font-semibold text-primary dark:text-primary-dark">
+                            {{ counter.dock_num.location }}
+                        </p>
+                        <!-- Кол-во запросов -->
+                        <p class="!text-4xl text-center font-bold text-accent dark:text-accent-dark">
+                            <span class="count-up" data-target="{{ counter.count_responses }}">0</span>
+                        </p>
+                    </div>
                 </div>
-                <div class="mt-4 space-y-2">
-                    <!-- Название города -->
-                    <p class="!text-2xl text-center font-semibold text-primary dark:text-primary-dark">
-                        {{ counter.dock_num.location }}
-                    </p>
-                    <!-- Кол-во запросов -->
-                    <p class="!text-4xl text-center font-bold text-accent dark:text-accent-dark">
-                        <span class="count-up" data-target="{{ counter.count_responses }}">0</span>
-                    </p>
-                </div>
-            </div>
-        {% empty %}
-            <p class="col-span-full text-center text-secondary dark:text-secondary-dark">Нет данных по городам</p>
-        {% endfor %}
-    </div>
+            {% empty %}
+                <p class="col-span-full text-center text-secondary dark:text-secondary-dark">Нет данных по городам</p>
+            {% endfor %}
+        </div>
     </div>
 
 
