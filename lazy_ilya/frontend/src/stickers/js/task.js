@@ -1,8 +1,19 @@
 import Choices from 'choices.js';
 import {showError} from "./utils.js";
 
-
+/**
+ * Class representing a Kanban board for task management
+ * @class
+ */
 export class KanbanTasks {
+    /**
+     * Create a KanbanTasks instance
+     * @constructor
+     * @param {Object} config - Configuration object
+     * @param {string} config.addButtonId - ID of the "Add Task" button
+     * @param {string} config.boardId - ID of the task board container
+     * @param {string} config.modalId - ID of the task modal
+     */
     constructor({addButtonId, boardId, modalId}) {
         this.tasks = {};  // храним задачи в объекте {id: taskData}
         this.addTaskBtn = document.getElementById(addButtonId);
@@ -65,36 +76,68 @@ export class KanbanTasks {
 
     }
 
+    /**
+     * Устанавливает экземпляр фильтра задач для дальнейшего использования.
+     *
+     * @param {Object} taskFilterInstance Экземпляр фильтра задач.
+     */
     setTaskFilterInstance(taskFilterInstance) {
         this.taskFilterInstance = taskFilterInstance;
     }
 
+
+    /**
+     * Загружает задачи из массива, полученного с бэкенда, сохраняет их в локальном хранилище
+     * и отображает каждую задачу в виде карточки.
+     *
+     * @param {Array<Object>} tasksArray - Массив объектов задач, полученных с сервера.
+     * Каждый объект задачи должен содержать следующие свойства:
+     *   @property {string|number} id - Уникальный идентификатор задачи.
+     *   @property {string} title - Заголовок задачи.
+     *   @property {string} desc - Описание задачи.
+     *   @property {string} deadline - Дедлайн задачи (например, в формате ISO).
+     *   @property {string} priority - Приоритет задачи.
+     *   @property {Array<Object>} tags - Массив тегов, где каждый тег имеет поле `name`.
+     *   @property {boolean} done - Статус выполнения задачи.
+     *   @property {string} created_at - Дата и время создания задачи (строка).
+     *   @property {string} author - Автор задачи.
+     */
     loadTasksFromBackend(tasksArray) {
         tasksArray.forEach(task => {
             const id = task.id;
-            // Сохраняем задачу
+            // Сохраняем задачу в локальном объекте tasks
             this.tasks[id] = {
                 title: task.title,
                 desc: task.desc,
                 deadline: task.deadline,
                 priority: task.priority,
                 assignee: task.assignee,
-                tags: task.tags.map(tag => tag.name).join(','),  // <-- важно!
+                tags: task.tags.map(tag => tag.name).join(','),  // Преобразуем массив тегов в строку через запятую
                 done: task.done,
-                createdAt: task.created_at,  // или new Date(task.created_at)
-                author: task.author,         // <-- добавили автора
+                createdAt: task.created_at,  // Можно преобразовать в Date: new Date(task.created_at)
+                author: task.author,         // Добавлен автор задачи
             };
-            // console.log(this.tasks[id]);
-            // Отрисовываем карточку
+            // Отрисовываем карточку задачи в интерфейсе
             this.renderTaskCard(id, this.tasks[id]);
         });
     }
 
+
+    /**
+     * Открывает модальное окно для создания новой задачи или редактирования существующей.
+     *
+     * Если передан `taskId` и соответствующая задача существует,
+     * форма заполняется данными задачи для редактирования.
+     * В противном случае форма очищается для создания новой задачи.
+     * Также обновляется список исполнителей и теги.
+     *
+     * @param {string|null} [taskId=null] - Идентификатор задачи для редактирования. Если не указан или не существует, открывается форма для новой задачи.
+     */
     openModal(taskId = null) {
         this.currentEditId = taskId;
 
         if (taskId && this.tasks[taskId]) {
-            // Заполнить форму данными для редактирования
+            // Заполнение формы данными существующей задачи
             const task = this.tasks[taskId];
             this.taskForm.title.value = task.title;
             this.taskForm.desc.value = task.desc;
@@ -102,7 +145,7 @@ export class KanbanTasks {
             this.taskForm.priority.value = task.priority;
             this.taskForm.done.checked = task.done;
 
-            // Обновляем теги через Choices.js
+            // Обновление тегов с использованием Choices.js / Tom Select
             if (this.tagsSelect) {
                 const tagsArray = Array.isArray(task.tags)
                     ? task.tags.map(tag => tag.name)
@@ -116,25 +159,23 @@ export class KanbanTasks {
                 });
                 this.tagsSelect.setValue(tagsArray.map(tag => ({value: tag, label: tag})));
             }
-
-
         } else {
-            // Новая задача — очистить форму
+            // Очистка формы для создания новой задачи
             this.taskForm.reset();
 
-            // Очистить теги в Tom Select, если он есть
+            // Очистка тегов, если используется Tom Select
             if (this.tagsSelect) {
                 this.tagsSelect.removeActiveItems();
             }
         }
 
-        // Показываем модалку
+        // Отображение модального окна
         this.taskModal.classList.remove('hidden');
 
-        // Получаем select исполнителя
+        // Обновление списка исполнителей в селекте
         const select = this.taskForm.querySelector('select[name="assignee"]');
         if (select) {
-            // Очищаем и заполняем select
+            // Очищаем текущие опции и добавляем базовую пустую
             select.innerHTML = '<option value="">-- Выберите исполнителя --</option>';
 
             window.username_data.forEach(user => {
@@ -148,6 +189,7 @@ export class KanbanTasks {
                 option.value = user.username;
                 option.textContent = label;
 
+                // Если редактируем задачу и исполнитель совпадает — выбираем опцию
                 if (taskId && this.tasks[taskId]?.assignee === user.username) {
                     option.selected = true;
                 }
@@ -160,52 +202,87 @@ export class KanbanTasks {
             }
         }
 
-        // Если редактирование — выставляем значение assignee
+        // Если редактируем задачу — устанавливаем исполнителя
         if (taskId && this.tasks[taskId]) {
             this.taskForm.assignee.value = this.tasks[taskId].assignee;
         }
     }
 
 
+    /**
+     * Закрывает модальное окно задачи и применяет текущие фильтры задач.
+     *
+     * Метод скрывает модальное окно редактирования или создания задачи
+     * и вызывает метод `applyFilters` у экземпляра фильтра задач,
+     * чтобы обновить отображение списка задач согласно текущим фильтрам.
+     */
     closeModal() {
         this.taskModal.classList.add('hidden');
         this.taskFilterInstance.applyFilters();
     }
 
+
+    /**
+     * Отрисовывает или обновляет карточку задачи на доске.
+     *
+     * Если карточка с указанным ID уже существует — обновляет её содержимое,
+     * иначе создаёт новую карточку и добавляет её в DOM.
+     *
+     * Добавляет данные в атрибуты `data-*` для фильтрации, а также
+     * наполняет карточку заголовком, сроком исполнения, приоритетом,
+     * исполнителем, автором, датой создания, тегами и статусом выполнения.
+     * Также добавляется кнопка удаления задачи с подтверждением.
+     *
+     * @param {string} id - Уникальный идентификатор задачи.
+     * @param {Object} taskData - Объект с данными задачи.
+     * @param {string} [taskData.title] - Заголовок задачи.
+     * @param {string} [taskData.assignee] - Логин исполнителя задачи.
+     * @param {string} [taskData.author] - Логин автора задачи.
+     * @param {string} [taskData.priority] - Приоритет задачи ('low', 'medium', 'high').
+     * @param {string} [taskData.deadline] - Дата срока исполнения в формате ISO или строка.
+     * @param {boolean} [taskData.done] - Статус выполнения задачи.
+     * @param {Array<{name: string}>|string} [taskData.tags] - Теги задачи.
+     * @param {string|Date} [taskData.createdAt] - Дата создания задачи.
+     * @param {boolean} [isUpdate=false] - Флаг, указывающий, что карточка обновляется.
+     */
     renderTaskCard(id, taskData, isUpdate = false) {
         let card = this.taskBoard.querySelector(`[data-card-id="${id}"]`);
+
         if (!card) {
-            // Карточки ещё нет — создаём
+            // Карточка отсутствует — создаём новую
             card = document.createElement('div');
             card.className = 'task-card';
             card.dataset.cardId = id;
             this.taskBoard.appendChild(card);
         } else {
-            // Очистим содержимое, если обновляем
+            // Обновляем существующую карточку — очищаем содержимое
             card.innerHTML = '';
             card.className = 'task-card';
             card.dataset.id = id;
         }
-        // Добавляем data-* атрибуты для фильтрации
+
+        // Добавляем data-атрибуты для фильтрации
         card.dataset.assignee = taskData.assignee || '';
         card.dataset.priority = taskData.priority || '';
         card.dataset.deadline = taskData.deadline || '';
         card.dataset.done = taskData.done === true ? 'true' : 'false';
-        // Для тегов — передаём строку с тегами через запятую
+
+        // Обработка тегов: массив объектов или строка
         if (Array.isArray(taskData.tags)) {
-            // Если tags — массив объектов с name
             card.dataset.tags = taskData.tags.map(t => t.name).join(',');
         } else if (typeof taskData.tags === 'string') {
             card.dataset.tags = taskData.tags;
         } else {
             card.dataset.tags = '';
         }
-        // --- Удаление ---
+
+        // Кнопка удаления задачи с подтверждением
         const deleteBtn = document.createElement('button');
         deleteBtn.textContent = '×';
         deleteBtn.title = 'Удалить заметку';
         deleteBtn.className = 'delete-btn';
-        card.appendChild(deleteBtn)
+        card.appendChild(deleteBtn);
+
         deleteBtn.addEventListener('click', async (event) => {
             event.stopPropagation();
             const confirmed = await this.showDeleteConfirmation({taskTitle: taskData.title || 'эту задачу'});
@@ -213,58 +290,52 @@ export class KanbanTasks {
                 this.deleteTaskCard(id);
             }
         });
-        // // Если задача выполнена — отображаем только статус
-        // if (taskData.done) {
-        //     const doneEl = document.createElement('div');
-        //     doneEl.className = 'text-xs font-semibold text-green-700';
-        //     doneEl.textContent = 'Выполнено';
-        //     card.appendChild(doneEl);
-        //     return;
-        // }
 
-        // Цвет бордера в зависимости от приоритета
+        // Карта цвета бордера по приоритету и статусу выполнения
         const priorityBorderMap = {
             low: 'border-l-success dark:border-l-success-dark',
             medium: 'border-l-warning dark:border-l-warning-dark',
             high: 'border-l-error dark:border-l-error-dark',
-            done: 'border-l-green-900 dark:border-l-green-700', // или другой цвет
+            done: 'border-l-green-900 dark:border-l-green-700',
         };
         const borderClass = taskData.done
             ? priorityBorderMap.done
             : (priorityBorderMap[taskData.priority] || 'border-l-gray-300');
         borderClass.split(' ').forEach(cls => card.classList.add(cls));
 
-        // Заголовок
+        // Заголовок задачи
         const titleEl = document.createElement('h3');
         titleEl.className = 'mb-1 truncate font-semibold text-lg';
         titleEl.textContent = taskData.title || 'Без названия';
         card.appendChild(titleEl);
 
-        // Срок исполнения
+        // Срок исполнения (с подсветкой просрочки или приближения срока)
         if (taskData.deadline && !taskData.done) {
             const deadlineEl = document.createElement('div');
             deadlineEl.className = 'text-xs text-text dark:text-text-dark mb-1';
             deadlineEl.textContent = 'Срок исполнения: ' + taskData.deadline;
+
             const today = new Date();
-            const deadlineDate = taskData.deadline ? new Date(taskData.deadline) : null;
-            // Истёк срок
+            const deadlineDate = new Date(taskData.deadline);
+
             if (deadlineDate < today.setHours(0, 0, 0, 0)) {
+                // Просрочено
                 deadlineEl.classList.add('!text-red-600', '!font-semibold');
                 card.classList.add('!bg-red-200', 'dark:!bg-red-900/20');
-                deadlineEl.textContent = 'Срок исполнения: ' + taskData.deadline + '!!!ПРОСРОЧЕНО!!!';
+                deadlineEl.textContent += ' !!!ПРОСРОЧЕНО!!!';
             } else {
                 // Осталось <= 3 дней
                 const diffInDays = Math.ceil((deadlineDate - new Date()) / (1000 * 60 * 60 * 24));
                 if (diffInDays <= 3) {
                     deadlineEl.classList.add('!text-yellow-600', '!font-medium');
                     card.classList.add('!bg-yellow-200', 'dark:!bg-yellow-600/20');
-                    deadlineEl.textContent = 'Срок исполнения: ' + taskData.deadline + '!!!Менее 3 дней осталось!!!';
+                    deadlineEl.textContent += ' !!!Менее 3 дней осталось!!!';
                 }
             }
             card.appendChild(deadlineEl);
         }
 
-        // Приоритет
+        // Отображение приоритета задачи с цветом и иконкой
         if (taskData.priority) {
             const priorityMap = {
                 low: '🟢 Низкий',
@@ -285,14 +356,13 @@ export class KanbanTasks {
             priorityEl.innerHTML = `<span class="${colorClass} font-medium">Приоритет: ${priorityText}</span>`;
             card.appendChild(priorityEl);
         }
-        // Исполнитель
+
+        // Исполнитель задачи с отображением полного имени, если доступно
         if (taskData.assignee) {
             const assigneeEl = document.createElement('div');
             assigneeEl.className = 'text-xs text-text dark:text-text-dark mb-1';
 
-            // Найдём пользователя в списке по username
             const userData = window.username_data.find(user => user.username === taskData.assignee);
-
             let displayName;
             if (userData) {
                 const parts = [];
@@ -307,14 +377,12 @@ export class KanbanTasks {
             card.appendChild(assigneeEl);
         }
 
-        // Автор задачи
+        // Автор задачи с отображением полного имени, если доступно
         if (taskData.author) {
             const authorEl = document.createElement('div');
             authorEl.className = 'text-xs text-text dark:text-text-dark mb-1';
 
-            // Найдём пользователя в списке по username
             const authorData = window.username_data.find(user => user.username === taskData.author);
-
             let authorName;
             if (authorData) {
                 const parts = [];
@@ -329,13 +397,12 @@ export class KanbanTasks {
             card.appendChild(authorEl);
         }
 
-        // Дата создания
+        // Дата создания задачи с форматированием "Сегодня" или датой
         const createdAtEl = document.createElement('div');
         createdAtEl.className = 'text-xs text-gray-500 dark:text-gray-400 mb-1';
 
         let date = taskData.createdAt ? new Date(taskData.createdAt) : new Date();
 
-        // Если дата некорректна — ставим сегодня
         if (isNaN(date.getTime())) {
             date = new Date();
         }
@@ -357,21 +424,19 @@ export class KanbanTasks {
         createdAtEl.textContent = 'Создано: ' + formattedDate;
         card.appendChild(createdAtEl);
 
-
-        // Теги
+        // Отображение тегов с иконкой и цветами
         if (taskData.tags) {
             const tagsEl = document.createElement('div');
             tagsEl.className = 'text-xs mb-1 flex flex-wrap items-center gap-1';
 
-            // Добавим SVG иконку перед всеми тегами
             const icon = document.createElement('span');
             icon.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-             class="w-4 h-4 text-accent dark:text-accent-dark">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5" />
-        </svg>`;
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                 class="w-4 h-4 text-accent dark:text-accent-dark">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5" />
+            </svg>`;
             tagsEl.appendChild(icon);
 
             const tagColors = ['text-red-500', 'text-green-500', 'text-blue-500', 'text-yellow-600', 'text-purple-500'];
@@ -390,8 +455,7 @@ export class KanbanTasks {
             card.appendChild(tagsEl);
         }
 
-
-        // Статус выполнения
+        // Статус выполнения задачи с иконкой и цветом
         const doneEl = document.createElement('div');
         doneEl.className = 'text-xs font-semibold flex items-center gap-1 ' + (taskData.done ? 'text-green-700' : 'text-red-600');
 
@@ -407,11 +471,23 @@ export class KanbanTasks {
         statusText.textContent = taskData.done ? 'Выполнено' : 'В процессе';
 
         doneEl.appendChild(statusIcon);
-        doneEl.appendChild(statusText);
-        card.appendChild(doneEl);
 
+        doneEl.appendChild(document.createTextNode(taskData.done ? 'Выполнено' : 'В процессе'));
+        card.appendChild(doneEl);
     }
 
+
+    /**
+     * Сохраняет задачу на сервере.
+     * Если редактируется существующая задача (this.currentEditId установлен),
+     * выполняет PATCH-запрос, иначе — POST-запрос для создания новой задачи.
+     * После успешного ответа обновляет локальный кэш задач и отображение.
+     * Обрабатывает ошибки сети и ошибки сервера.
+     *
+     * @async
+     * @function saveTask
+     * @returns {Promise<void>}
+     */
     async saveTask() {
         const formData = new FormData(this.taskForm);
         const taskData = {
@@ -425,13 +501,11 @@ export class KanbanTasks {
         };
 
         try {
-            let response;
-            let isUpdate = !!this.currentEditId;
-
+            const isUpdate = !!this.currentEditId;
             const url = isUpdate ? `tasks/${this.currentEditId}/` : 'tasks/';
             const method = isUpdate ? 'PATCH' : 'POST';
 
-            response = await fetch(url, {
+            const response = await fetch(url, {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json',
@@ -467,7 +541,17 @@ export class KanbanTasks {
         }
     }
 
-
+    /**
+     * Удаляет задачу с указанным идентификатором.
+     * Отправляет DELETE-запрос на сервер, при успешном ответе
+     * удаляет карточку задачи из DOM и из локального кэша задач.
+     * Обрабатывает ошибки сети и сервера.
+     *
+     * @async
+     * @function deleteTaskCard
+     * @param {string|number} id - Идентификатор задачи для удаления.
+     * @returns {Promise<void>}
+     */
     async deleteTaskCard(id) {
         try {
             const response = await fetch(`tasks/delete/${id}/`, {
@@ -477,6 +561,7 @@ export class KanbanTasks {
                     'X-CSRFToken': this.csrfToken,
                 },
             });
+
             if (response.ok) {
                 const card = this.taskBoard.querySelector(`[data-card-id="${id}"]`);
                 if (card) {
@@ -486,7 +571,6 @@ export class KanbanTasks {
                     delete this.tasks[id];
                 }
                 this.showSuccessMessage('Задача успешно удалена');
-
 
             } else {
                 const errorText = await response.text();
@@ -562,6 +646,18 @@ export class KanbanTasks {
         }
     }
 
+    /**
+     * Отображает модальное окно с подтверждением удаления задачи.
+     * Возвращает Promise, который резолвится в:
+     * - true, если пользователь подтвердил удаление,
+     * - false, если пользователь отменил или прошло 30 секунд без ответа.
+     *
+     * @async
+     * @function showDeleteConfirmation
+     * @param {Object} data - Данные задачи для подтверждения.
+     * @param {string} data.taskTitle - Название задачи, которое будет показано в сообщении.
+     * @returns {Promise<boolean>} Результат подтверждения (true - подтвердил, false - отменил или таймаут).
+     */
     async showDeleteConfirmation(data) {
         return new Promise((resolve) => {
             const serverInfo = document.getElementById('server-info');
@@ -590,6 +686,10 @@ export class KanbanTasks {
 
             let resolved = false;
 
+            /**
+             * Выполняет скрытие модального окна с анимацией и очистку содержимого.
+             * @returns {Promise<void>} Промис, который резолвится после завершения анимации.
+             */
             const cleanup = () => {
                 return new Promise((res) => {
                     serverInfo.classList.remove('animate-popup');
@@ -600,16 +700,18 @@ export class KanbanTasks {
                         serverInfo.querySelector('p').textContent = '';
                         serverInfo.classList.add('hidden');
                         res();
-                    }, 1000);
+                    }, 1000); // время анимации скрытия
                 });
             };
 
+            // Таймаут автоматического отказа через 30 секунд
             const timeoutId = setTimeout(() => {
                 if (resolved) return;
                 resolved = true;
                 cleanup().then(() => resolve(false));
-            }, 30000); // 30 секунд
+            }, 30000);
 
+            // Обработчик подтверждения удаления
             confirmBtn.addEventListener('click', () => {
                 if (resolved) return;
                 resolved = true;
@@ -617,6 +719,7 @@ export class KanbanTasks {
                 cleanup().then(() => resolve(true));
             });
 
+            // Обработчик отмены удаления
             cancelBtn.addEventListener('click', () => {
                 if (resolved) return;
                 resolved = true;
@@ -630,33 +733,49 @@ export class KanbanTasks {
 }
 
 
+/**
+ * Класс TaskFilter реализует фильтрацию карточек задач по множеству критериев:
+ * назначенный пользователь, приоритет, срок выполнения, статус выполнения и теги.
+ */
 export class TaskFilter {
+    /**
+     * @param {Object} config - Конфигурация фильтрации.
+     * @param {string} config.tasksContainerId - ID контейнера с карточками задач.
+     */
     constructor({tasksContainerId}) {
+        /** @type {HTMLElement} */
         this.container = document.getElementById(tasksContainerId);
+        /** @type {HTMLElement[]} */
         this.cards = Array.from(this.container.querySelectorAll('.task-card'));
 
+        /** @type {Object<string, HTMLSelectElement>} */
         this.filters = {
             assignee: document.getElementById('filter-assignee'),
             priority: document.getElementById('filter-priority'),
             date: document.getElementById('filter-deadline'),
-            status: document.getElementById('filter-status'),  // новый фильтр
+            status: document.getElementById('filter-status'), // '' | 'true' | 'false'
         };
 
+        /** @type {HTMLElement} */
         this.tagContainer = document.querySelector('#dropdownMenu .p-2');
+        /** @type {HTMLElement} */
         this.dropdownToggle = document.getElementById('dropdownToggle');
+        /** @type {HTMLElement} */
         this.dropdownMenu = document.getElementById('dropdownMenu');
 
         this.populateAssigneeOptions();
         this.populateTagOptions();
         this.attachEvents();
-        this.initTagDropdown();  // <--- вызываем здесь
+        this.initTagDropdown();
     }
 
+    /**
+     * Заполняет селектор с пользователями, основываясь на данных из `window.username_data`.
+     */
     populateAssigneeOptions() {
         const assigneeSelect = this.filters.assignee;
         if (!assigneeSelect || !window.username_data) return;
 
-        // Удаляем все, кроме первого "все"
         while (assigneeSelect.options.length > 1) {
             assigneeSelect.remove(1);
         }
@@ -666,13 +785,8 @@ export class TaskFilter {
             option.value = user.username;
 
             const nameParts = [];
-            if (user.first_name?.trim()) {
-                nameParts.push(user.first_name.trim());
-            }
-
-            if (user.last_name?.trim()) {
-                nameParts.push(user.last_name);
-            }
+            if (user.first_name?.trim()) nameParts.push(user.first_name.trim());
+            if (user.last_name?.trim()) nameParts.push(user.last_name.trim());
 
             option.textContent = nameParts.length > 0
                 ? nameParts.join(' ')
@@ -680,17 +794,19 @@ export class TaskFilter {
 
             assigneeSelect.appendChild(option);
         });
-
     }
 
+    /**
+     * Заполняет выпадающий список тегов из `window.tags_list`.
+     */
     populateTagOptions() {
         if (!this.tagContainer || !window.tags_list) return;
-
-        this.tagContainer.innerHTML = ''; // очистим контейнер
+        this.tagContainer.innerHTML = '';
 
         window.tags_list.forEach(tag => {
             const label = document.createElement('label');
             label.className = 'correct_label flex items-center space-x-2 mb-3';
+
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.value = tag.name || tag;
@@ -704,11 +820,12 @@ export class TaskFilter {
             this.tagContainer.appendChild(label);
         });
 
-        // Обновим ссылку на чекбоксы тегов
         this.tagCheckboxes = Array.from(this.tagContainer.querySelectorAll('.tag-checkbox'));
-
     }
 
+    /**
+     * Назначает обработчики событий на элементы фильтров и чекбоксы тегов.
+     */
     attachEvents() {
         Object.values(this.filters).forEach(filter =>
             filter?.addEventListener('change', () => this.applyFilters())
@@ -726,44 +843,51 @@ export class TaskFilter {
                 });
 
                 this.tagCheckboxes.forEach(cb => cb.checked = false);
-
                 this.applyFilters();
             });
         }
     }
 
+    /**
+     * Получает список выбранных тегов в нижнем регистре.
+     * @returns {string[]}
+     */
     getSelectedTags() {
         return this.tagCheckboxes
             .filter(cb => cb.checked)
             .map(cb => cb.value.toLowerCase());
     }
 
+    /**
+     * Применяет фильтрацию и сортировку карточек в соответствии с выбранными значениями.
+     */
     applyFilters() {
         const assigneeVal = this.filters.assignee?.value.trim().toLowerCase() || '';
         const priorityVal = this.filters.priority?.value.trim().toLowerCase() || '';
-        const dateVal = this.filters.date?.value || '';  // asc/desc/пусто
-        const statusVal = this.filters.status?.value || ''; // '' | 'true' | 'false'
+        const dateVal = this.filters.date?.value || '';
+        const statusVal = this.filters.status?.value || '';
 
         const selectedTags = this.getSelectedTags();
         this.cards = Array.from(this.container.querySelectorAll('.task-card'));
-        // Фильтрация карточек по параметрам, включая статус по data-done
+
         let filteredCards = this.cards.filter(card => {
             const cardAssignee = (card.dataset.assignee || '').toLowerCase();
             const cardPriority = (card.dataset.priority || '').toLowerCase();
-            const cardDone = (card.dataset.done || 'false').toLowerCase(); // ожидаем 'true' или 'false' как строки
-            const cardTags = (card.dataset.tags || '').toLowerCase().split(',').map(t => t.trim()).filter(Boolean);
+            const cardDone = (card.dataset.done || 'false').toLowerCase();
+            const cardTags = (card.dataset.tags || '')
+                .toLowerCase()
+                .split(',')
+                .map(t => t.trim())
+                .filter(Boolean);
 
             const matchAssignee = !assigneeVal || cardAssignee === assigneeVal;
             const matchPriority = !priorityVal || cardPriority === priorityVal;
-            const matchTags = selectedTags.length === 0 || selectedTags.every(t => cardTags.includes(t));
-            // фильтр статуса по data-done: completed = done === 'true', pending = done !== 'true'
-            const matchStatus = !statusVal ||
-                (statusVal === 'true' ? cardDone === 'true' : cardDone !== 'true');
+            const matchTags = selectedTags.length === 0 || selectedTags.every(tag => cardTags.includes(tag));
+            const matchStatus = !statusVal || (statusVal === 'true' ? cardDone === 'true' : cardDone !== 'true');
 
             return matchAssignee && matchPriority && matchTags && matchStatus;
         });
 
-        // Сортировка по дате (если выбрана)
         if (dateVal === 'asc' || dateVal === 'desc') {
             filteredCards.sort((a, b) => {
                 const dateA = new Date(a.dataset.deadline);
@@ -775,19 +899,14 @@ export class TaskFilter {
                 return dateVal === 'asc' ? dateA - dateB : dateB - dateA;
             });
         } else {
-            // Сортировка по приоритету по умолчанию (например, от высокого к низкому)
-            // Приоритеты: high > medium > low
-            const priorityOrder = {'high': 1, 'medium': 2, 'low': 3};
+            const priorityOrder = {high: 1, medium: 2, low: 3};
 
             filteredCards.sort((a, b) => {
                 const prioA = priorityOrder[a.dataset.priority?.toLowerCase()] || 99;
                 const prioB = priorityOrder[b.dataset.priority?.toLowerCase()] || 99;
 
-                if (prioA !== prioB) {
-                    return prioA - prioB; // чем меньше значение, тем выше приоритет
-                }
+                if (prioA !== prioB) return prioA - prioB;
 
-                // Если приоритет одинаковый — сортируем по дате дедлайна по возрастанию
                 const dateA = new Date(a.dataset.deadline);
                 const dateB = new Date(b.dataset.deadline);
 
@@ -797,7 +916,7 @@ export class TaskFilter {
                 return dateA - dateB;
             });
         }
-        // Перемещаем выполненные задачи в конец
+
         filteredCards.sort((a, b) => {
             const doneA = (a.dataset.done || 'false').toLowerCase();
             const doneB = (b.dataset.done || 'false').toLowerCase();
@@ -806,15 +925,15 @@ export class TaskFilter {
             if (doneA !== 'true' && doneB === 'true') return -1;
             return 0;
         });
-        // Обновляем отображение карточек
+
         this.cards.forEach(card => card.classList.add('hidden'));
         filteredCards.forEach(card => card.classList.remove('hidden'));
-
-        // Обновляем порядок карточек в контейнере
         filteredCards.forEach(card => this.container.appendChild(card));
     }
 
-
+    /**
+     * Инициализирует поведение выпадающего меню тегов.
+     */
     initTagDropdown() {
         if (!this.dropdownToggle || !this.dropdownMenu) return;
 
@@ -823,7 +942,6 @@ export class TaskFilter {
             this.dropdownMenu.classList.toggle('hidden');
         });
 
-        // Закрыть меню, если клик вне его
         document.addEventListener('click', (e) => {
             if (!this.dropdownMenu.contains(e.target) && !this.dropdownToggle.contains(e.target)) {
                 this.dropdownMenu.classList.add('hidden');
@@ -831,6 +949,7 @@ export class TaskFilter {
         });
     }
 }
+
 
 
 

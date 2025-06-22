@@ -1,26 +1,53 @@
+// Импорт базовых стилей
 import '../../css/base.css';
-// import 'choices.js/public/assets/styles/choices.min.css';
-import {toggleAccentClasses} from "../../cities/js/toggleAccent.js";
-import {KanbanStickyNotes} from "./notes.js";
-import {KanbanTasks, TaskFilter} from "./task.js";
 
-// import {toggleAccentClasses} from "./toggleAccent.js";
-// import {CityAutocomplete} from "./city-search.js";
-// import {CityModalHandler} from "./update-cities.js";
+// Импорт утилит и компонентов Kanban-доски
+import { toggleAccentClasses } from "../../cities/js/toggleAccent.js";
+import { KanbanStickyNotes } from "./notes.js";
+import { KanbanTasks, TaskFilter } from "./task.js";
 
+// Обработчик событий, срабатывающий после полной загрузки DOM
 document.addEventListener('DOMContentLoaded', () => {
+    /**
+     * Переключает акцентные классы у элементов навигации.
+     * Используется для выделения текущего пункта меню в зависимости от ширины экрана.
+     * @param {string} desktopId - ID элемента для десктопной версии.
+     * @param {string} mobileId - ID элемента для мобильной версии.
+     */
     toggleAccentClasses('a-main', 'a-main-mob');
 
+    /**
+     * Инициализация Kanban-доски с заметками (sticky notes).
+     * @type {KanbanStickyNotes}
+     */
     const kanban = new KanbanStickyNotes({
-        addButtonId: 'add-card',
-        boardId: 'note-board',
-        colors: ['#FFEB3B', '#FFCDD2', '#C8E6C9', '#BBDEFB'],
+        addButtonId: 'add-card',      // ID кнопки для добавления заметки
+        boardId: 'note-board',        // ID элемента доски заметок
+        colors: ['#FFEB3B', '#FFCDD2', '#C8E6C9', '#BBDEFB'], // Возможные цвета заметок
     });
-    // ВАЖНО: вызываем загрузку начальных заметок после инициализации
+
+    // Загрузка заметок с сервера или из локального хранилища
     kanban.loadInitialNotes();
 
-    const kanbanTask = new KanbanTasks({addButtonId: 'btn-tasks', boardId: 'task-board', modalId: 'task-modal'});
-    const taskFilter = new TaskFilter({tasksContainerId: 'task-board'});
-    kanbanTask.setTaskFilterInstance(taskFilter);
+    /**
+     * Инициализация Kanban-доски с задачами.
+     * @type {KanbanTasks}
+     */
+    const kanbanTask = new KanbanTasks({
+        addButtonId: 'btn-tasks',     // ID кнопки для добавления задачи
+        boardId: 'task-board',        // ID доски задач
+        modalId: 'task-modal',        // ID модального окна для создания/редактирования задач
+    });
 
+    /**
+     * Инициализация фильтра задач.
+     * Позволяет фильтровать задачи по признакам (дата, автор, статус и т.д.)
+     * @type {TaskFilter}
+     */
+    const taskFilter = new TaskFilter({
+        tasksContainerId: 'task-board', // ID контейнера, в котором находятся задачи
+    });
+
+    // Устанавливаем связь между фильтром и Kanban-доской задач
+    kanbanTask.setTaskFilterInstance(taskFilter);
 });
