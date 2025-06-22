@@ -30,7 +30,7 @@ class StickyNoteActionLoggingMiddleware:
                 body_data = f"[Не удалось прочитать тело запроса: {str(e)}]"
 
         # Фильтр по пути — можно заменить на свой путь, например "/sticky-notes/"
-        if path.startswith("/") and user.is_authenticated:
+        if path=="/" and user.is_authenticated:
             logger.bind(user=user_name).info(
                 f"➡️ {method}-запрос от пользователя {user_name} на {path} с IP {ip}. Тело: {body_data}"
             )
@@ -43,7 +43,7 @@ class StickyNoteActionLoggingMiddleware:
             )
             raise
 
-        if path.startswith("/") and user.is_authenticated:
+        if path=="/"  and user.is_authenticated:
             self.log_response(response, user_name, method, path, ip)
 
         return response

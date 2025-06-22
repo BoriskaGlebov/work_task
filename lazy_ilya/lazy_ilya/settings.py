@@ -58,7 +58,8 @@ MIDDLEWARE = [
     "myauth.middleware.myauth_logging.UserActionLoggingMiddleware",
     "file_creator.middleware.file_creator_middleware.FileCreatorActionLoggingMiddleware",
     "cities.middleware.cities_middleware.CitiesActionLoggingMiddleware",
-    "stickers.middleware.sticky_note_middleware.StickyNoteActionLoggingMiddleware"
+    "stickers.middleware.sticky_note_middleware.StickyNoteActionLoggingMiddleware",
+    "stickers.middleware.task_middleware.TaskActionLoggingMiddleware",
 ]
 
 ROOT_URLCONF = "lazy_ilya.urls"

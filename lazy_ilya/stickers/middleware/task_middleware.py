@@ -1,0 +1,87 @@
+import json
+from typing import Callable
+from django.http import HttpResponse
+from lazy_ilya.utils.settings_for_app import logger
+
+
+class TaskActionLoggingMiddleware:
+    """
+    Middleware для логирования действий пользователей в приложении задач (TaskView).
+    """
+
+    def __init__(self, get_response: Callable):
+        self.get_response = get_response
+
+    def __call__(self, request) -> HttpResponse:
+        path = request.path
+        method = request.method
+        user = request.user
+        ip = request.META.get("REMOTE_ADDR", "")
+        user_name = user.username if user.is_authenticated else "Аноним"
+        body_data = None
+
+        # Логируем тело запроса только для методов, меняющих данные
+        if method in ["POST", "PATCH", "PUT", "DELETE"]:
+            try:
+                if request.content_type == "application/json":
+                    body_data = json.loads(request.body.decode())
+                else:
+                    body_data = f"[Неподдерживаемый тип контента: {request.content_type}]"
+            except Exception as e:
+                body_data = f"[Не удалось прочитать тело запроса: {str(e)}]"
+
+        # Фильтр по пути - подставь свой префикс задач
+        if path.startswith("/tasks") and user.is_authenticated:
+            logger.bind(user=user_name).info(
+                f"➡️ {method}-запрос от пользователя {user_name} на {path} с IP {ip}. Тело: {body_data}"
+            )
+
+        try:
+            response = self.get_response(request)
+        except Exception as e:
+            logger.bind(user=user_name).exception(
+                f"❌ Ошибка при обработке запроса {method} {path} с IP {ip}: {str(e)}"
+            )
+            raise
+
+        if path.startswith("/tasks") and user.is_authenticated:
+            self.log_response(response, user_name, method, path, ip)
+
+        return response
+
+    def log_response(
+        self, response: HttpResponse, user_name: str, method: str, path: str, ip: str
+    ) -> None:
+        # Для GET — просто пишем, что успешно (без тела)
+        if method == "GET":
+            if response.status_code >= 400:
+                logger.bind(user=user_name).warning(
+                    f"⚠️ {user_name} получил ошибку {response.status_code} на GET {path} с IP {ip}."
+                )
+            else:
+                logger.bind(user=user_name).info(
+                    f"✅ {user_name} успешно выполнил GET-запрос на {path} с IP {ip}."
+                )
+            return
+
+        # Для других методов — логируем тело ответа, если есть
+        content_type = response.get("Content-Type", "")
+        body = ""
+        if "application/json" in content_type or "text" in content_type:
+            try:
+                body = response.content.decode(errors="ignore")
+                if "application/json" in content_type:
+                    body = json.loads(body)
+            except Exception as e:
+                body = f"[Ошибка при чтении тела ответа: {str(e)}]"
+
+        if response.status_code >= 400:
+            logger.bind(user=user_name).warning(
+                f"⚠️ {user_name} получил ошибку {response.status_code} на {method} {path} с IP {ip}. "
+                f"Ответ сервера: {body}"
+            )
+        else:
+            logger.bind(user=user_name).info(
+                f"✅ {user_name} успешно выполнил {method}-запрос на {path} с IP {ip}. "
+                f"Статус: {response.status_code}. Ответ: {body}"
+            )
