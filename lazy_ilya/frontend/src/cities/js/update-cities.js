@@ -144,7 +144,11 @@ export class CityModalHandler {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => null);
-                showError(errorData?.message || 'Ошибка при обновлении города');
+                let errorMsg = '';
+                for (const field in errorData.errors) {
+                    errorMsg += `${field}: ${errorData.errors[field].join(', ')}\n`;
+                }
+                showError('Ошибка при сохранении:\n' + errorMsg);
                 return;
             }
 
@@ -265,18 +269,28 @@ export class CityModalHandler {
      */
     showSuccessMessage(message) {
         const serverInfo = document.getElementById('server-info');
+        const messageParagraph = serverInfo.querySelector('p');
+
+        // Очистка предыдущего таймера, если он ещё активен
+        if (this.successMessageTimeout) {
+            clearTimeout(this.successMessageTimeout);
+        }
+
+        // Показываем сообщение
         serverInfo.classList.remove('hidden', 'animate-popup-reverse');
         serverInfo.classList.add('flex', 'animate-popup');
-        serverInfo.querySelector('p').textContent = message;
-        serverInfo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        messageParagraph.textContent = message;
+        serverInfo.scrollIntoView({behavior: 'smooth', block: 'start'});
 
-        setTimeout(() => {
+        // Устанавливаем новый таймер скрытия
+        this.successMessageTimeout = setTimeout(() => {
             serverInfo.classList.remove('animate-popup');
             serverInfo.classList.add('animate-popup-reverse');
             setTimeout(() => {
                 serverInfo.classList.add('hidden');
                 serverInfo.classList.remove('flex', 'animate-popup-reverse');
             }, 1000);
+            this.successMessageTimeout = null; // очищаем
         }, 5000);
     }
 
@@ -295,7 +309,7 @@ export class CityModalHandler {
             serverInfo.classList.add('flex', 'animate-popup');
             serverInfo.querySelector('h3').textContent = 'Подтверждение удаления';
             serverInfo.querySelector('p').textContent = `Вы уверены, что хотите удалить "${cityToDelete.name_organ}"?`;
-            serverInfo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            serverInfo.scrollIntoView({behavior: 'smooth', block: 'start'});
 
             const divBtn = document.getElementById('btn-div');
             divBtn.innerHTML = '';

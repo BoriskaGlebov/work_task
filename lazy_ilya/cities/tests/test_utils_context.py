@@ -7,7 +7,10 @@ from django.test import RequestFactory, TestCase as DjangoTestCase
 from django.utils.timezone import now
 
 from cities.models import TableNames, CityData
-from cities.utils.common_func.get_city_context import get_all_cities, get_context_admin_cities
+from cities.utils.common_func.get_city_context import (
+    get_all_cities,
+    get_context_admin_cities,
+)
 from myauth.models import CustomUser
 
 
@@ -39,8 +42,15 @@ class GetCitiesTestCase(DjangoTestCase):
         )  # Этот не должен попасть
 
         # Создаем пользователя
-        self.user = CustomUser.objects.create_user(username="user1", password="1234",phone_number="+79852000338")
-        self.admin = CustomUser.objects.create_superuser(username="admin", password="admin", email="admin@example.com",phone_number="+79852000339")
+        self.user = CustomUser.objects.create_user(
+            username="user1", password="1234", phone_number="+79852000338"
+        )
+        self.admin = CustomUser.objects.create_superuser(
+            username="admin",
+            password="admin",
+            email="admin@example.com",
+            phone_number="+79852000339",
+        )
 
         self.admin_group = Group.objects.create(name="admins")
         self.ilia_group = Group.objects.create(name="ilia-group")

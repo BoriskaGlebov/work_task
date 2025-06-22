@@ -23,6 +23,8 @@ export default defineConfig({
                 'cities/js/update-form': resolve(__dirname, 'src/cities/js/update-form.js'),
 
                 'statistics_app/js/main': resolve(__dirname, 'src/statistics_app/js/main.js'),
+
+                'stickers/js/start': resolve(__dirname, 'src/stickers/js/start.js'),
             },
             output: {
                 manualChunks(id) {
@@ -32,6 +34,10 @@ export default defineConfig({
 
                     if (id.includes('src/cities/js/toggleAccent.js')) {
                         return 'cities/js/toggleAccent';
+                    }
+
+                    if (id.includes('src/stickers/js/utils.js')) {
+                        return 'stickers/js/utils';
                     }
                 },
                 entryFileNames: '[name].js',

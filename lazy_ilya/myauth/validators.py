@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.password_validation import CommonPasswordValidator
 
+
 class CustomPasswordValidator(CommonPasswordValidator):
     """
     Кастомный валидатор паролей, который проверяет минимальную длину пароля.
@@ -33,7 +34,7 @@ class CustomPasswordValidator(CommonPasswordValidator):
         if len(password) < 5:
             raise ValidationError(
                 _("Пароль слишком короткий. Минимальная длина — 5 символов."),
-                code='password_too_short',
+                code="password_too_short",
             )
 
     def get_help_text(self):

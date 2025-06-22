@@ -16,17 +16,24 @@ class TestParser(unittest.TestCase):
         self.file1 = os.path.join(self.test_dir, "test1.docx")
         self.file2 = os.path.join(self.test_dir, "test2.docx")
 
-        self._create_docx(self.file1, [
-            "Куда и кому: Тестовый адресат",
-            "Уважаемый клиент, спасибо за обращение.",
-            "Просто абзац с текстом."
-        ])
+        self._create_docx(
+            self.file1,
+            [
+                "Куда и кому: Тестовый адресат",
+                "Уважаемый клиент, спасибо за обращение.",
+                "Просто абзац с текстом.",
+            ],
+        )
 
-        self._create_docx(self.file2, [
-            "Еще один тестовый документ.",
-            "Evaluation Warning: The document was created with Spire.Doc for Python.",
-            "Особый знак"
-        ], add_table=True)
+        self._create_docx(
+            self.file2,
+            [
+                "Еще один тестовый документ.",
+                "Evaluation Warning: The document was created with Spire.Doc for Python.",
+                "Особый знак",
+            ],
+            add_table=True,
+        )
 
         self.start_number = 100
 
@@ -67,4 +74,3 @@ class TestParser(unittest.TestCase):
 
         self.assertIn("ОСОБЫЙ ЗНАК", result[1].upper())
         self.assertIn("ЗАМЕСТИТЕЛЬ ДОЯРКИ", result[1].upper())
-

@@ -18,5 +18,4 @@ urlpatterns = [
         CustomPasswordResetView.as_view(),
         name="reset-password",
     ),
-
 ]

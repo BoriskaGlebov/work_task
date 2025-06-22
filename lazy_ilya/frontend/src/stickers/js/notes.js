@@ -1,0 +1,519 @@
+import Sortable from 'sortablejs';
+import {showError} from "./utils.js";
+
+/**
+ * Класс для управления стикерами (заметками) в стиле Kanban.
+ * Поддерживает создание, редактирование, удаление и сортировку заметок с синхронизацией с сервером.
+ */
+export class KanbanStickyNotes {
+    /**
+     * @param {Object} config
+     * @param {string} config.addButtonId - ID кнопки для добавления новой заметки.
+     * @param {string} config.boardId - ID контейнера доски, куда добавляются заметки.
+     * @param {string[]} [config.colors=[]] - Список цветов для новых заметок.
+     */
+    constructor({addButtonId, boardId, colors = []}) {
+        this.addCardBtn = document.getElementById(addButtonId);
+        this.noteBoard = document.getElementById(boardId);
+        this.csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        this.colors = colors.length ? colors : ['#FFEB3B', '#FFCDD2', '#C8E6C9', '#BBDEFB', '#FFF9C4', '#FFE0B2'];
+
+        this.addCardBtn.addEventListener('click', () => this.showColorPicker());
+
+        this.authors = [
+            username,
+            ...username_data
+                .filter(user => {
+                    const fullName = [user.first_name?.trim(), user.last_name?.trim()].filter(Boolean).join(' ');
+                    return user.username !== username && fullName !== username;
+                })
+                .map(user => {
+                    const labelParts = [];
+                    if (user.first_name?.trim()) labelParts.push(user.first_name.trim());
+                    if (user.last_name?.trim()) labelParts.push(user.last_name.trim());
+
+                    // Возвращаем "Имя Фамилия" или просто "Имя" или просто "Фамилия", если только оно есть
+                    return labelParts.length > 0 ? labelParts.join(' ') : user.username;
+                }),
+            'Всем!'
+        ];
+
+
+        this.currentAuthorIndex = 0;
+        this.noteData = notes_data;
+
+        this.initSortable();
+        document.getElementById('btn-notes').addEventListener('click', () => {
+            const itemName = document.getElementById('item-name');
+            itemName.scrollIntoView({behavior: 'smooth', block: 'start'});
+        });
+    }
+
+    /**
+     * Инициализирует drag-and-drop сортировку с помощью библиотеки Sortable.js.
+     */
+    initSortable() {
+        Sortable.create(this.noteBoard, {
+            animation: 500,
+            handle: '.note-card',
+            ghostClass: 'opacity-50',
+            onEnd: () => this.updateNoteOrders(),
+        });
+    }
+
+    /**
+     * Загружает заметки из переданных данных при инициализации.
+     */
+    loadInitialNotes() {
+        if (Array.isArray(this.noteData)) {
+            this.noteData.forEach(note => this.buildNoteCard(note));
+        }
+    }
+
+    /**
+     * Показывает всплывающее меню выбора цвета для новой заметки.
+     */
+    showColorPicker() {
+        if (document.getElementById('color-picker')) return;
+
+        const picker = document.createElement('div');
+        picker.id = 'color-picker';
+        picker.className = 'fixed bottom-25 right-7 bg-white p-2.5 rounded-lg shadow-md flex gap-2.5 z-[9999]';
+
+        this.colors.forEach(color => {
+            const colorBtn = document.createElement('div');
+            colorBtn.style.backgroundColor = color;
+            colorBtn.className = 'w-7.5 h-7.5 rounded-md cursor-pointer';
+            colorBtn.title = color;
+
+            colorBtn.addEventListener('click', () => {
+                this.buildNoteCard({color});
+                picker.remove();
+            });
+
+            picker.appendChild(colorBtn);
+        });
+
+        document.body.appendChild(picker);
+
+        const onClickOutside = (e) => {
+            if (!picker.contains(e.target)) {
+                picker.remove();
+                document.removeEventListener('click', onClickOutside);
+            }
+        };
+        setTimeout(() => document.addEventListener('click', onClickOutside), 0);
+    }
+
+    /**
+     * Создаёт HTML-элемент заметки и добавляет его на доску.
+     *
+     * @param {Object} noteData - Данные заметки.
+     * @param {string} [currentUser=username] - Текущий пользователь.
+     * @returns {HTMLElement} Созданная заметка.
+     */
+    buildNoteCard({
+                      id,
+                      text = 'Новая заметка...',
+                      color = '#FFEB3B',
+                      author_name = this.authors[0],
+                      owner = username,
+                      order,
+                      width,
+                      height,
+                  }, currentUser = username) {
+        const noteCard = document.createElement('div');
+        noteCard.className = 'note-card';
+        noteCard.style.backgroundColor = color;
+        if (width) noteCard.style.width = `${width}px`;
+        if (height) noteCard.style.height = `${height}px`;
+
+        if (id !== undefined) noteCard.dataset.id = id;
+        if (owner !== undefined) noteCard.dataset.user = owner;
+        noteCard.dataset.order = order ?? this.noteBoard.children.length;
+
+        // --- Автор ---
+        const authorBtn = document.createElement('button');
+        authorBtn.className = 'relative author-btn';
+        authorBtn.textContent = author_name;
+
+        const dropdown = document.createElement('div');
+        dropdown.className = 'dropdown  opacity-0 scale-y-0 invisible';
+        document.body.appendChild(dropdown);
+
+        let authorDropdownTimeout;
+
+        const hideDropdown = () => {
+            clearTimeout(authorDropdownTimeout);
+            dropdown.classList.add('opacity-0', 'scale-y-0', 'invisible');
+            dropdown.classList.remove('opacity-100', 'scale-y-100', 'visible');
+        };
+
+        const resetAuthorDropdownTimeout = () => {
+            clearTimeout(authorDropdownTimeout);
+            authorDropdownTimeout = setTimeout(hideDropdown, 5000);
+        };
+
+        const showDropdown = () => {
+            const rect = authorBtn.getBoundingClientRect();
+            const dropdownWidth = dropdown.offsetWidth;
+            const dropdownHeight = dropdown.offsetHeight;
+
+            let left = rect.right - dropdownWidth + window.scrollX;
+            let top = rect.bottom + 4 + window.scrollY;
+
+            // Проверка выхода за левую границу
+            if (left < 0) {
+                left = rect.left + window.scrollX;  // ставим слева от кнопки
+            }
+
+            // Проверка выхода за правую границу
+            const screenRight = window.innerWidth + window.scrollX;
+            if (left + dropdownWidth > screenRight) {
+                left = screenRight - dropdownWidth - 10; // отступ 10px от края
+            }
+
+            // Проверка выхода вниз за экран (по желанию)
+            const screenBottom = window.innerHeight + window.scrollY;
+            if (top + dropdownHeight > screenBottom) {
+                top = rect.top - dropdownHeight - 4 + window.scrollY; // открыть вверх
+            }
+
+            dropdown.style.top = `${top}px`;
+            dropdown.style.left = `${left}px`;
+
+            dropdown.classList.remove('opacity-0', 'scale-y-0', 'invisible');
+            dropdown.classList.add('opacity-100', 'scale-y-100', 'visible');
+
+            resetAuthorDropdownTimeout();
+        };
+
+
+        this.authors.forEach(name => {
+            const option = document.createElement('div');
+            option.textContent = name;
+            option.addEventListener('click', () => {
+                authorBtn.textContent = name;
+                hideDropdown();
+                this.sendNoteUpdate(noteCard);
+            });
+            dropdown.appendChild(option);
+        });
+
+        if (currentUser === owner) {
+            authorBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isHidden = dropdown.classList.contains('invisible');
+                isHidden ? showDropdown() : hideDropdown();
+            });
+            dropdown.addEventListener('mouseenter', resetAuthorDropdownTimeout);
+        } else {
+            authorBtn.disabled = true;
+            authorBtn.title = 'Вы не можете менять автора этой заметки';
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!dropdown.contains(e.target) && !authorBtn.contains(e.target)) {
+                hideDropdown();
+            }
+        });
+
+        const authorContainer = document.createElement('div');
+        authorContainer.className = 'flex justify-end mb-1';
+        authorContainer.appendChild(authorBtn);
+
+        // --- Контент ---
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'content-area ';
+        contentDiv.contentEditable = true;
+        contentDiv.spellcheck = false;
+        contentDiv.innerHTML = text;
+
+        contentDiv.addEventListener('blur', () => this.sendNoteUpdate(noteCard));
+
+        // --- Удаление ---
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = '×';
+        deleteBtn.title = 'Удалить заметку';
+        deleteBtn.className = 'delete-btn';
+
+        if (currentUser === owner || currentUser === author_name) {
+            deleteBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const data = {
+                    stickerData: contentDiv.textContent.slice(0, 30) || 'заметку'
+                }
+                const confirmed = await this.showDeleteConfirmation(data);
+                if (!confirmed) return;
+                const noteId = noteCard.dataset.id;
+                if (noteId) this.deleteNoteFromServer(noteId);
+                noteCard.remove();
+            });
+        } else {
+            deleteBtn.disabled = true;
+            deleteBtn.title = 'Вы не можете удалить заметку, вы ее не создавали';
+        }
+
+        // --- Сборка карточки ---
+        noteCard.append(authorContainer, contentDiv, deleteBtn);
+
+        noteCard.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('delete-btn')) contentDiv.focus();
+        });
+
+        contentDiv.addEventListener('input', () => {
+            noteCard.style.height = '';
+            noteCard.style.width = '';
+        });
+
+        this.noteBoard.appendChild(noteCard);
+
+        if (!id) {
+            this.sendNoteCreate(noteCard, {
+                text: contentDiv.innerHTML,
+                color: noteCard.style.backgroundColor,
+                author_name: authorBtn.textContent
+            });
+        }
+
+        return noteCard;
+    }
+
+
+    /**
+     * Отправляет запрос на создание новой заметки.
+     *
+     * @param {HTMLElement} noteCard
+     * @param {Object} data
+     */
+    async sendNoteCreate(noteCard, data) {
+        const payload = {
+            text: data.text,
+            color: data.color,
+            author_name: data.author_name,
+            width: noteCard.offsetWidth,
+            height: noteCard.offsetHeight,
+            order: [...this.noteBoard.children].indexOf(noteCard),
+        };
+
+        try {
+            const response = await fetch('', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.csrfToken,
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const result = await response.json();
+            if (!response.ok) throw result;
+
+            const createdNote = result.data ?? result;
+            noteCard.setAttribute('data-id', createdNote.id);
+            noteCard.setAttribute('data-user', username);
+
+            this.showSuccessMessage(`Заметка создана: ${createdNote.id}`);
+        } catch (errorData) {
+            this.handleServerError(errorData, 'Не удалось создать заметку');
+        }
+    }
+
+    /**
+     * Отправляет PATCH-запрос на обновление заметки.
+     *
+     * @param {HTMLElement} noteCard
+     */
+    async sendNoteUpdate(noteCard) {
+        const noteId = noteCard.getAttribute('data-id');
+        if (!noteId) return;
+
+        const contentDiv = noteCard.querySelector('[contenteditable]');
+        const authorBtn = noteCard.querySelector('.author-btn');
+        const order = [...this.noteBoard.children].indexOf(noteCard);
+
+        const payload = {
+            id: noteId,
+            text: contentDiv.innerHTML,
+            color: noteCard.style.backgroundColor,
+            author_name: authorBtn.textContent,
+            width: noteCard.offsetWidth,
+            height: noteCard.offsetHeight,
+            order,
+        };
+
+        try {
+            const response = await fetch(``, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.csrfToken,
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const result = await response.json();
+            if (!response.ok) throw result;
+
+            noteCard.setAttribute('data-order', order);
+            // this.showSuccessMessage(`Заметка ${noteId} обновлена`);
+        } catch (errorData) {
+            this.handleServerError(errorData, 'Не удалось обновить заметку');
+        }
+    }
+
+    /**
+     * Удаляет заметку с сервера по ID.
+     *
+     * @param {string} noteId
+     */
+    async deleteNoteFromServer(noteId) {
+        try {
+            const response = await fetch(`${noteId}/`, {
+                method: 'DELETE',
+                headers: {'X-CSRFToken': this.csrfToken},
+            });
+
+            if (!response.ok) throw await response.json();
+
+            const noteCard = this.noteBoard.querySelector(`[data-id="${noteId}"]`);
+            if (noteCard) noteCard.remove();
+
+            this.showSuccessMessage(`Заметка ${noteId} удалена`);
+        } catch (errorData) {
+            this.handleServerError(errorData, 'Не удалось удалить заметку');
+        }
+    }
+
+    /**
+     * Отображает всплывающее сообщение об успешном действии.
+     *
+     * @param {string} message
+     */
+    showSuccessMessage(message) {
+        const serverInfo = document.getElementById('server-info');
+        const messageParagraph = serverInfo.querySelector('p');
+
+        // Очистка предыдущего таймера, если он ещё активен
+        if (this.successMessageTimeout) {
+            clearTimeout(this.successMessageTimeout);
+        }
+
+        // Показываем сообщение
+        serverInfo.classList.remove('hidden', 'animate-popup-reverse');
+        serverInfo.classList.add('flex', 'animate-popup');
+        messageParagraph.textContent = message;
+        serverInfo.scrollIntoView({behavior: 'smooth', block: 'start'});
+
+        // Устанавливаем новый таймер скрытия
+        this.successMessageTimeout = setTimeout(() => {
+            serverInfo.classList.remove('animate-popup');
+            serverInfo.classList.add('animate-popup-reverse');
+            setTimeout(() => {
+                serverInfo.classList.add('hidden');
+                serverInfo.classList.remove('flex', 'animate-popup-reverse');
+            }, 1000);
+            this.successMessageTimeout = null; // очищаем
+        }, 5000);
+    }
+
+
+    /**
+     * Обновляет порядок заметок на доске и отправляет обновления на сервер.
+     */
+    updateNoteOrders() {
+        [...this.noteBoard.children].forEach((noteCard, index) => {
+            const currentOrder = parseInt(noteCard.getAttribute('data-order'));
+            if (currentOrder !== index) {
+                noteCard.setAttribute('data-order', index);
+                this.sendNoteUpdate(noteCard);
+            }
+        });
+    }
+
+    /**
+     * Обрабатывает ошибки сервера и отображает соответствующие сообщения.
+     *
+     * @param {Object} errorData
+     * @param {string} fallbackMessage
+     */
+    handleServerError(errorData, fallbackMessage) {
+        console.error(fallbackMessage, errorData);
+        if (errorData?.errors) {
+            for (const [field, messages] of Object.entries(errorData.errors)) {
+                messages.forEach(message => {
+                    showError(`Ошибка в поле "${field}" - "${message}"`);
+                });
+            }
+        } else {
+            showError(fallbackMessage);
+        }
+    }
+
+    async showDeleteConfirmation(data) {
+        return new Promise((resolve) => {
+            const serverInfo = document.getElementById('server-info');
+            serverInfo.classList.remove('hidden', 'animate-popup-reverse');
+            serverInfo.classList.add('flex', 'animate-popup');
+            serverInfo.querySelector('h3').textContent = 'Подтверждение удаления стикера';
+            serverInfo.querySelector('p').textContent =
+                `Вы уверены, что хотите удалить "${data.stickerData}"?`;
+            serverInfo.scrollIntoView({behavior: 'smooth', block: 'start'});
+
+            const divBtn = document.getElementById('btn-div');
+            divBtn.innerHTML = '';
+
+            const confirmBtn = document.createElement('button');
+            confirmBtn.id = 'confirm-delete';
+            confirmBtn.textContent = 'Удалить';
+            confirmBtn.classList.add('btn-submit', '!p-1', '!font-medium');
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.id = 'cancel-delete';
+            cancelBtn.textContent = 'Отмена';
+            cancelBtn.classList.add('btn-cancel', '!p-1', '!font-medium');
+
+            divBtn.appendChild(confirmBtn);
+            divBtn.appendChild(cancelBtn);
+
+            let resolved = false;
+
+            const cleanup = () => {
+                return new Promise((res) => {
+                    serverInfo.classList.remove('animate-popup');
+                    serverInfo.classList.add('animate-popup-reverse');
+                    setTimeout(() => {
+                        divBtn.innerHTML = '';
+                        serverInfo.querySelector('h3').textContent = '';
+                        serverInfo.querySelector('p').textContent = '';
+                        serverInfo.classList.add('hidden');
+                        res();
+                    }, 1000);
+                });
+            };
+
+            const timeoutId = setTimeout(() => {
+                if (resolved) return;
+                resolved = true;
+                cleanup().then(() => resolve(false));
+            }, 30000); // 30 секунд
+
+            confirmBtn.addEventListener('click', () => {
+                if (resolved) return;
+                resolved = true;
+                clearTimeout(timeoutId);
+                cleanup().then(() => resolve(true));
+            });
+
+            cancelBtn.addEventListener('click', () => {
+                if (resolved) return;
+                resolved = true;
+                clearTimeout(timeoutId);
+                cleanup().then(() => resolve(false));
+            });
+        });
+    }
+
+}
+

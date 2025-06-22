@@ -1,5 +1,7 @@
 @import "tailwindcss";
 @import "../../node_modules/flowbite/src/themes/default.css";
+@import 'choices.js/public/assets/styles/choices.min.css';
+
 
 @plugin "flowbite/plugin";
 @source "../../node_modules/flowbite";
@@ -7,6 +9,7 @@
 @source "../../../file_creator/templates/**/*.html";
 @source "../../../cities/templates/**/*.html";
 @source "../../../statistics_app/templates/**/*.html";
+@source "../../../stickers/templates/**/*.html";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -77,22 +80,22 @@
 
 }
 h1 {
-    @apply text-xl md:text-3xl font-logo text-center font-extrabold tracking-widest
+    @apply text-xl md:text-2xl  xl:text-3xl font-logo text-center font-extrabold tracking-widest
     bg-gradient-to-r from-[#FF6B00] to-[#DA00FF]
     bg-clip-text text-transparent;
 }
 
 h2 {
-    @apply text-lg md:text-2xl font-bold
+    @apply text-lg md:text-xl xl:text-2xl font-bold
     text-accent dark:text-accent-dark;
 }
 
 h3 {
-    @apply text-sm md:text-xl  font-semibold;
+    @apply text-text dark:text-text-dark text-sm md:text-lg xl:text-xl  font-semibold;
 }
 
 p {
-    @apply text-sm md:text-base;
+    @apply text-xs md:text-sm xl:text-base;
 }
 
 .nav-style {
@@ -111,7 +114,7 @@ p {
 
 .burger-button {
     @apply block text-surface dark:text-surface-dark
-    p-2 text-sm md:text-base w-full text-left font-medium
+    p-2 text-xs md:text-sm xl:text-base w-full text-left font-medium
     rounded-xl transition-colors duration-200
     hover:bg-accent dark:hover:bg-accent-dark;
 }
@@ -119,10 +122,10 @@ p {
 .form-style {
     @apply bg-surface dark:bg-surface-dark
     border border-form-color dark:border-form-color-dark
-    p-8 rounded-lg
+    p-8 rounded-lg max-h-[95vh] overflow-y-auto
     shadow-xl shadow-secondary dark:shadow-2xl dark:shadow-secondary-dark
-    w-full max-w-lg space-y-6
-    text-sm md:text-base;
+    w-full min-w-xs max-w-[96%] sm:max-w-lg space-y-6
+    text-xs md:text-sm xl:text-base;
 }
 
 .theme-toggle {
@@ -145,7 +148,7 @@ p {
     hover:bg-primary-dark dark:hover:bg-primary
     transition-colors duration-300 active:scale-95
     focus:outline-none focus:ring-3 focus:ring-primary/50 dark:focus:ring-primary
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 }
 
 .btn-cancel {
@@ -155,7 +158,7 @@ p {
     hover:bg-secondary-dark dark:hover:bg-secondary
     transition-colors duration-300 active:scale-95
     focus:outline-none focus:ring-3 focus:ring-secondary/50 dark:focus:ring-secondary
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 }
 
 .btn-delete {
@@ -165,17 +168,17 @@ p {
     hover:bg-error-dark dark:hover:bg-error
     transition-colors duration-300 active:scale-95
     focus:outline-none focus:ring-3 focus:ring-error/50 dark:focus:ring-error
-    text-xs md:text-sm;
+    text-xs md:text-sm xl:text-base;
 }
 
 .correct_label {
     @apply text-text dark:text-text-dark
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 }
 
 .error_label {
     @apply text-error dark:text-error-dark
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 }
 
 .correct_input {
@@ -186,7 +189,7 @@ p {
     bg-background dark:bg-background-dark
     focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary-dark
     placeholder:text-secondary dark:placeholder:text-secondary-dark
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 
 }
 
@@ -198,11 +201,11 @@ p {
     bg-background dark:bg-background-dark
     focus:outline-none focus:ring-2 focus:ring-error/50 dark:focus:ring-error-dark/50
     placeholder:text-error/75 dark:placeholder:text-error-dark/75
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 }
 
 .correct_icon {
-    @apply size-5 md:size-6 text-accent dark:text-accent-dark transition-all duration-500;
+    @apply size-5 md:size-6 text-accent dark:text-accent-dark transition-discrete duration-300;
 }
 
 .error_icon {
@@ -227,7 +230,8 @@ p {
 
 .common_error {
     @apply items-center
-    text-sm md:text-base text-start  rounded-lg p-4 mb-4
+    absolute top-5 left-5 right-5
+    text-xs md:text-sm xl:text-base text-start  rounded-lg p-4 mb-4
     text-error dark:text-error-dark
     border border-error dark:border-error-dark
     bg-surface dark:bg-surface-dark;
@@ -235,7 +239,8 @@ p {
 
 .common_info {
     @apply items-center
-    text-sm md:text-base text-start  rounded-lg p-4 mb-4
+    absolute top-5 left-5 right-5
+    text-xs md:text-sm xl:text-base text-start  rounded-lg p-4 mb-4
     text-info dark:text-info-dark
     border border-info dark:border-info-dark
     bg-surface dark:bg-surface-dark;
@@ -310,7 +315,11 @@ p {
 .li-style {
     @apply flex items-center
     text-secondary dark:text-secondary-dark space-x-2.5 cursor-pointer
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
+}
+
+.li-style h3 {
+    @apply text-xs md:text-sm xl:text-base;
 }
 
 .li-style span {
@@ -318,13 +327,18 @@ p {
     w-8 h-8
     border border-secondary  dark:border-secondary-dark
     rounded-full shrink-0
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 }
 
 .li-style-active {
     @apply flex items-center
     text-primary dark:text-primary-dark space-x-2.5 cursor-pointer
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
+}
+
+.li-style-active h3 {
+    @apply text-primary dark:text-primary-dark
+    text-xs md:text-sm xl:text-base;
 }
 
 .li-style-active span {
@@ -332,13 +346,18 @@ p {
     w-8 h-8
     border border-primary dark:border-primary-dark
     rounded-full shrink-0
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 }
 
 .li-style-complete {
     @apply flex items-center
     text-success dark:text-success-dark space-x-2.5 cursor-pointer
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
+}
+
+.li-style-complete h3 {
+    @apply text-success dark:text-success-dark
+    text-xs md:text-sm xl:text-base;
 }
 
 .li-style-complete span {
@@ -346,7 +365,7 @@ p {
     w-8 h-8
     border border-success dark:border-success-dark
     rounded-full shrink-0
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 }
 
 /* Начальное состояние для скрытого блока */
@@ -366,7 +385,7 @@ p {
     gap-3
     bg-surface dark:bg-surface-dark
     text-text dark:text-text-dark
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 }
 
 .file-item:hover {
@@ -380,7 +399,7 @@ p {
 .file-name {
     @apply cursor-pointer transition-colors
     duration-200 gap-3
-    text-sm md:text-base;
+    text-xs md:text-sm xl:text-base;
 }
 
 .textarea-custom {
@@ -435,3 +454,104 @@ p {
     dark:border-accent-dark
     hover:scale-105 transition-all duration-500;
 }
+
+.note-card {
+    @apply relative flex flex-col p-4 rounded-xl shadow-md cursor-text
+    select-text max-h-[1000px] duration-500 overflow-auto
+    transition-shadow outline-none resize min-h-[200px]
+    min-w-[180px] max-w-full w-auto;
+}
+
+.dropdown {
+    @apply absolute z-50 bg-form-color dark:bg-form-color-dark opacity-92 rounded-xl shadow transition-all duration-200 origin-top;
+}
+
+.dropdown div {
+    @apply px-2 py-1 hover:bg-accent hover:dark:bg-accent-dark rounded-xl text-text dark:text-text-dark cursor-pointer;
+}
+
+.content-area {
+    @apply flex-1 outline-none max-h-[1000px] overflow-y-auto;
+}
+
+
+.add-button {
+    @apply fixed bottom-6 right-6 bg-background dark:bg-background-dark
+    hover:bg-primary dark:hover:bg-primary-dark hover:scale-120
+    border-2  border-accent
+    transition-all duration-200
+    ease-in-out active:scale-95 active:rotate-360
+    text-text dark:text-text-dark w-15 h-15 rounded-full shadow-xl text-2xl flex items-center justify-center ;
+}
+
+
+.delete-btn {
+    @apply absolute top-1.5 right-1.5 bg-transparent border-0 text-gray-600 text-xl cursor-pointer select-none p-0 leading-none z-10;
+}
+
+
+.delete-btn {
+    @apply absolute top-1 right-2 text-lg text-gray-700 hover:text-red-600 font-bold bg-transparent border-none cursor-pointer ;
+    line-height: 1;
+    user-select: none;
+}
+
+.author-btn {
+    @apply bg-accent text-text text-sm font-medium mr-3 px-4 py-0.5 rounded-sm dark:bg-accent-dark dark:text-text-dark cursor-pointer
+}
+
+.task-card {
+    @apply bg-surface dark:bg-surface-dark p-4 rounded-xl shadow relative cursor-pointer border-l-10;
+}
+
+/* Внешний контейнер */
+.choices {
+    @apply border border-form-color dark:border-form-color-dark
+    rounded-lg p-2 bg-background dark:bg-background-dark;
+}
+
+/* Внутренняя часть */
+.choices__inner {
+    @apply !bg-background dark:!bg-background-dark text-text dark:text-text-dark
+    p-2 rounded-md !border-none ;
+}
+
+/* Поле ввода (input) */
+.choices__input--cloned {
+    @apply text-base p-2 text-text dark:text-text-dark
+    !bg-transparent placeholder-text dark:placeholder-text-dark
+    !border-none !ring-0 !outline-none focus:!ring-0 focus:!outline-none focus:!border-none w-full;
+}
+
+.choices__list--multiple {
+    @apply flex flex-wrap gap-1 mt-2 ;
+}
+
+
+.choices__item {
+    @apply bg-background dark:bg-background-dark text-text dark:text-text-dark  px-2 py-1 text-sm rounded;
+}
+
+.choices__list--dropdown {
+    @apply !bg-background dark:!bg-background-dark border border-form-color dark:border-form-color-dark
+    rounded-xl shadow-lg mt-1 ;
+}
+
+.choices__item--choice {
+    @apply px-3 py-2 text-sm cursor-pointer hover:!bg-accent dark:hover:!bg-accent-dark;
+}
+
+.choices__item--choice.is-highlighted {
+    @apply !bg-accent text-white dark:!bg-accent-dark;
+}
+
+/*!* Тег с кнопкой удаления (выбранный элемент) *!*/
+/*.choices__item--selectable {*/
+/*    @apply !bg-accent text-white dark:!bg-accent-dark dark:text-white*/
+/*    text-sm px-3 py-1 rounded-lg flex items-center gap-2;*/
+/*}*/
+
+
+
+
+

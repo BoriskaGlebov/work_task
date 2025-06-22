@@ -5,6 +5,7 @@ from django.db import models
 
 # Create your models here.
 
+
 class TableNames(models.Model):
     """
     Модель, которая хранит названия таблиц с адресами.
@@ -149,9 +150,12 @@ class CityData(models.Model):
 
         if is_new:
             # Получаем максимальный dock_num для текущей table_id
-            last_dock_num = CityData.objects.filter(
-                table_id=self.table_id
-            ).aggregate(models.Max("dock_num"))["dock_num__max"] or 0
+            last_dock_num = (
+                CityData.objects.filter(table_id=self.table_id).aggregate(
+                    models.Max("dock_num")
+                )["dock_num__max"]
+                or 0
+            )
 
             # Если dock_num явно указан и он больше
             if self.dock_num and self.dock_num > last_dock_num + 1:
@@ -205,13 +209,15 @@ class CounterCities(models.Model):
         verbose_name_plural (str): Отображаемое имя модели во множественном числе.
             В данном случае: "Счетчики городов"
     """
+
     processed_at: models.DateTimeField = models.DateTimeField(
         auto_now_add=True, verbose_name="Дата создания/обновления"
     )
-    dock_num: models.OneToOneField = models.OneToOneField(CityData, on_delete=models.CASCADE,
-                                                          verbose_name="Пункт в таблице документов")
+    dock_num: models.OneToOneField = models.OneToOneField(
+        CityData, on_delete=models.CASCADE, verbose_name="Пункт в таблице документов"
+    )
     count_responses: models.IntegerField = models.IntegerField(
-        verbose_name="Количество запросов к этому городу",default=0
+        verbose_name="Количество запросов к этому городу", default=0
     )
 
     class Meta:

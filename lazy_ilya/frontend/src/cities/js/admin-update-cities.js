@@ -106,7 +106,13 @@ export class CityFormHandler {
         this.saveCity.addEventListener('click', async () => {
             if (!this.tableSelect.value) {
                 showError('Пожалуйста, выберите название таблицы');
-                this.tableSelect.focus();
+                this.tableSelect.classList.remove("correct_input");
+                this.tableSelect.classList.add("error_input");
+                setTimeout(() => {
+                    this.tableSelect.classList.remove("error_input");
+                    this.tableSelect.classList.add("correct_input");
+                    this.tableSelect.focus();
+                }, 4000);
                 return;
             }
 
@@ -143,9 +149,23 @@ export class CityFormHandler {
                 } else {
                     const errorData = await response.json();
                     let errorMsg = '';
+                    console.log(errorData)
                     for (const field in errorData.errors) {
                         errorMsg += `${field}: ${errorData.errors[field].join(', ')}\n`;
+                        if (field === "some_number") {
+                            const input = document.querySelector(`input[name="${field}"]`);
+                            if (input) {
+                                input.classList.remove("correct_input");
+                                input.classList.add("error_input");
+                                setTimeout(() => {
+                                    input.classList.remove("error_input");
+                                    input.classList.add("correct_input");
+                                    input.focus();
+                                }, 4000);
+                            }
+                        }
                     }
+
                     showError('Ошибка при сохранении:\n' + errorMsg);
                 }
             } catch (err) {
@@ -200,20 +220,29 @@ export class CityFormHandler {
      * @param {string} message
      */
     showSuccessMessage(message) {
-        const serverInfo = this.infoMessage;
+        const serverInfo = document.getElementById('server-info');
+        const messageParagraph = serverInfo.querySelector('p');
+
+        // Очистка предыдущего таймера, если он ещё активен
+        if (this.successMessageTimeout) {
+            clearTimeout(this.successMessageTimeout);
+        }
+
+        // Показываем сообщение
         serverInfo.classList.remove('hidden', 'animate-popup-reverse');
         serverInfo.classList.add('flex', 'animate-popup');
-        serverInfo.querySelector('p').textContent = message;
+        messageParagraph.textContent = message;
         serverInfo.scrollIntoView({behavior: 'smooth', block: 'start'});
 
-        setTimeout(() => {
+        // Устанавливаем новый таймер скрытия
+        this.successMessageTimeout = setTimeout(() => {
             serverInfo.classList.remove('animate-popup');
             serverInfo.classList.add('animate-popup-reverse');
-            serverInfo.scrollIntoView({behavior: 'smooth', block: 'start'});
             setTimeout(() => {
                 serverInfo.classList.add('hidden');
                 serverInfo.classList.remove('flex', 'animate-popup-reverse');
             }, 1000);
-        }, 4000);
+            this.successMessageTimeout = null; // очищаем
+        }, 5000);
     }
 }

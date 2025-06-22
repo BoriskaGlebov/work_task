@@ -23,8 +23,8 @@ class LoginAjaxView(LoginView):
         success_url (str): URL перенаправления после успешного входа.
     """
 
-    template_name = 'myauth/login.html'
-    success_url = reverse_lazy('file_creator:file-creator-start')
+    template_name = "myauth/login.html"
+    success_url = reverse_lazy("file_creator:file-creator-start")
 
     def form_invalid(self, form) -> HttpResponse:
         """
@@ -39,9 +39,9 @@ class LoginAjaxView(LoginView):
         Returns:
             HttpResponse | JsonResponse: Ответ с ошибками или обычный ответ.
         """
-        if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
             errors = form.errors.get_json_data()
-            return JsonResponse({'success': False, 'errors': errors}, status=400)
+            return JsonResponse({"success": False, "errors": errors}, status=400)
         return super().form_invalid(form)
 
     def form_valid(self, form) -> HttpResponse:
@@ -58,8 +58,10 @@ class LoginAjaxView(LoginView):
             HttpResponse | JsonResponse
         """
         response = super().form_valid(form)
-        if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
-            return JsonResponse({'success': True, 'redirect_url': self.get_success_url()})
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse(
+                {"success": True, "redirect_url": self.get_success_url()}
+            )
         return response
 
 
@@ -76,8 +78,8 @@ class RegisterView(CreateView):
 
     model = CustomUser
     form_class = CustomUserCreationForm
-    template_name = 'myauth/registration.html'
-    success_url = reverse_lazy('file_creator:file-creator-start')
+    template_name = "myauth/registration.html"
+    success_url = reverse_lazy("file_creator:file-creator-start")
 
     def form_valid(self, form) -> JsonResponse:
         """
@@ -97,8 +99,10 @@ class RegisterView(CreateView):
             self.object.groups.add(group)
 
         login(self.request, self.object)
-        if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
-            return JsonResponse({'success': True, 'redirect_url': self.get_success_url()})
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse(
+                {"success": True, "redirect_url": self.get_success_url()}
+            )
         return response
 
     def form_invalid(self, form) -> JsonResponse:
@@ -115,8 +119,8 @@ class RegisterView(CreateView):
         """
         errors = {field: error[0] for field, error in form.errors.items()}
         logger.warning(errors)
-        if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
-            return JsonResponse({'success': False, 'errors': errors}, status=400)
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"success": False, "errors": errors}, status=400)
         return super().form_invalid(form)
 
 
@@ -134,9 +138,9 @@ class CustomPasswordResetView(FormView):
         form_invalid(form): Обрабатывает неуспешную валидацию формы. Возвращает ошибки в JSON-формате при AJAX-запросе.
     """
 
-    template_name: str = 'myauth/reset_password.html'
+    template_name: str = "myauth/reset_password.html"
     form_class = PasswordResetForm
-    success_url = reverse_lazy('myauth:login')
+    success_url = reverse_lazy("myauth:login")
 
     def form_valid(self, form: PasswordResetForm) -> HttpResponse:
         """
@@ -149,13 +153,15 @@ class CustomPasswordResetView(FormView):
             HttpResponse: JSON-ответ при AJAX-запросе или стандартный редирект.
         """
         user = form.user
-        user.set_password(form.cleaned_data['password1'])
+        user.set_password(form.cleaned_data["password1"])
         user.save()
 
         # login(self.request, user)  # Автоматический вход (если нужен)
 
-        if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
-            return JsonResponse({'success': True, 'redirect_url': str(self.get_success_url())})
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse(
+                {"success": True, "redirect_url": str(self.get_success_url())}
+            )
 
         return super().form_valid(form)
 
@@ -169,7 +175,7 @@ class CustomPasswordResetView(FormView):
         Returns:
             HttpResponse: JSON с ошибками или стандартный ответ.
         """
-        if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
-            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"success": False, "errors": form.errors}, status=400)
 
         return super().form_invalid(form)

@@ -72,7 +72,7 @@ export async function runStep2(data, step3, formDiv3) {
 
             li.addEventListener('click', () => {
                 // window.scrollTo({top: 0, behavior: 'smooth'});
-                fileContentTextarea.scrollIntoView({behavior: 'smooth', block: 'start'});
+                formDiv3.scrollIntoView({behavior: 'smooth', block: 'start'});
                 fileContentTextarea.value = fileContentMap.get(file);
                 fileContentTextarea.disabled = false;
                 fileContentTextarea.style.height = "auto";
@@ -106,7 +106,7 @@ export async function runStep2(data, step3, formDiv3) {
 
                 const btnDiv = document.getElementById('btn-div');
                 serverInfo.classList.remove('hidden');
-                serverInfo.scrollIntoView({behavior: 'smooth', block: 'start'});
+                formDiv3.scrollIntoView({behavior: 'smooth', block: 'start'});
                 serverInfo.classList.add('flex', 'animate-popup');
 
                 serverInfo.querySelector('h3').textContent = `Удалить файл "${file}"?`;

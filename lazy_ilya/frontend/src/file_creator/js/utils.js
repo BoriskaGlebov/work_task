@@ -1,3 +1,5 @@
+let errorTimeout = null;
+
 /**
  * Показывает анимированный блок с сообщением об ошибке на странице.
  *
@@ -35,15 +37,21 @@ export function showError(error, elementId = 'server-error') {
         return;
     }
 
+    // Сброс предыдущего таймера
+    if (errorTimeout) {
+        clearTimeout(errorTimeout);
+    }
+
+    // Обновление текста и отображение
     errorBlock.classList.remove('hidden', 'animate-popup-reverse');
     errorBlock.classList.add('flex', 'animate-popup');
     errorText.textContent = (typeof error === 'string' ? error : error.message) || 'Произошла ошибка при отправке данных';
-    // Мягкий скролл к блоку ошибки
     errorBlock.scrollIntoView({behavior: 'smooth', block: 'start'});
 
     console.error('Ошибка запроса:', error);
 
-    setTimeout(() => {
+    // Новый таймер скрытия
+    errorTimeout = setTimeout(() => {
         errorBlock.classList.remove('animate-popup');
         errorBlock.classList.add('animate-popup-reverse');
 
@@ -51,6 +59,8 @@ export function showError(error, elementId = 'server-error') {
             errorBlock.classList.add('hidden');
             errorBlock.classList.remove('flex', 'animate-popup-reverse');
         }, 1000);
+
+        errorTimeout = null;
     }, 4000);
 }
 

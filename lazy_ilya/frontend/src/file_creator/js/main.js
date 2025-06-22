@@ -9,10 +9,10 @@ document.addEventListener('DOMContentLoaded', () => {
     setupFormValidation();
     setupStepNavigation();
     setupFileUpload();
-    const aEl = document.getElementById('a-main')
+    const aEl = document.getElementById('a-file-creator')
     aEl.classList.toggle('bg-accent');
     aEl.classList.toggle('dark:bg-accent-dark');
-    const aElMob = document.getElementById('a-main-mob')
+    const aElMob = document.getElementById('a-file-creator-mob')
     aElMob.classList.toggle('bg-accent');
     aElMob.classList.toggle('dark:bg-accent-dark');
 
