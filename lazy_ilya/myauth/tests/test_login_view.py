@@ -11,7 +11,7 @@ class LoginAjaxViewTest(TestCase):
             username="testuser123", password="securepass123"
         )
         self.login_url = reverse("myauth:login")
-        self.redirect_url = reverse("file_creator:file-creator-start")
+        self.redirect_url = reverse("stickers:stickers")
 
     def test_login_success_ajax(self):
         response = self.client.post(

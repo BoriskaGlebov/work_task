@@ -21,7 +21,7 @@ export default async function handleSaveClick(data, formDiv3, step3, step4, spin
         spinner3.classList.remove('hidden');
 
         // Сохраняем данные
-        const result = await saveAllChanges(data.new_files, data.content, '/');
+        const result = await saveAllChanges(data.new_files, data.content, '/file-creator');
 
         if (result === true) {
             // Прячем спиннер после сохранения

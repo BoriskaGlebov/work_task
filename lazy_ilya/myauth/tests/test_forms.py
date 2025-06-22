@@ -2,7 +2,7 @@ from django.test import TestCase
 
 from myauth.forms import CustomUserCreationForm, PasswordResetForm
 from myauth.models import CustomUser
-
+from lazy_ilya.utils.settings_for_app import settings
 
 class CustomUserCreationFormTests(TestCase):
     def test_valid_data(self):
@@ -11,7 +11,7 @@ class CustomUserCreationFormTests(TestCase):
                 "username": "testuser",
                 "first_name": "Имя",
                 "last_name": "Фамилия",
-                "phone_number": "+79991112233",
+                "phone_number": settings.ALLOWED_PHONE_NUMBERS[-1],
                 "email": "user@example.com",
                 "password1": "securepass123",
                 "password2": "securepass123",
