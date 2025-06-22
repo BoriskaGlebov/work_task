@@ -32,9 +32,10 @@ class StickyNoteView(LoginRequiredMixin, View):
             Q(owner=request.user) |
             Q(author_name="Всем!") |
             Q(author_name=request.user.first_name) |
-            Q(author_name=request.user.username)
+            Q(author_name=request.user.username) |
+            Q(author_name=f"{request.user.first_name} {request.user.last_name}")
         )
-
+        print(notes)
         users = list(CustomUser.objects.filter(is_active=True).values(
             'username', 'first_name', 'last_name'
         ))
