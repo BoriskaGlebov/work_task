@@ -32,6 +32,8 @@ class TaskViewTests(TestCase):
         self.assertEqual(data['title'], 'Test Task')
         self.assertEqual(data['author'], self.user.username)
         self.assertFalse(data['done'])
+        self.assertFalse(data['deleted'])
+        self.assertIsNone(data['deleted_by'])
 
     def test_create_task_with_assignee_and_tags(self):
         response = self.client.post(
@@ -47,6 +49,8 @@ class TaskViewTests(TestCase):
         data = response.json()
         self.assertEqual(data['assignee'], 'mary')
         self.assertEqual(len(data['tags']), 2)
+        self.assertFalse(data['deleted'])
+        self.assertIsNone(data['deleted_by'])
 
     def test_create_task_invalid_json(self):
         response = self.client.post(
@@ -101,7 +105,9 @@ class TaskViewTests(TestCase):
         task = Task.objects.create(title="To delete", author=self.user)
         response = self.client.delete(reverse('stickers:tasks_delete', kwargs={'task_id': task.id}))
         self.assertEqual(response.status_code, 200)
-        self.assertFalse(Task.objects.filter(id=task.id).exists())
+        task.refresh_from_db()
+        self.assertTrue(task.deleted)
+        self.assertEqual(task.deleted_by, self.user)  # предполагается, что удаляет автор
 
     def test_delete_task_not_found(self):
         response = self.client.delete(reverse('stickers:tasks_delete', kwargs={'task_id': 999}))
@@ -119,3 +125,11 @@ class TaskViewTests(TestCase):
         self.assertEqual(response.status_code, 201)
         data = response.json()
         self.assertEqual(data['deadline'], '2030-01-01')
+
+    def test_delete_task_marks_deleted(self):
+        task = Task.objects.create(title="Delete Mark", author=self.user)
+        response = self.client.delete(reverse('stickers:tasks_delete', kwargs={'task_id': task.id}))
+        self.assertEqual(response.status_code, 200)
+        task.refresh_from_db()
+        self.assertTrue(task.deleted)
+        self.assertEqual(task.deleted_by, self.user)

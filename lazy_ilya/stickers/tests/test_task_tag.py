@@ -11,8 +11,10 @@ User = get_user_model()
 
 class TaskModelTest(TestCase):
     def setUp(self):
-        self.author = User.objects.create_user(username='author', password='pass123',phone_number=settings.ALLOWED_PHONE_NUMBERS[-1])
-        self.assignee = User.objects.create_user(username='assignee', password='pass123',phone_number=settings.ALLOWED_PHONE_NUMBERS[-2])
+        self.author = User.objects.create_user(username='author', password='pass123',
+                                               phone_number=settings.ALLOWED_PHONE_NUMBERS[-1])
+        self.assignee = User.objects.create_user(username='assignee', password='pass123',
+                                                 phone_number=settings.ALLOWED_PHONE_NUMBERS[-2])
         self.tag1 = Tag.objects.create(name="Важное")
         self.tag2 = Tag.objects.create(name="Личное")
 
@@ -64,6 +66,8 @@ class TaskModelTest(TestCase):
         self.assertEqual(task_dict['tags'][0]['name'], "Важное")
         self.assertTrue('created_at' in task_dict)
         self.assertTrue('deadline' in task_dict)
+        self.assertFalse(task_dict['deleted'])
+        self.assertIsNone(task_dict['deleted_by'])
 
     def test_created_at_and_updated_at(self):
         task = Task.objects.create(
@@ -73,6 +77,21 @@ class TaskModelTest(TestCase):
         self.assertIsNotNone(task.created_at)
         self.assertIsNotNone(task.updated_at)
         self.assertAlmostEqual(task.created_at, now(), delta=timedelta(seconds=2))
+
+    def test_task_deleted_fields(self):
+        task = Task.objects.create(
+            title="Удалённая задача",
+            author=self.author,
+            deleted=True,
+            deleted_by=self.assignee
+        )
+        self.assertTrue(task.deleted)
+        self.assertEqual(task.deleted_by, self.assignee)
+
+        # проверить to_dict отражает deleted поля
+        task_dict = task.to_dict()
+        self.assertTrue(task_dict['deleted'])
+        self.assertEqual(task_dict['deleted_by'], self.assignee.username)
 
 
 class TagModelTest(TestCase):

@@ -3,6 +3,8 @@ from django.contrib import admin
 # Register your models here.
 # admin.py
 from django.contrib import admin
+from django.utils.html import format_html
+
 from .models import StickyNote, Tag, Task
 from .forms import StickyNoteForm
 
@@ -100,6 +102,7 @@ class TaskAdmin(admin.ModelAdmin):
         "done",  # Завершена ли задача
         "display_tags",  # Отображение тегов
         "author",  # Автор задачи
+        "is_deleted",  # Добавляем поле для отображения удаления
     )
 
     # Фильтры для боковой панели.
@@ -108,6 +111,7 @@ class TaskAdmin(admin.ModelAdmin):
         "done",  # По статусу выполнения
         "tags",  # По тегам
         "assignee",  # По назначенному исполнителю
+        "deleted",  # Добавим фильтр по удалению тоже
     )
 
     # Поиск по полям.
@@ -138,3 +142,12 @@ class TaskAdmin(admin.ModelAdmin):
         return ", ".join(tag.name for tag in obj.tags.all())
 
     display_tags.short_description = "Теги"
+
+    def is_deleted(self, obj: Task) -> str:
+        # Выводим цветной статус: красный - удалено, зеленый - нет
+        if obj.deleted:
+            return format_html('<span style="color: red; font-weight: bold;">Удалено</span>')
+        return format_html('<span style="color: green;">Активна</span>')
+
+    is_deleted.short_description = "Статус удаления"
+    is_deleted.admin_order_field = "deleted"  # Позволяет сортировать по этому полю
