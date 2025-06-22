@@ -150,7 +150,7 @@ logger.add(
            "<magenta>{extra[user]:^15}</magenta> - "
            "<magenta>{extra[filename]:^15}</magenta>",
     rotation="1 day",  # Ротация логов
-    retention="7 days",  # Хранение логов 7 дней
+    retention="30 days",  # Хранение логов 7 дней
     catch=True,
     backtrace=True,
     diagnose=True,

@@ -50,6 +50,7 @@ class CitiesViewTest(TestCase):
             "cities:edit_city", args=[self.city.table_id.id, self.city.dock_num]
         )
         data = {
+            "table_id":self.city.table_id.id,
             "location": "New Location",
             "name_organ": "New Organ",
             "pseudonim": "NewPseud",
