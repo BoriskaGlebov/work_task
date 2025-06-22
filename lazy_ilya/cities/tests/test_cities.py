@@ -1,5 +1,5 @@
 import json
-from msilib import Table
+
 
 from django.test import TestCase, Client
 from django.urls import reverse
