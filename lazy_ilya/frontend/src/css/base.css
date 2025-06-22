@@ -1,5 +1,7 @@
 @import "tailwindcss";
 @import "../../node_modules/flowbite/src/themes/default.css";
+@import 'choices.js/public/assets/styles/choices.min.css';
+
 
 @plugin "flowbite/plugin";
 @source "../../node_modules/flowbite";
@@ -315,7 +317,8 @@ p {
     text-secondary dark:text-secondary-dark space-x-2.5 cursor-pointer
     text-xs md:text-sm xl:text-base;
 }
-.li-style h3{
+
+.li-style h3 {
     @apply text-xs md:text-sm xl:text-base;
 }
 
@@ -332,6 +335,7 @@ p {
     text-primary dark:text-primary-dark space-x-2.5 cursor-pointer
     text-xs md:text-sm xl:text-base;
 }
+
 .li-style-active h3 {
     @apply text-primary dark:text-primary-dark
     text-xs md:text-sm xl:text-base;
@@ -350,6 +354,7 @@ p {
     text-success dark:text-success-dark space-x-2.5 cursor-pointer
     text-xs md:text-sm xl:text-base;
 }
+
 .li-style-complete h3 {
     @apply text-success dark:text-success-dark
     text-xs md:text-sm xl:text-base;
@@ -539,6 +544,7 @@ p {
 .choices__item--choice.is-highlighted {
     @apply !bg-accent text-white dark:!bg-accent-dark;
 }
+
 /*!* Тег с кнопкой удаления (выбранный элемент) *!*/
 /*.choices__item--selectable {*/
 /*    @apply !bg-accent text-white dark:!bg-accent-dark dark:text-white*/

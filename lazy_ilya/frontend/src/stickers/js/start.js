@@ -1,4 +1,5 @@
 import '../../css/base.css';
+// import 'choices.js/public/assets/styles/choices.min.css';
 import {toggleAccentClasses} from "../../cities/js/toggleAccent.js";
 import {KanbanStickyNotes} from "./notes.js";
 import {KanbanTasks, TaskFilter} from "./task.js";
