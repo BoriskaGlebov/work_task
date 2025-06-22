@@ -35,14 +35,21 @@ class StickyNoteView(LoginRequiredMixin, View):
             Q(author_name=request.user.username) |
             Q(author_name=f"{request.user.first_name} {request.user.last_name}")
         )
-        print(notes)
         users = list(CustomUser.objects.filter(is_active=True).values(
             'username', 'first_name', 'last_name'
         ))
 
         notes_data = [note.to_dict() for note in notes]
 
-        tasks = Task.objects.annotate(
+        # Условие для фильтрации задач по полю deleted
+        if request.user.is_superuser or request.user.is_staff:
+            # Админ видит все задачи, включая удалённые
+            tasks_queryset = Task.objects.all()
+        else:
+            # Обычный пользователь видит только не удалённые задачи
+            tasks_queryset = Task.objects.filter(deleted=False)
+
+        tasks = tasks_queryset.annotate(
             priority_order=Case(
                 When(priority='high', then=Value(0)),
                 When(priority='medium', then=Value(1)),
@@ -54,9 +61,14 @@ class StickyNoteView(LoginRequiredMixin, View):
                 When(done=True, then=Value(1)),
                 default=Value(0),
                 output_field=IntegerField()
+            ),
+            deleted_order=Case(
+                When(deleted=True, then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField()
             )
         ).select_related("assignee").prefetch_related("tags") \
-            .order_by('done_order', 'priority_order', 'deadline')
+            .order_by('deleted_order','done_order', 'priority_order' , 'deadline')
 
         tasks_list = [task.to_dict() for task in tasks]
 
@@ -339,11 +351,9 @@ class TaskView(LoginRequiredMixin, View):
 
     def delete(self, request: HttpRequest, task_id: int) -> JsonResponse:
         """
-        Удаление задачи по ID.
-
-        Возвращает:
-        - 200 с сообщением об успешном удалении
-        - 404, если задача не найдена
+        Логическое удаление задачи по ID:
+        - ставит deleted=True
+        - записывает пользователя, который удалил
         """
         try:
             task = Task.objects.get(pk=task_id)
@@ -351,6 +361,9 @@ class TaskView(LoginRequiredMixin, View):
             logger.bind(user=request.user.username).error(f"DELETE /task/{task_id}: задача не найдена")
             return JsonResponse({"errors": {"__all__": ["Задача не найдена"]}}, status=404)
 
-        task.delete()
-        logger.bind(user=request.user.username).info(f"DELETE /task/{task_id}: задача удалена")
+        task.deleted = True
+        task.deleted_by = request.user
+        task.save(update_fields=['deleted', 'deleted_by', 'updated_at'])
+
+        logger.bind(user=request.user.username).info(f"DELETE /task/{task_id}: задача логически удалена")
         return JsonResponse({"success": f"Задача {task_id} удалена"}, status=200)

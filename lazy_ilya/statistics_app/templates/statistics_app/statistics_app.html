@@ -89,7 +89,55 @@
                 <p class="col-span-full text-center text-secondary dark:text-secondary-dark">Нет данных по городам</p>
             {% endfor %}
         </div>
+
     </div>
+
+    <div class="max-w-full mx-auto p-6 border-b-2 border-b-accent">
+        <h2 class="mb-6 text-center">Статистика по стикерам и задачам</h2>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 lg:max-w-4xl mx-auto gap-3 pb-3 ">
+            <!-- Кол-во стикеров -->
+            <div class="stat-card">
+                <div>
+                    <h3 class="text-center text-text dark:text-text-dark">Всего стикеров</h3>
+                </div>
+                <div class="text-4xl font-bold text-primary dark:text-primary-dark mt-4 text-center">
+                    <span class="count-up" data-target="{{ total_sticky_notes }}">0</span>
+                </div>
+            </div>
+
+            <!-- Общее количество задач -->
+            <div class="stat-card">
+                <div>
+                    <h3 class="text-center text-text dark:text-text-dark">Всего задач</h3>
+                </div>
+                <div class="text-4xl font-bold text-primary dark:text-primary-dark mt-4 text-center">
+                    <span class="count-up" data-target="{{ total_tasks }}">0</span>
+                </div>
+            </div>
+
+            <!-- Задачи в работе -->
+            <div class="stat-card">
+                <div>
+                    <h3 class="text-center text-text dark:text-text-dark">В работе</h3>
+                </div>
+                <div class="text-4xl font-bold text-accent dark:text-accent-dark mt-4 text-center">
+                    <span class="count-up" data-target="{{ tasks_in_progress }}">0</span>
+                </div>
+            </div>
+
+            <!-- Выполнено задач -->
+            <div class="stat-card">
+                <div>
+                    <h3 class="text-center text-text dark:text-text-dark">Выполнено</h3>
+                </div>
+                <div class="text-4xl font-bold text-success dark:text-success-dark mt-4 text-center">
+                    <span class="count-up" data-target="{{ tasks_done }}">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 
 

@@ -124,9 +124,6 @@ export class KanbanStickyNotes {
                       height,
                   }, currentUser = username) {
         const noteCard = document.createElement('div');
-        console.log(owner)
-        console.log(author_name)
-        console.log(currentUser === owner);
         noteCard.className = 'note-card';
         noteCard.style.backgroundColor = color;
         if (width) noteCard.style.width = `${width}px`;
@@ -456,7 +453,6 @@ export class KanbanStickyNotes {
 
     async showDeleteConfirmation(data) {
         return new Promise((resolve) => {
-            console.log(data)
             const serverInfo = document.getElementById('server-info');
             serverInfo.classList.remove('hidden', 'animate-popup-reverse');
             serverInfo.classList.add('flex', 'animate-popup');

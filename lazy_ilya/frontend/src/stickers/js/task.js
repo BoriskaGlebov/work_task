@@ -116,6 +116,8 @@ export class KanbanTasks {
                 done: task.done,
                 createdAt: task.created_at,  // Можно преобразовать в Date: new Date(task.created_at)
                 author: task.author,         // Добавлен автор задачи
+                deleted: task.deleted || false,        // Добавляем поле deleted, по умолчанию false
+                deleted_by: task.deleted_by || null,   // Кто удалил, если есть
             };
             // Отрисовываем карточку задачи в интерфейсе
             this.renderTaskCard(id, this.tasks[id]);
@@ -135,8 +137,16 @@ export class KanbanTasks {
      */
     openModal(taskId = null) {
         this.currentEditId = taskId;
+        const saveBtn = this.taskForm.querySelector('button[type="submit"]');
 
         if (taskId && this.tasks[taskId]) {
+            if (taskId && this.tasks[taskId]?.deleted) {
+                // Задача удалена — отключаем кнопку
+                if (saveBtn) saveBtn.disabled = true;
+            } else {
+                // Задача не удалена или новая — включаем кнопку
+                if (saveBtn) saveBtn.disabled = false;
+            }
             // Заполнение формы данными существующей задачи
             const task = this.tasks[taskId];
             this.taskForm.title.value = task.title;
@@ -266,6 +276,7 @@ export class KanbanTasks {
         card.dataset.priority = taskData.priority || '';
         card.dataset.deadline = taskData.deadline || '';
         card.dataset.done = taskData.done === true ? 'true' : 'false';
+        card.dataset.deleted = taskData.deleted === true ? 'true' : 'false'; // новое
 
         // Обработка тегов: массив объектов или строка
         if (Array.isArray(taskData.tags)) {
@@ -298,10 +309,23 @@ export class KanbanTasks {
             high: 'border-l-error dark:border-l-error-dark',
             done: 'border-l-green-900 dark:border-l-green-700',
         };
-        const borderClass = taskData.done
-            ? priorityBorderMap.done
-            : (priorityBorderMap[taskData.priority] || 'border-l-gray-300');
-        borderClass.split(' ').forEach(cls => card.classList.add(cls));
+        // Если задача удалена — красный пунктирный бордер и светлый красный фон
+        if (taskData.deleted) {
+            card.classList.add('border-l-4', 'border-l-red-700', 'border-dashed', '!bg-red-100', 'dark:!bg-red-900/30');
+        } else {
+            const borderClass = taskData.done
+                ? priorityBorderMap.done
+                : (priorityBorderMap[taskData.priority] || 'border-l-gray-300');
+            borderClass.split(' ').forEach(cls => card.classList.add(cls));
+        }
+
+        // Например, после вывода других данных добавим отображение удаления
+        if (taskData.deleted) {
+            const deletedEl = document.createElement('div');
+            deletedEl.className = 'text-xs text-red-700 font-semibold mb-1';
+            deletedEl.textContent = `Удалено${taskData.deleted_by ? ` пользователем ${taskData.deleted_by}` : ''}`;
+            card.appendChild(deletedEl);
+        }
 
         // Заголовок задачи
         const titleEl = document.createElement('h3');
@@ -868,12 +892,19 @@ export class TaskFilter {
         const statusVal = this.filters.status?.value || '';
 
         const selectedTags = this.getSelectedTags();
+
+        // Проверяем, есть ли активные фильтры (кроме статуса)
+        const otherFiltersActive = Boolean(
+            assigneeVal || priorityVal || dateVal || selectedTags.length > 0
+        );
+
         this.cards = Array.from(this.container.querySelectorAll('.task-card'));
 
         let filteredCards = this.cards.filter(card => {
             const cardAssignee = (card.dataset.assignee || '').toLowerCase();
             const cardPriority = (card.dataset.priority || '').toLowerCase();
             const cardDone = (card.dataset.done || 'false').toLowerCase();
+            const cardDeleted = (card.dataset.deleted || 'false').toLowerCase();
             const cardTags = (card.dataset.tags || '')
                 .toLowerCase()
                 .split(',')
@@ -883,10 +914,30 @@ export class TaskFilter {
             const matchAssignee = !assigneeVal || cardAssignee === assigneeVal;
             const matchPriority = !priorityVal || cardPriority === priorityVal;
             const matchTags = selectedTags.length === 0 || selectedTags.every(tag => cardTags.includes(tag));
-            const matchStatus = !statusVal || (statusVal === 'true' ? cardDone === 'true' : cardDone !== 'true');
+
+            let matchStatus = false;
+
+            if (statusVal === 'deleted') {
+                matchStatus = cardDeleted === 'true';
+            } else if (!otherFiltersActive && !statusVal) {
+                // Нет фильтров — показываем все, включая удалённые
+                matchStatus = true;
+            } else {
+                if (cardDeleted === 'true') return false;
+
+                if (!statusVal) {
+                    matchStatus = true;
+                } else if (statusVal === 'true') {
+                    matchStatus = cardDone === 'true';
+                } else if (statusVal === 'false') {
+                    matchStatus = cardDone !== 'true';
+                }
+            }
 
             return matchAssignee && matchPriority && matchTags && matchStatus;
         });
+
+        // Сортируем
 
         if (dateVal === 'asc' || dateVal === 'desc') {
             filteredCards.sort((a, b) => {
@@ -917,6 +968,8 @@ export class TaskFilter {
             });
         }
 
+        // Сортируем по выполненным задачам, чтобы выполненные были ниже
+
         filteredCards.sort((a, b) => {
             const doneA = (a.dataset.done || 'false').toLowerCase();
             const doneB = (b.dataset.done || 'false').toLowerCase();
@@ -926,10 +979,24 @@ export class TaskFilter {
             return 0;
         });
 
+        // **Новое:** при отсутствии фильтров - отправляем удалённые задачи в конец списка
+        if (!otherFiltersActive && !statusVal) {
+            filteredCards.sort((a, b) => {
+                const delA = (a.dataset.deleted || 'false').toLowerCase() === 'true';
+                const delB = (b.dataset.deleted || 'false').toLowerCase() === 'true';
+
+                if (delA && !delB) return 1;  // удалённые — ниже
+                if (!delA && delB) return -1; // не удалённые — выше
+                return 0;
+            });
+        }
+
         this.cards.forEach(card => card.classList.add('hidden'));
         filteredCards.forEach(card => card.classList.remove('hidden'));
         filteredCards.forEach(card => this.container.appendChild(card));
+
     }
+
 
     /**
      * Инициализирует поведение выпадающего меню тегов.

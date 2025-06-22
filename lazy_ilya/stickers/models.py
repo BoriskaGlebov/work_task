@@ -57,7 +57,6 @@ class StickyNote(models.Model):
         }
 
 
-
 class Task(models.Model):
     """
     Задача пользователя с возможностью назначения, тегов и приоритета.
@@ -84,7 +83,8 @@ class Task(models.Model):
     title: str = models.CharField(max_length=255, verbose_name="Заголовок задачи")
     desc: str = models.TextField(blank=True, verbose_name="Содержание задачи")
     deadline = models.DateField(null=True, blank=True, verbose_name="Срок исполнения")
-    priority: str = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium', verbose_name="Приоритет")
+    priority: str = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium',
+                                     verbose_name="Приоритет")
     done: bool = models.BooleanField(default=False, verbose_name="Отметка об исполнении")
 
     author: User = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tasks_author', verbose_name="Автор")
@@ -95,6 +95,15 @@ class Task(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
+    deleted = models.BooleanField(default=False, verbose_name="Удалена")
+    deleted_by = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='deleted_tasks',
+        verbose_name="Удалена пользователем"
+    )
 
     class Meta:
         verbose_name = "Задача"
@@ -115,6 +124,8 @@ class Task(models.Model):
             'assignee': self.assignee.username if self.assignee else None,
             'tags': [{'id': tag.id, 'name': tag.name} for tag in self.tags.all()],
             'created_at': self.created_at.isoformat(),
+            'deleted': self.deleted,
+            'deleted_by': self.deleted_by.username if self.deleted_by else None,
         }
 
 
@@ -139,4 +150,3 @@ class Tag(models.Model):
             'id': self.id,
             'name': self.name,
         }
-

@@ -8,6 +8,7 @@ from django.views import View
 
 from cities.models import CounterCities
 from file_creator.models import Counter
+from stickers.models import StickyNote, Task
 
 
 # Create your views here.
@@ -47,6 +48,10 @@ class StatisticsApp(LoginRequiredMixin, View):
         )[
             :3
         ]
+        total_sticky_notes=StickyNote.objects.count()
+        total_tasks = Task.objects.count()
+        tasks_done = Task.objects.filter(done=True).count()
+        tasks_in_progress = Task.objects.filter(done=False).count()
 
         return render(
             request,
@@ -57,5 +62,9 @@ class StatisticsApp(LoginRequiredMixin, View):
                 "best_day_total": best_day_total,
                 "coffee_cups": coffee_cups,
                 "top_cities": top_cities,  # 🔥 Передаём в шаблон
+                "total_sticky_notes": total_sticky_notes,  # целое число
+                "total_tasks": total_tasks,
+                "tasks_in_progress": tasks_in_progress,
+                "tasks_done": tasks_done,
             },
         )
