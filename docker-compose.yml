@@ -17,8 +17,8 @@ services:
   nginx_django:
     image: nginx:alpine
     container_name: nginx_django
-#    ports:
-#      - "8001:80"  # на боевом сервере проксируешь через основной Nginx
+    ports:
+      - "8000:80"  # на боевом сервере проксируешь через основной Nginx
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - static_data:/work_task/lazy_ilya/staticfiles  # та же папка для статики, чтобы nginx её видел
@@ -34,4 +34,4 @@ volumes:
 networks:
   monitoring_net:
     name: monitoring_net
-    external: true
+#    external: true
