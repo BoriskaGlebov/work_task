@@ -181,10 +181,8 @@ STATIC_URL = '/work_task/static/'
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
-    "https://vpn-boriska",
+    "https://vpn-boriska.ru",
 ]
-
-
 
 if __name__ == "__main__":
     print(BASE_DIR)
