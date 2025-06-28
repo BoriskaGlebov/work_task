@@ -71,6 +71,8 @@ TEMPLATES = [
             BASE_DIR / "myauth/templates",
             BASE_DIR / "file_creator/templates",
             BASE_DIR / "cities/templates",
+            BASE_DIR / "statistics_app/templates",
+            BASE_DIR / "stickers/templates"
         ],
         "APP_DIRS": True,
         "OPTIONS": {
@@ -138,6 +140,8 @@ STATICFILES_DIRS = [
     BASE_DIR / "lazy_ilya/static",
     BASE_DIR / "file_creator/static",
     BASE_DIR / "cities/static",
+    BASE_DIR / "statistics_app/static",
+    BASE_DIR / "stickers/static",
 ]
 
 # Default primary key field type

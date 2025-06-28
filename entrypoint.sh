@@ -10,4 +10,4 @@ echo "🔧 Запускаем кастомную команду start_deploy..."
 python manage.py start_deploy
 
 echo "🚀 Запускаем сервер Django..."
-exec python manage.py runserver 0.0.0.0:8000
+exec daphne -b 0.0.0.0 -p 8000 lazy_ilya.asgi:application

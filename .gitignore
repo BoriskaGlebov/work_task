@@ -174,3 +174,4 @@ cython_debug/
 /test_dir/
 /lazy_ilya/logs/
 /lazy_ilya/collected_static/
+/lazy_ilya/staticfiles
