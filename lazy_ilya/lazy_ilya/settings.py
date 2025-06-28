@@ -132,7 +132,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = "static/"
+# STATIC_URL = "static/"
 STATIC_ROOT = os.path.join(
     BASE_DIR, "staticfiles"
 )  # Сюда импортируются все файлы статики для всех приложений
@@ -176,9 +176,12 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 30 * 60  # Время жизни сессии в секундах (например, 30 минут)
 SESSION_SAVE_EVERY_REQUEST = True  # Обновляет таймер сессии при каждом запросе
 AUTH_USER_MODEL = "myauth.CustomUser"
-# FORCE_SCRIPT_NAME = '/work_task'
+FORCE_SCRIPT_NAME = '/work_task'
+STATIC_URL = '/work_task/static/'
+
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
+    "https://vpn-boriska",
 ]
 
 
