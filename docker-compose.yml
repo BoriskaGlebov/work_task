@@ -11,18 +11,27 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
     restart: always
+    networks:
+      - monitoring_net
 
-  nginx:
+  nginx_django:
     image: nginx:alpine
-    container_name: nginx
-    ports:
-      - "80:80"   # Nginx будет на 80 порту
+    container_name: nginx_django
+#    ports:
+#      - "8001:80"  # на боевом сервере проксируешь через основной Nginx
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - static_data:/work_task/lazy_ilya/staticfiles  # та же папка для статики, чтобы nginx её видел
     depends_on:
       - web
     restart: always
+    networks:
+      - monitoring_net
 
 volumes:
   static_data:
+
+networks:
+  monitoring_net:
+    name: monitoring_net
+    external: true
