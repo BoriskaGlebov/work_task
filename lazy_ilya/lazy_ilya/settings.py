@@ -177,7 +177,7 @@ SESSION_COOKIE_AGE = 30 * 60  # Время жизни сессии в секун
 SESSION_SAVE_EVERY_REQUEST = True  # Обновляет таймер сессии при каждом запросе
 AUTH_USER_MODEL = "myauth.CustomUser"
 FORCE_SCRIPT_NAME = '/work_task'
-STATIC_URL = 'work_task/static/'
+STATIC_URL = '/work_task/static/'
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
