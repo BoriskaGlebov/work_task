@@ -177,6 +177,11 @@ SESSION_COOKIE_AGE = 30 * 60  # Время жизни сессии в секун
 SESSION_SAVE_EVERY_REQUEST = True  # Обновляет таймер сессии при каждом запросе
 AUTH_USER_MODEL = "myauth.CustomUser"
 FORCE_SCRIPT_NAME = '/work_task'
+CSRF_TRUSTED_ORIGINS = [
+    "https://vpn-boriska.ru",
+    # Можно добавить и другие домены, если нужно
+]
+
 
 if __name__ == "__main__":
     print(BASE_DIR)
