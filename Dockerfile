@@ -1,33 +1,26 @@
-# Используем официальный образ Python 3.8
 FROM python:3.12-slim
 
 # Создаем рабочую директорию
 WORKDIR /work_task
 
-# Копируем файл requirements.txt
+# Копируем зависимости
 COPY requirements2.txt .
 COPY dist2 dist2/
-#
-# Устанавливаем зависимости
-#RUN pip install --no-index --find-links dist -r requirements.txt
+
+# Устанавливаем зависимости из локальной папки
 RUN pip install --no-index --find-links dist2 -r requirements2.txt
-#
-# Копируем остальные файлы приложения
+
+# Копируем весь проект
 COPY . .
 
-# Устанавливаем переменные окружения
-#ENV PYTHONDONTWRITEBYTECODE 1
-#ENV PYTHONUNBUFFERED 1
-#
+# Делаем скрипт запуска исполняемым
+RUN chmod +x /work_task/entrypoint.sh
+
+# Устанавливаем рабочую директорию для manage.py
 WORKDIR /work_task/lazy_ilya
-## Применяем миграции Django
-RUN python3 manage.py migrate
-#
-# Создаем суперпользователя
-RUN python3 create_superuser.py
-#
-## Экспонируем порт для сервера Django
+
+# Открываем порт
 EXPOSE 8000
-#
-## Запускаем команду для запуска приложения
-CMD ["sh", "-c", "python manage.py runserver 0.0.0.0:8000"]
+
+# Устанавливаем точку входа — запускаем shell-скрипт
+ENTRYPOINT ["/work_task/entrypoint.sh"]

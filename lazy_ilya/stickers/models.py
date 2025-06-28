@@ -45,9 +45,15 @@ class StickyNote(models.Model):
         super().save(*args, **kwargs)
 
     def to_dict(self) -> dict:
+        owner_name = (
+            f"{self.owner.first_name} {self.owner.last_name}".strip()
+            if self.owner.first_name and self.owner.last_name
+            else self.owner.first_name or self.owner.username
+        )
+
         return {
             "id": self.id,
-            "owner": self.owner.first_name or self.owner.username,
+            "owner": owner_name,
             "text": self.text,
             "color": self.color,
             "width": self.width,
