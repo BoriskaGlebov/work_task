@@ -176,12 +176,14 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 30 * 60  # Время жизни сессии в секундах (например, 30 минут)
 SESSION_SAVE_EVERY_REQUEST = True  # Обновляет таймер сессии при каждом запросе
 AUTH_USER_MODEL = "myauth.CustomUser"
-FORCE_SCRIPT_NAME = '/work_task'
-STATIC_URL = '/work_task/static/'
+# FORCE_SCRIPT_NAME = '/work_task'
+# STATIC_URL = '/work_task/static/'
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "https://vpn-boriska.ru",
+    "https://lazy-iliya.vpn-boriska.ru",
+
 ]
 
 if __name__ == "__main__":
