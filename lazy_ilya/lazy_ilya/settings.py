@@ -27,7 +27,7 @@ SECRET_KEY = "django-insecure-f)sqft2b+v-rn(9%g76ii2yp(nr)er4@sm@9u(lrvq0vp5q6*#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "vpn-boriska.ru"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "vpn-boriska.ru", "lazy-iliya.vpn-boriska.ru"]
 
 # Application definition
 
