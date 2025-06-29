@@ -1,5 +1,7 @@
 FROM python:3.12-slim
 
+RUN apt-get update && apt-get install -y libicu72 && apt-get clean
+
 # Создаем рабочую директорию
 WORKDIR /work_task
 
