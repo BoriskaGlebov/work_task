@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Переход в директорию с manage.py
-cd /work_task/lazy_ilya/
+cd /work_task/lazy_ilya || exit 1
 
 echo "🟡 Выполняем миграции..."
 python manage.py migrate

@@ -4,13 +4,19 @@ services:
     build:
       context: .
       dockerfile: Dockerfile  # Указываем путь к Dockerfile
-    #    ports:
-    #      - "8000:8000"  # Проброс порта 8000 (Django)
     volumes:
       - static_data:/work_task/lazy_ilya/staticfiles  # монтируем staticfiles (STATIC_ROOT)
+      - db_sql:/work_task/lazy_ilya/
     environment:
       - PYTHONUNBUFFERED=1
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1024M
+        reservations:
+          memory: 256M
     networks:
       - monitoring_net
 
@@ -25,11 +31,19 @@ services:
     depends_on:
       - web
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1024M
+        reservations:
+          memory: 256M
     networks:
       - monitoring_net
 
 volumes:
   static_data:
+  db_sql:
 
 networks:
   monitoring_net:

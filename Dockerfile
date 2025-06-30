@@ -12,6 +12,9 @@ COPY dist2 dist2/
 # Устанавливаем зависимости из локальной папки
 RUN pip install --no-index --find-links dist2 -r requirements2.txt
 
+# Копируем entrypoint отдельно с правильными правами
+COPY --chmod=755 entrypoint.sh /work_task/entrypoint.sh
+
 # Копируем весь проект
 COPY . .
 
@@ -25,4 +28,4 @@ WORKDIR /work_task/lazy_ilya
 EXPOSE 8000
 
 # Устанавливаем точку входа — запускаем shell-скрипт
-ENTRYPOINT ["/work_task/entrypoint.sh"]
+ENTRYPOINT ["sh","/work_task/entrypoint.sh"]
