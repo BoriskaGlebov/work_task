@@ -177,3 +177,4 @@ cython_debug/
 /lazy_ilya/staticfiles
 /.env.sha256
 /lazy_ilya/.env.sha256
+/lazy_ilya/db

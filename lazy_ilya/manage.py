@@ -2,11 +2,17 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+from pathlib import Path
+
 from  lazy_ilya.utils.env_integrity import check_env_integrity
 
 
 def main():
     """Run administrative tasks."""
+    db_path=Path(__file__).resolve().parent / 'db'
+    if not db_path.exists():
+        db_path.mkdir()
+
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lazy_ilya.settings")
     try:
         check_env_integrity()

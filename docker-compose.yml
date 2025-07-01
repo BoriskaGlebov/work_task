@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile  # Указываем путь к Dockerfile
     volumes:
       - static_data:/work_task/lazy_ilya/staticfiles  # монтируем staticfiles (STATIC_ROOT)
-      - db_sql:/work_task/lazy_ilya/
+      - db_sql:/work_task/lazy_ilya/db
     environment:
       - PYTHONUNBUFFERED=1
     restart: always
