@@ -43,11 +43,11 @@ export class KanbanTasks {
         if (!select) {
             throw new Error('Select с name="tags" не найден в форме');
         }
-        this.taskModal.addEventListener('click', (e) => {
-            if (!this.taskForm.contains(e.target)) {
-                this.taskModal.classList.add('hidden');
-            }
-        });
+        // this.taskModal.addEventListener('click', (e) => {
+        //     if (!this.taskForm.contains(e.target)) {
+        //         this.taskModal.classList.add('hidden');
+        //     }
+        // });
 
         this.tagsSelect = new Choices(select, {
             removeItemButton: true,

@@ -476,7 +476,7 @@ p {
 
 
 .add-button {
-    @apply fixed bottom-6 right-6 bg-background dark:bg-background-dark
+    @apply absolute bottom-6 right-6 bg-background dark:bg-background-dark
     hover:bg-primary dark:hover:bg-primary-dark hover:scale-120
     border-2  border-accent
     transition-all duration-200

@@ -6,7 +6,7 @@
 {% block body %}
 
 
-    <div class="container mx-auto py-6 px-4 space-y-4">
+    <div class="mx-auto py-6 px-4 space-y-4 ">
         <div id="server-error" class="hidden common_error"
              role="alert">
             <svg class="shrink-0 inline size-5 md:size-7 me-3" aria-hidden="true"
@@ -64,7 +64,13 @@
 
             {% csrf_token %}
             <!-- карточки стикеров -->
+            <!-- Add button -->
+            <button id="add-card"
+                    class="add-button">
+                +
+            </button>
         </div>
+
 
         <!-- Панель фильтров и сортировки -->
         <div id="filter-panel"
@@ -86,7 +92,7 @@
             <select id="filter-assignee" class="correct_input w-full">
                 <option value="">Исполнитель: все</option>
                 {% for user in username_list %}
-                    <option value="{{ user }}">{{ user }}</option>
+                <option value="{{ user }}">{{ user }}</option>
                 {% endfor %}
             </select>
 
@@ -108,10 +114,10 @@
                      class="absolute z-30 mt-2 w-full bg-background dark:bg-background-dark border rounded shadow hidden">
                     <div class="p-2 max-h-60 overflow-y-auto">
                         {% for tag in tags_list %}
-                            <label class="flex items-center space-x-2 mb-1">
-                                <input type="checkbox" value="{{ tag }}" class="correct_input">
-                                <span>{{ tag }}</span>
-                            </label>
+                        <label class="flex items-center space-x-2 mb-1">
+                            <input type="checkbox" value="{{ tag }}" class="correct_input">
+                            <span>{{ tag }}</span>
+                        </label>
                         {% endfor %}
                     </div>
                 </div>
@@ -120,8 +126,8 @@
                 <option value="">Все</option>
                 <option value="true">Выполнено</option>
                 <option value="false">В процессе</option>
-                {% if user.is_superuser%}
-                    <option value="deleted">Удалена</option>
+                {% if user.is_superuser %}
+                <option value="deleted">Удалена</option>
                 {% endif %}
             </select>
 
@@ -207,13 +213,11 @@
 
 
         </div>
+
     </div>
 
-    <!-- Add button -->
-    <button id="add-card"
-            class="add-button">
-        +
-    </button>
+
+
 
 {% endblock %}
 {% block extra_js %}

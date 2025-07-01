@@ -79,7 +79,7 @@ export class KanbanStickyNotes {
 
         const picker = document.createElement('div');
         picker.id = 'color-picker';
-        picker.className = 'fixed bottom-25 right-7 bg-white p-2.5 rounded-lg shadow-md flex gap-2.5 z-[9999]';
+        picker.className = 'absolute bottom-25 right-7 bg-white p-2.5 rounded-lg shadow-md flex gap-2.5 z-[9999]';
 
         this.colors.forEach(color => {
             const colorBtn = document.createElement('div');
@@ -95,7 +95,7 @@ export class KanbanStickyNotes {
             picker.appendChild(colorBtn);
         });
 
-        document.body.appendChild(picker);
+        this.noteBoard.appendChild(picker);
 
         const onClickOutside = (e) => {
             if (!picker.contains(e.target)) {
