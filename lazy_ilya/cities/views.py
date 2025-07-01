@@ -74,6 +74,7 @@ class Cities(LoginRequiredMixin, View):
 
             # Загружаем данные из тела запроса
             data = json.loads(request.body)
+            print(data)
             form = CityDataForm(data, instance=city)
             if form.is_valid():
                 form.save()
