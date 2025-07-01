@@ -48,7 +48,7 @@ class StatisticsApp(LoginRequiredMixin, View):
         )[
             :3
         ]
-        total_sticky_notes=StickyNote.objects.count()
+        total_sticky_notes = StickyNote.objects.count()
         total_tasks = Task.objects.count()
         tasks_done = Task.objects.filter(done=True).count()
         tasks_in_progress = Task.objects.filter(done=False).count()

@@ -4,6 +4,7 @@ from myauth.forms import CustomUserCreationForm, PasswordResetForm
 from myauth.models import CustomUser
 from lazy_ilya.utils.settings_for_app import settings
 
+
 class CustomUserCreationFormTests(TestCase):
     def test_valid_data(self):
         form = CustomUserCreationForm(

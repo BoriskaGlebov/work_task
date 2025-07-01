@@ -87,7 +87,9 @@ class CustomUserCreationForm(UserCreationForm):
     def clean_phone_number(self):
         phone = self.cleaned_data.get("phone_number")
         if phone not in settings.ALLOWED_PHONE_NUMBERS:
-            raise forms.ValidationError("Этот номер телефона не разрешён для регистрации.")
+            raise forms.ValidationError(
+                "Этот номер телефона не разрешён для регистрации."
+            )
         return phone
 
 
@@ -133,7 +135,9 @@ class PasswordResetForm(forms.Form):
         password2 = self.cleaned_data.get("password2")
         if username == "admin":
             self.add_error("username", "Борис запретил менять этот пароль")
-            return super().clean()  # Возвращаем после ошибки — дальнейшие проверки не нужны
+            return (
+                super().clean()
+            )  # Возвращаем после ошибки — дальнейшие проверки не нужны
 
         if password1 and password2 and password1 != password2:
             self.add_error(

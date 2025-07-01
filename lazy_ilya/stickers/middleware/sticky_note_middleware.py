@@ -25,12 +25,14 @@ class StickyNoteActionLoggingMiddleware:
                 if request.content_type == "application/json":
                     body_data = json.loads(request.body.decode())
                 else:
-                    body_data = f"[Неподдерживаемый тип контента: {request.content_type}]"
+                    body_data = (
+                        f"[Неподдерживаемый тип контента: {request.content_type}]"
+                    )
             except Exception as e:
                 body_data = f"[Не удалось прочитать тело запроса: {str(e)}]"
 
         # Фильтр по пути — можно заменить на свой путь, например "/sticky-notes/"
-        if path=="/" and user.is_authenticated:
+        if path == "/" and user.is_authenticated:
             logger.bind(user=user_name).info(
                 f"➡️ {method}-запрос от пользователя {user_name} на {path} с IP {ip}. Тело: {body_data}"
             )
@@ -43,7 +45,7 @@ class StickyNoteActionLoggingMiddleware:
             )
             raise
 
-        if path=="/"  and user.is_authenticated:
+        if path == "/" and user.is_authenticated:
             self.log_response(response, user_name, method, path, ip)
 
         return response
@@ -89,4 +91,3 @@ class StickyNoteActionLoggingMiddleware:
                     f"✅ {user_name} успешно выполнил {method}-запрос на {path} с IP {ip}. "
                     f"Статус: {response.status_code}. Ответ: {body}"
                 )
-

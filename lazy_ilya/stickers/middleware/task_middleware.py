@@ -26,7 +26,9 @@ class TaskActionLoggingMiddleware:
                 if request.content_type == "application/json":
                     body_data = json.loads(request.body.decode())
                 else:
-                    body_data = f"[Неподдерживаемый тип контента: {request.content_type}]"
+                    body_data = (
+                        f"[Неподдерживаемый тип контента: {request.content_type}]"
+                    )
             except Exception as e:
                 body_data = f"[Не удалось прочитать тело запроса: {str(e)}]"
 

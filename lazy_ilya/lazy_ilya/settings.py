@@ -27,7 +27,12 @@ SECRET_KEY = "django-insecure-f)sqft2b+v-rn(9%g76ii2yp(nr)er4@sm@9u(lrvq0vp5q6*#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "vpn-boriska.ru", "lazy-iliya.vpn-boriska.ru"]
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "vpn-boriska.ru",
+    "lazy-iliya.vpn-boriska.ru",
+]
 
 # Application definition
 
@@ -72,7 +77,7 @@ TEMPLATES = [
             BASE_DIR / "file_creator/templates",
             BASE_DIR / "cities/templates",
             BASE_DIR / "statistics_app/templates",
-            BASE_DIR / "stickers/templates"
+            BASE_DIR / "stickers/templates",
         ],
         "APP_DIRS": True,
         "OPTIONS": {
@@ -183,7 +188,6 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "https://vpn-boriska.ru",
     "https://lazy-iliya.vpn-boriska.ru",
-
 ]
 
 if __name__ == "__main__":

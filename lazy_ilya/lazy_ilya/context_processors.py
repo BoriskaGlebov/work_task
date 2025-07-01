@@ -17,5 +17,5 @@ def vite_mode(request: HttpRequest) -> Dict[str, bool]:
     """
     return {
         # "VITE_DEV_MODE": settings.DEBUG,
-        'VITE_DEV_MODE': False
+        "VITE_DEV_MODE": False
     }

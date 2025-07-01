@@ -26,8 +26,8 @@ class UserCreator:
         self.email: Optional[str] = os.getenv("DJANGO_SUPERUSER_EMAIL")
         self.password: Optional[str] = os.getenv("DJANGO_SUPERUSER_PASSWORD")
         self.phone: Optional[str] = os.getenv("DJANGO_SUPERUSER_PHONE")
-        self.first_name:Optional[str]=os.getenv("DJANGO_SUPERUSER_FIRST_NAME")
-        self.last_name:Optional[str]=os.getenv("DJANGO_SUPERUSER_LAST_NAME")
+        self.first_name: Optional[str] = os.getenv("DJANGO_SUPERUSER_FIRST_NAME")
+        self.last_name: Optional[str] = os.getenv("DJANGO_SUPERUSER_LAST_NAME")
 
         self.additional_users: List[Dict[str, Optional[str]]] = [
             {
@@ -56,7 +56,6 @@ class UserCreator:
                 phone_number=self.phone,
                 first_name=self.first_name,
                 last_name=self.last_name,
-
             )
             logger.info(f"Суперпользователь '{self.username}' создан.")
         else:

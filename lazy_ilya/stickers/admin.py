@@ -20,46 +20,40 @@ class StickyNoteAdmin(admin.ModelAdmin):
 
     # Отображаемые колонки в списке объектов.
     list_display = (
-        'id',  # ID записи
-        'owner',  # Владелец стикера (пользователь)
-        'short_text',  # Сокращённый текст стикера
-        'color',  # Цвет стикера
-        'author_name',  # Имя автора (возможно, свободный ввод)
-        'created_at',  # Дата создания
-        'updated_at'  # Дата последнего изменения
+        "id",  # ID записи
+        "owner",  # Владелец стикера (пользователь)
+        "short_text",  # Сокращённый текст стикера
+        "color",  # Цвет стикера
+        "author_name",  # Имя автора (возможно, свободный ввод)
+        "created_at",  # Дата создания
+        "updated_at",  # Дата последнего изменения
     )
 
     # Фильтры в списке объектов.
     list_filter = (
-        'color',  # По цвету
-        'created_at',  # По дате создания
-        'author_name',  # По имени автора
+        "color",  # По цвету
+        "created_at",  # По дате создания
+        "author_name",  # По имени автора
     )
 
     # Поля для поиска.
     search_fields = (
-        'text',  # По полному тексту
-        'author_name',  # По имени автора
-        'owner__username',  # По имени пользователя владельца
+        "text",  # По полному тексту
+        "author_name",  # По имени автора
+        "owner__username",  # По имени пользователя владельца
     )
 
     # Только для чтения (не редактируются).
     readonly_fields = (
-        'created_at',
-        'updated_at',
+        "created_at",
+        "updated_at",
     )
 
     # Группировка полей на форме редактирования объекта.
     fieldsets = (
-        (None, {
-            'fields': ('owner', 'text', 'color', 'author_name')
-        }),
-        ('Позиционирование', {
-            'fields': ('width', 'height', 'order')
-        }),
-        ('Системные поля', {
-            'fields': ('created_at', 'updated_at')
-        }),
+        (None, {"fields": ("owner", "text", "color", "author_name")}),
+        ("Позиционирование", {"fields": ("width", "height", "order")}),
+        ("Системные поля", {"fields": ("created_at", "updated_at")}),
     )
 
     def short_text(self, obj: StickyNote) -> str:
@@ -69,9 +63,9 @@ class StickyNoteAdmin(admin.ModelAdmin):
         :param obj: Объект StickyNote
         :return: Строка с усечённым текстом и троеточием, если длина > 30
         """
-        return (obj.text[:30] + '...') if len(obj.text) > 30 else obj.text
+        return (obj.text[:30] + "...") if len(obj.text) > 30 else obj.text
 
-    short_text.short_description = 'Текст'
+    short_text.short_description = "Текст"
 
 
 @admin.register(Tag)
@@ -146,7 +140,9 @@ class TaskAdmin(admin.ModelAdmin):
     def is_deleted(self, obj: Task) -> str:
         # Выводим цветной статус: красный - удалено, зеленый - нет
         if obj.deleted:
-            return format_html('<span style="color: red; font-weight: bold;">Удалено</span>')
+            return format_html(
+                '<span style="color: red; font-weight: bold;">Удалено</span>'
+            )
         return format_html('<span style="color: green;">Активна</span>')
 
     is_deleted.short_description = "Статус удаления"

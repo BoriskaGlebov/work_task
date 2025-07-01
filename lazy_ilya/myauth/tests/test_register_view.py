@@ -91,8 +91,10 @@ class RegisterAjaxViewTest(TestCase):
             HTTP_X_REQUESTED_WITH="XMLHttpRequest",
         )
         # Декодируем и парсим JSON-ответ
-        response_json = json.loads(response.content.decode('utf-8'))
+        response_json = json.loads(response.content.decode("utf-8"))
         self.assertEqual(response.status_code, 400)
-        self.assertIn('errors',response_json,'Да есть там все')
-        self.assertEqual('Этот номер телефона не разрешён для регистрации.',response_json['errors']['phone_number'])
-
+        self.assertIn("errors", response_json, "Да есть там все")
+        self.assertEqual(
+            "Этот номер телефона не разрешён для регистрации.",
+            response_json["errors"]["phone_number"],
+        )

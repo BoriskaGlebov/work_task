@@ -27,7 +27,7 @@ class StickyNoteForm(forms.ModelForm):
 
     class Meta:
         model: Type[StickyNote] = StickyNote
-        fields: List[str] = ['text', 'color', 'width', 'height', 'author_name', 'order']
+        fields: List[str] = ["text", "color", "width", "height", "author_name", "order"]
         # exclude = ['owner']  # Можно использовать вместо `fields`, если необходимо исключить поле
 
 
