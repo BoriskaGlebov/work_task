@@ -1,5 +1,6 @@
 #!/bin/sh
-
+# прервется при любой ошибке
+set -e  # <-- Добавил здесь
 # Переход в директорию с manage.py
 cd /work_task/lazy_ilya || exit 1
 

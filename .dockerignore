@@ -7,3 +7,4 @@ lazy_ilya/logs
 lazy_ilya/collected_static
 test_dir
 lazy_ilya/staticfiles
+.env.sha256
