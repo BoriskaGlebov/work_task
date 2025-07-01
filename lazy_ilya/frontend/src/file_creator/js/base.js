@@ -69,7 +69,7 @@ burgerMenuBtn.addEventListener('click', () => {
 });
 
 // --- Автоматическая перезагрузка страницы при бездействии (через 30 минут) ---
-const AUTO_RELOAD_TIME = 30 * 60 * 1000; // 30 минут в миллисекундах
+const AUTO_RELOAD_TIME = 4*60 * 60 * 1000; // 4 часа в миллисекундах
 
 function updateActivity() {
     localStorage.setItem('lastActivity', Date.now().toString());

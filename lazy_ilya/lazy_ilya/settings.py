@@ -173,7 +173,7 @@ CHANNEL_LAYERS = {
 }
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_COOKIE_AGE = 30 * 60  # Время жизни сессии в секундах (например, 30 минут)
+SESSION_COOKIE_AGE = 4 * 60 * 60  # Время жизни сессии в секундах (например, 4 часа)
 SESSION_SAVE_EVERY_REQUEST = True  # Обновляет таймер сессии при каждом запросе
 AUTH_USER_MODEL = "myauth.CustomUser"
 # FORCE_SCRIPT_NAME = '/work_task'
