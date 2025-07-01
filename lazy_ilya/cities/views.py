@@ -270,7 +270,7 @@ class CityInfoView(LoginRequiredMixin, UserPassesTestMixin, View):
     def test_func(self):
         # Проверяем, что пользователь в группе admin
         return (
-            self.request.user.groups.filter(name="admin").exists()
+            self.request.user.groups.filter(name="admins").exists()
             or self.request.user.is_superuser
         )
 
