@@ -3,8 +3,9 @@ import hashlib
 from django.core.exceptions import ImproperlyConfigured
 from loguru import logger
 
-ENV_PATH: Path = Path("/путь/к/.env")      # Задай правильный путь к .env
-HASH_PATH: Path = Path("/путь/к/.env.sha256")  # Путь к файлу с хэшом
+
+ENV_PATH = Path(__file__).resolve().parent.parent.parent.parent / ".env"
+HASH_PATH = Path(__file__).resolve().parent.parent.parent / ".env.sha256"
 
 
 def check_env_integrity() -> None:
