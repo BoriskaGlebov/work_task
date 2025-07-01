@@ -12,7 +12,7 @@ class CitiesAdminTests(TestCase):
 
     def setUp(self):
         # Создаём группу admin
-        self.admin_group = Group.objects.create(name="admin")
+        self.admin_group = Group.objects.create(name="admins")
 
         # Пользователь без группы
         self.user = CustomUser.objects.create_user(

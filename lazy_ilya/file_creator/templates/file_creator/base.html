@@ -48,7 +48,7 @@
                    class="a-style" tabindex="-1">Города</a>
                 <a id="a-statistics" href="{% url 'statistics_app:statistics_app' %}"
                    class="a-style" tabindex="-1">Статистика</a>
-                {% if user.is_superuser or user|in_group:"admin" %}
+                {% if user.is_superuser or user|in_group:"admins" %}
                     <a href="{% url 'cities:admin_city' %}"
                        id="a-admin" class="a-style" tabindex="-1">Админ</a>
                 {% endif %}
@@ -101,7 +101,7 @@
                class="burger-button" tabindex="-1">Города</a>
             <a id="a-statistics-mob" href="{% url 'statistics_app:statistics_app' %}"
                class="burger-button" tabindex="-1">Статистика</a>
-            {% if user.is_superuser or user|in_group:"admin" %}
+            {% if user.is_superuser or user|in_group:"admins" %}
                 <a id="a-admin-mob" href="{% url 'cities:admin_city' %}"
                    class="burger-button" tabindex="-1">Админ</a>
             {% endif %}
