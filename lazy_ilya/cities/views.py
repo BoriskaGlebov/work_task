@@ -3,9 +3,11 @@ import threading
 import traceback
 from typing import List, Dict, Any
 
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Q
-from django.http import HttpRequest, HttpResponse, JsonResponse, Http404
+from django.http import HttpRequest, HttpResponse, JsonResponse, Http404, FileResponse, HttpResponseNotFound, \
+    HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views import View
@@ -19,6 +21,7 @@ from cities.utils.common_func.get_city_context import (
 )
 from cities.utils.parser_word.globus_parser import GlobusParser
 from file_creator.utils.storage import OverwritingFileSystemStorage
+from lazy_ilya.settings import MEDIA_ROOT
 from lazy_ilya.utils.settings_for_app import logger, ProjectSettings
 
 
@@ -457,7 +460,23 @@ class CityDownload(LoginRequiredMixin, UserPassesTestMixin, View):
         )
         # Запускаем обработку файла в отдельном потоке
         threading.Thread(
-            target=GlobusParser.create_globus()
+            target=GlobusParser.create_globus
         ).start()
         logger.bind(user=request.user.username).info(f"Файл начал создание успешно")
         return JsonResponse({"status": "success"}, status=200)
+
+
+@login_required
+def download_file(request, filename):
+    user = request.user
+    # Проверяем, что пользователь суперпользователь или в группе 'admins'
+    if not (user.is_superuser or user.groups.filter(name='admins').exists()):
+        return HttpResponseForbidden("Доступ запрещён")
+
+    file_path = MEDIA_ROOT / filename
+    if file_path.exists() and file_path.is_file():
+        response = FileResponse(open(file_path, 'rb'))
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+    else:
+        return HttpResponseNotFound("Файл не найден")

@@ -3,7 +3,10 @@ import os
 import time
 from pathlib import Path
 
+from django.urls import reverse
 from docx.table import _Cell, Table
+
+from lazy_ilya.settings import MEDIA_ROOT
 
 # Укажите путь к настройкам вашего проекта
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lazy_ilya.settings")
@@ -265,7 +268,9 @@ class GlobusParser:
             progress = int((num / len(tables)) * 100)
             logger.info(f"Отправка прогресса: {progress}%")
             async_to_sync(channel_layer.group_send)(
-                "progress_updates", {"type": "send_progress", "progress": progress}
+                "progress_updates", {"type": "send_progress", "progress":
+                    {"percent": progress,
+                     "source": "upload"}}
             )
             for row_num, row in enumerate(doc_table.rows[3:]):
                 # cells = [cell.text.strip().replace("\n", "<br>") for cell in row.cells]
@@ -383,7 +388,8 @@ class GlobusParser:
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             "progress_updates",
-            {"type": "send_progress", "progress": 100, "cities": updated_cities},
+            {"type": "send_progress", "progress": {"percent": 100,
+                                                   "source": "upload"}, "cities": updated_cities},
         )
         logger.info(f"Отправка прогресса: 100%")
 
@@ -555,13 +561,13 @@ class GlobusParser:
                     else:
                         cls._style_cell_text(cell, justify=True)
 
-
     @classmethod
     def _send_progress_update(
             cls,
             send_progress: Optional[Callable[[int, str], None]],
             current: int,
             total: int,
+            filename:str|None
     ) -> None:
         """
         Вычисляет процент прогресса и вызывает функцию отправки прогресса, если она передана.
@@ -576,27 +582,32 @@ class GlobusParser:
         progress = int((current / total) * 100)
         logger.info(f"Прогресс создания документа: {progress}%")
         if send_progress:
-            send_progress(progress, group_name)
-
+            send_progress(progress, group_name,filename)
 
     @classmethod
-    def send_progress_ws(cls, progress_percent: int, group_name: str) -> None:
+    def send_progress_ws(cls, progress_percent: int, group_name: str, filename: str | None) -> None:
         """
         Отправляет сообщение с прогрессом в указанную группу WebSocket.
 
         Args:
+            filename: название файла
             progress_percent (int): Текущий прогресс в процентах.
             group_name (str): Имя группы Channels, куда отправлять сообщение.
         """
         channel_layer = get_channel_layer()
+        message = {
+            "type": "send_progress",  # вызовет метод send_progress в consumer
+            "progress": {
+                "percent": progress_percent,
+                "source": "download"  # или "upload"
+            }
+        }
+        if progress_percent >= 100:
+            message["progress"]["download_url"] = f"media/{filename}/"
         async_to_sync(channel_layer.group_send)(
-            group_name,
-            {
-                "type": "send_progress",  # вызовет метод send_progress в consumer
-                "progress": {"percent": progress_percent},
-            },
-        )
+            group_name, message
 
+        )
 
     @classmethod
     def create_globus(
@@ -646,13 +657,16 @@ class GlobusParser:
             table = cls._create_and_format_table(document, 3 + len(table_data))
             cls._fill_table_headers(table)
             cls._fill_table_data(table, table_data)
-
-            # Отправляем прогресс после обработки каждой таблицы
-            cls._send_progress_update(send_progress, num + 1, len(tables_name))
-
             document.add_page_break()
+            if num==len(tables_name)-1:
+                if not MEDIA_ROOT.exists():
+                    MEDIA_ROOT.mkdir()
+                document.save(MEDIA_ROOT / filename)
+            # Отправляем прогресс после обработки каждой таблицы
+            cls._send_progress_update(send_progress, num + 1, len(tables_name),filename)
 
-        document.save(ProjectSettings.tlg_dir / filename)
+
+
 
 
 if __name__ == "__main__":

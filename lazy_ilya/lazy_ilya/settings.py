@@ -189,6 +189,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://vpn-boriska.ru",
     "https://lazy-iliya.vpn-boriska.ru",
 ]
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 if __name__ == "__main__":
     print(BASE_DIR)

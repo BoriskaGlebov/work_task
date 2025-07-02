@@ -178,3 +178,4 @@ cython_debug/
 /.env.sha256
 /lazy_ilya/.env.sha256
 /lazy_ilya/db
+/lazy_ilya/media/globus_new.docx
