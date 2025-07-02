@@ -115,7 +115,7 @@ class Cities(LoginRequiredMixin, View):
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
     def delete(
-        self, request: HttpRequest, table_id: int, dock_num: int
+            self, request: HttpRequest, table_id: int, dock_num: int
     ) -> JsonResponse:
         """
         Удаляет город.
@@ -180,8 +180,8 @@ class CitiesAdmin(LoginRequiredMixin, UserPassesTestMixin, View):
     def test_func(self):
         # Проверяем, что пользователь в группе admin
         return (
-            self.request.user.groups.filter(name="admins").exists()
-            or self.request.user.is_superuser
+                self.request.user.groups.filter(name="admins").exists()
+                or self.request.user.is_superuser
         )
 
     def handle_no_permission(self):
@@ -270,8 +270,8 @@ class CityInfoView(LoginRequiredMixin, UserPassesTestMixin, View):
     def test_func(self):
         # Проверяем, что пользователь в группе admin
         return (
-            self.request.user.groups.filter(name="admins").exists()
-            or self.request.user.is_superuser
+                self.request.user.groups.filter(name="admins").exists()
+                or self.request.user.is_superuser
         )
 
     def handle_no_permission(self):
@@ -428,3 +428,36 @@ def increment_city_counters(request: HttpRequest) -> JsonResponse:
             f"Ошибка при обновлении счетчиков: {str(e)}"
         )
         return JsonResponse({"error": str(e)}, status=400)
+
+
+class CityDownload(LoginRequiredMixin, UserPassesTestMixin, View):
+    login_url = reverse_lazy("myauth:login")
+
+    def test_func(self):
+        # Проверяем, что пользователь в группе admin
+        return (
+                self.request.user.groups.filter(name="admins").exists()
+                or self.request.user.is_superuser
+        )
+
+    def handle_no_permission(self):
+        if not self.request.user.is_authenticated:
+            # Если не залогинен — редиректим на страницу логина
+            return redirect(self.login_url)
+        # Возвращаем 403 вместо редиректа
+        from django.http import HttpResponseForbidden
+
+        return HttpResponseForbidden(
+            "Доступ запрещён, только админ может сюда заходить"
+        )
+
+    def get(self, request: HttpRequest):
+        logger.bind(user=request.user.username).info(
+            "Запуск создания файла в отдельном потоке"
+        )
+        # Запускаем обработку файла в отдельном потоке
+        threading.Thread(
+            target=GlobusParser.create_globus()
+        ).start()
+        logger.bind(user=request.user.username).info(f"Файл начал создание успешно")
+        return JsonResponse({"status": "success"}, status=200)

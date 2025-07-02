@@ -137,7 +137,7 @@ class GlobusParser:
 
     @classmethod
     def _process_paragraphs(
-        cls, paragraphs: List[Any]
+            cls, paragraphs: List[Any]
     ) -> Tuple[List["TableNames"], List["TableNames"], List["TableNames"]]:
         """
         Обрабатывает список параграфов, выделяя из них разделы и соответствующие таблицы.
@@ -189,10 +189,10 @@ class GlobusParser:
 
     @classmethod
     def _sync_tables(
-        cls,
-        processed_tables: List["TableNames"],
-        tables_to_add: List["TableNames"],
-        tables_to_update: List["TableNames"],
+            cls,
+            processed_tables: List["TableNames"],
+            tables_to_add: List["TableNames"],
+            tables_to_update: List["TableNames"],
     ) -> None:
         """
         Синхронизирует таблицы с базой данных: добавляет новые, обновляет изменённые и удаляет устаревшие.
@@ -230,7 +230,7 @@ class GlobusParser:
 
     @classmethod
     def _process_tables_with_rows(
-        cls, tables: List[Any], tables_id: List["TableNames"]
+            cls, tables: List[Any], tables_id: List["TableNames"]
     ) -> None:
         """
         Обрабатывает строки таблиц из документа, синхронизирует данные с базой.
@@ -308,10 +308,10 @@ class GlobusParser:
 
     @classmethod
     def _sync_city_data(
-        cls,
-        cities_to_add: List["CityData"],
-        cities_to_update: List["CityData"],
-        processed_cities: List["CityData"],
+            cls,
+            cities_to_add: List["CityData"],
+            cities_to_update: List["CityData"],
+            processed_cities: List["CityData"],
     ) -> None:
         """
         Синхронизирует записи городов с базой: добавляет новые, обновляет существующие и удаляет устаревшие.
@@ -555,36 +555,66 @@ class GlobusParser:
                     else:
                         cls._style_cell_text(cell, justify=True)
 
+
     @classmethod
     def _send_progress_update(
-        cls, send_progress: Optional[Callable[[int], None]], current: int, total: int
+            cls,
+            send_progress: Optional[Callable[[int, str], None]],
+            current: int,
+            total: int,
     ) -> None:
         """
-        Отправляет прогресс выполнения, если передана функция send_progress.
+        Вычисляет процент прогресса и вызывает функцию отправки прогресса, если она передана.
 
         Args:
-            send_progress (Optional[Callable[[int], None]]): Функция для отправки прогресса (от 0 до 100).
-            current (int): Текущий номер итерации (например, текущий обработанный элемент).
-            total (int): Общее количество элементов.
+            send_progress (Optional[Callable[[int, str], None]]): Функция для отправки прогресса.
+                Принимает два аргумента: прогресс в процентах и имя группы.
+            current (int): Текущий номер итерации.
+            total (int): Общее количество итераций.
         """
+        group_name = "download_progress"
         progress = int((current / total) * 100)
-        logger.info(f"Прогресс создания документа {progress}%")
+        logger.info(f"Прогресс создания документа: {progress}%")
         if send_progress:
-            send_progress(progress)
+            send_progress(progress, group_name)
+
+
+    @classmethod
+    def send_progress_ws(cls, progress_percent: int, group_name: str) -> None:
+        """
+        Отправляет сообщение с прогрессом в указанную группу WebSocket.
+
+        Args:
+            progress_percent (int): Текущий прогресс в процентах.
+            group_name (str): Имя группы Channels, куда отправлять сообщение.
+        """
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                "type": "send_progress",  # вызовет метод send_progress в consumer
+                "progress": {"percent": progress_percent},
+            },
+        )
+
 
     @classmethod
     def create_globus(
-        cls,
-        filename: str = "globus_new.docx",
-        send_progress: Optional[Callable[[int], None]] = None,
+            cls,
+            filename: str = "globus_new.docx",
+            send_progress: Optional[Callable[[int, str], None]] = None,
     ) -> None:
         """
-        Создает документ Word с данными о городах и таблицами.
+        Создает Word документ и отправляет прогресс в WebSocket группу.
 
         Args:
-            filename (str, optional): Имя файла для сохранения документа. По умолчанию "globus_new.docx".
-            send_progress (Optional[Callable[[int], None]], optional): Функция для отправки прогресса создания документа.
+            filename (str): Имя файла для сохранения.
+            send_progress (Optional[Callable]): Функция отправки прогресса.
         """
+        # Если функцию для отправки прогресса не передали, используем внутреннюю
+        if send_progress is None:
+            send_progress = cls.send_progress_ws
+
         document = cls._init_document()
         cls._create_custom_heading_style(document)
         tables_name = list(TableNames.objects.values_list("id", "table_name"))
@@ -616,6 +646,8 @@ class GlobusParser:
             table = cls._create_and_format_table(document, 3 + len(table_data))
             cls._fill_table_headers(table)
             cls._fill_table_data(table, table_data)
+
+            # Отправляем прогресс после обработки каждой таблицы
             cls._send_progress_update(send_progress, num + 1, len(tables_name))
 
             document.add_page_break()

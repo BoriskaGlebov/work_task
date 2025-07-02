@@ -23,6 +23,7 @@ export class AccordionUploader {
         this.initAccordion();
         this.initWebSocket();
         this.initFileUpload();
+        this.initDownloadButton();  // <-- добавляем инициализацию кнопки скачивания
     }
 
     /**
@@ -188,5 +189,36 @@ export class AccordionUploader {
             }, 1000);
             this.successMessageTimeout = null; // очищаем
         }, 5000);
+    }
+
+    /**
+     * Инициализация обработки кнопки "Скачать файл".
+     */
+    initDownloadButton() {
+        const downloadBtn = document.getElementById('downloadFileBtn');
+        if (!downloadBtn) return;
+
+        downloadBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+
+            try {
+                const response = await fetch('city-download/'); // Укажи правильный URL для загрузки файла
+
+                if (!response.ok) {
+                    throw new Error(`Ошибка при запросе: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    this.showSuccessMessage('Создание файла запущено. Следите за прогрессом.');
+                    // Здесь можно запускать визуальный прогресс-бар или слушать WebSocket-сообщения
+                } else {
+                    this.showErrorMessage('Ошибка на сервере при запуске создания файла.');
+                }
+            } catch (error) {
+                this.showErrorMessage(`Ошибка: ${error.message}`);
+            }
+        });
     }
 }

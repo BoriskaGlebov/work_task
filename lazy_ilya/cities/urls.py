@@ -5,7 +5,7 @@ from cities.views import (
     Cities,
     CitiesAdmin,
     CityInfoView,
-    increment_city_counters,
+    increment_city_counters, CityDownload,
 )
 
 app_name = "cities"
@@ -20,4 +20,5 @@ urlpatterns = [
     path("admin/", CitiesAdmin.as_view(), name="admin_city"),
     path("admin/city-info/", CityInfoView.as_view(), name="city_info"),
     path("api/city-counter/", increment_city_counters, name="city-counter"),
+    path("admin/city-download/",CityDownload.as_view(),name="city-download")
 ]

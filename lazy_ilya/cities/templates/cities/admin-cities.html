@@ -181,6 +181,54 @@
                 </div>
             </div>
 
+            <!-- Аккордеон 3 -->
+            <div class="border-b border-primary dark:border-primary-dark">
+                <button class="accordion-style accordion-toggle">
+                    Скачать для резерва
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                         stroke="currentColor" class="correct_icon ">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5"></path>
+                    </svg>
+                </button>
+                <div class="accordion-content max-h-0 accordion-style-content">
+                    <p class="py-3 text-secondary dark:text-secondary-dark">
+                        Данный блок предназначен для скачивания файла с таблицей и дальнейшего рещервирования.
+                    </p>
+                    <div class="flex py-3 items-center warning_message">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                             stroke="currentColor" class="shrink-0 inline size-5 md:size-7 me-3">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"></path>
+                        </svg>
+                        <span>
+                            Делай это раз в месяц, что бы данные всегда были актуальные!
+                        </span>
+
+                    </div>
+                    <!-- Контейнер загрузки -->
+                    <div id="download-progress-container"
+                         class="hidden flex flex-col items-center justify-center mt-4 w-full">
+                        <!-- Линия прогресса -->
+                        <div class="w-full h-6 bg-secondary dark:bg-secondary-dark rounded-full overflow-hidden">
+                            <div id="download-progress-bar"
+                                 class="h-full bg-accent dark:bg-accent-dark transition-all duration-300"
+                                 style="width: 0%;"></div>
+                        </div>
+                        <!-- Текст процентов -->
+                        <div id="download-progress-text" class="mt-2 text-sm text-text dark:text-text-dark">0%</div>
+                    </div>
+
+                    <button id="downloadFileBtn" type="submit"
+                            class="btn-submit !w-1/3 mb-3 ">
+                        Скачать файл
+                    </button>
+
+
+                </div>
+
+            </div>
+
         </div>
     </div>
 
