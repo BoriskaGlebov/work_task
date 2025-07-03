@@ -34,5 +34,6 @@ jobs:
           cd /home/prod_server/production/work_task || exit  # Переход в директорию приложения
           git pull origin dev            # Обновление кода из репозитория
           docker compose down  # Остановка текущих контейнеров (если они запущены)
+          docker restart nginx
           docker compose up -d --build
           EOF
