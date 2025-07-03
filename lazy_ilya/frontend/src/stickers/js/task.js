@@ -228,7 +228,9 @@ export class KanbanTasks {
      */
     closeModal() {
         this.taskModal.classList.add('hidden');
+        let tagsVal = this.tagsSelect.getValue().map(tag => tag.value);
         this.taskFilterInstance.applyFilters();
+        this.taskFilterInstance.populateTagOptions(tagsVal)
     }
 
 
@@ -336,11 +338,17 @@ export class KanbanTasks {
         // Срок исполнения (с подсветкой просрочки или приближения срока)
         if (taskData.deadline && !taskData.done) {
             const deadlineEl = document.createElement('div');
-            deadlineEl.className = 'text-xs text-text dark:text-text-dark mb-1';
-            deadlineEl.textContent = 'Срок исполнения: ' + taskData.deadline;
-
+            deadlineEl.className = 'text-xs md:text-sm xl:text-base text-text dark:text-text-dark mb-1';
             const today = new Date();
             const deadlineDate = new Date(taskData.deadline);
+            // Форматируем дату в ДД.ММ.ГГГГ
+            const formattedDeadline = deadlineDate.toLocaleDateString('ru-RU', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+            });
+            deadlineEl.textContent = 'Срок исполнения: ' + formattedDeadline;
+
 
             if (deadlineDate < today.setHours(0, 0, 0, 0)) {
                 // Просрочено
@@ -373,7 +381,7 @@ export class KanbanTasks {
             };
 
             const priorityEl = document.createElement('div');
-            priorityEl.className = 'text-xs mb-1';
+            priorityEl.className = 'text-xs md:text-sm xl:text-base mb-1';
             const colorClass = priorityColorMap[taskData.priority] || 'text-gray-500';
             const priorityText = priorityMap[taskData.priority] || taskData.priority;
 
@@ -384,7 +392,7 @@ export class KanbanTasks {
         // Исполнитель задачи с отображением полного имени, если доступно
         if (taskData.assignee) {
             const assigneeEl = document.createElement('div');
-            assigneeEl.className = 'text-xs text-text dark:text-text-dark mb-1';
+            assigneeEl.className = 'text-xs md:text-sm xl:text-base text-text dark:text-text-dark mb-1';
 
             const userData = window.username_data.find(user => user.username === taskData.assignee);
             let displayName;
@@ -404,7 +412,7 @@ export class KanbanTasks {
         // Автор задачи с отображением полного имени, если доступно
         if (taskData.author) {
             const authorEl = document.createElement('div');
-            authorEl.className = 'text-xs text-text dark:text-text-dark mb-1';
+            authorEl.className = 'text-xs md:text-sm xl:text-base text-text dark:text-text-dark mb-1';
 
             const authorData = window.username_data.find(user => user.username === taskData.author);
             let authorName;
@@ -423,7 +431,7 @@ export class KanbanTasks {
 
         // Дата создания задачи с форматированием "Сегодня" или датой
         const createdAtEl = document.createElement('div');
-        createdAtEl.className = 'text-xs text-gray-500 dark:text-gray-400 mb-1';
+        createdAtEl.className = 'text-xs md:text-sm xl:text-base text-gray-500 dark:text-gray-400 mb-1';
 
         let date = taskData.createdAt ? new Date(taskData.createdAt) : new Date();
 
@@ -451,7 +459,7 @@ export class KanbanTasks {
         // Отображение тегов с иконкой и цветами
         if (taskData.tags) {
             const tagsEl = document.createElement('div');
-            tagsEl.className = 'text-xs mb-1 flex flex-wrap items-center gap-1';
+            tagsEl.className = 'text-xs md:text-sm xl:text-base mb-1 flex flex-wrap items-center gap-1';
 
             const icon = document.createElement('span');
             icon.innerHTML = `
@@ -481,11 +489,11 @@ export class KanbanTasks {
 
         // Статус выполнения задачи с иконкой и цветом
         const doneEl = document.createElement('div');
-        doneEl.className = 'text-xs font-semibold flex items-center gap-1 ' + (taskData.done ? 'text-green-700' : 'text-red-600');
+        doneEl.className = 'text-xs md:text-sm xl:text-base font-semibold flex items-center gap-1 ' + (taskData.done ? 'text-green-700' : 'text-red-600');
 
         const statusIcon = document.createElement('span');
         statusIcon.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 md:size-5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
             </svg>
@@ -791,6 +799,7 @@ export class TaskFilter {
         this.populateTagOptions();
         this.attachEvents();
         this.initTagDropdown();
+
     }
 
     /**
@@ -823,21 +832,45 @@ export class TaskFilter {
     /**
      * Заполняет выпадающий список тегов из `window.tags_list`.
      */
-    populateTagOptions() {
+    populateTagOptions(tagsVal = []) {
         if (!this.tagContainer || !window.tags_list) return;
+        // Получить имена существующих тегов
+        const existingTagNames = window.tags_list.map(tag => tag.name);
+
+        // Добавить новые теги в window.tags_list, если их ещё нет
+        tagsVal.forEach(tagName => {
+            if (!existingTagNames.includes(tagName)) {
+                const maxId = window.tags_list.reduce((max, tag) => Math.max(max, tag.id), 0);
+                const newTag = {
+                    id: maxId + 1, // временный ID
+                    name: tagName
+                };
+                window.tags_list.push(newTag);
+            }
+        });
+
+        // Повторно собрать имена всех тегов
+        const allTags = window.tags_list.map(tag => tag.name);
+
+        // Очистить контейнер перед созданием новых чекбоксов
         this.tagContainer.innerHTML = '';
 
-        window.tags_list.forEach(tag => {
+        allTags.forEach(tag => {
             const label = document.createElement('label');
             label.className = 'correct_label flex items-center space-x-2 mb-3';
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
-            checkbox.value = tag.name || tag;
+            checkbox.value = tag;
             checkbox.className = 'tag-checkbox correct_icon rounded-full text-xl';
 
+            // Отметить чекбокс, если он есть в tagsVal
+            if (tagsVal.includes(tag)) {
+                checkbox.checked = false;
+            }
+
             const span = document.createElement('span');
-            span.textContent = tag.name || tag;
+            span.textContent = tag;
 
             label.appendChild(checkbox);
             label.appendChild(span);
@@ -845,7 +878,11 @@ export class TaskFilter {
         });
 
         this.tagCheckboxes = Array.from(this.tagContainer.querySelectorAll('.tag-checkbox'));
+        this.tagCheckboxes.forEach(cb =>
+            cb.addEventListener('change', () => this.applyFilters())
+        );
     }
+
 
     /**
      * Назначает обработчики событий на элементы фильтров и чекбоксы тегов.

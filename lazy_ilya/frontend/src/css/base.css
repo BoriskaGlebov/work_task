@@ -481,7 +481,7 @@ p {
     border-2  border-accent
     transition-all duration-200
     ease-in-out active:scale-95 active:rotate-360
-    text-text dark:text-text-dark w-15 h-15 rounded-full shadow-xl text-2xl flex items-center justify-center ;
+    text-text dark:text-text-dark w-15 h-15 rounded-full shadow-xl text-2xl flex items-center justify-center z-20 ;
 }
 
 

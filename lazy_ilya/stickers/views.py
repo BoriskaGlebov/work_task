@@ -208,7 +208,7 @@ class TaskView(LoginRequiredMixin, View):
         """
         return HttpResponse(status=204)  # No Content
 
-    def post(self, request: HttpRequest) -> JsonResponse:
+    def post(self, request: HttpRequest) -> JsonResponse | HttpResponseBadRequest:
         """
         Создание новой задачи.
 
@@ -302,7 +302,7 @@ class TaskView(LoginRequiredMixin, View):
         )
         return JsonResponse(task.to_dict(), status=201)
 
-    def patch(self, request: HttpRequest, task_id: int) -> JsonResponse:
+    def patch(self, request: HttpRequest, task_id: int) -> HttpResponseBadRequest | JsonResponse:
         """
         Частичное обновление задачи по ID.
 
