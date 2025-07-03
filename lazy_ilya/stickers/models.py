@@ -75,6 +75,46 @@ class StickyNote(models.Model):
         }
 
 
+class StickyNoteVisibility(models.Model):
+    """
+    Видимость стикера для конкретного пользователя.
+
+    Атрибуты:
+        sticky_note (StickyNote): Ссылка на стикер.
+        user (User): Пользователь, для которого задана видимость.
+        is_visible (bool): Статус видимости стикера для пользователя.
+                           True — стикер виден,
+                           False — стикер "удален" для этого пользователя (скрыт).
+    """
+
+    sticky_note = models.ForeignKey(
+        StickyNote,
+        on_delete=models.CASCADE,
+        related_name="visibilities",
+        verbose_name="Стикер"
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="sticky_note_visibilities",
+        verbose_name="Пользователь"
+    )
+    is_visible = models.BooleanField(
+        default=True,
+        verbose_name="Видимость",
+        help_text="True — стикер виден пользователю, False — скрыт (удален для себя)"
+    )
+
+    class Meta:
+        unique_together = ("sticky_note", "user")
+        verbose_name = "Видимость стикера"
+        verbose_name_plural = "Видимости стикеров"
+
+    def __str__(self):
+        status = "Виден" if self.is_visible else "Скрыт"
+        return f"Видимость стикера {self.sticky_note.id} для пользователя {self.user.username}: {status}"
+
+
 class Task(models.Model):
     """
     Задача пользователя с возможностью назначения, тегов и приоритета.

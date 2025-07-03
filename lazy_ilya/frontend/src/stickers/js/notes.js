@@ -237,23 +237,34 @@ export class KanbanStickyNotes {
         deleteBtn.textContent = '×';
         deleteBtn.title = 'Удалить заметку';
         deleteBtn.className = 'delete-btn';
+        deleteBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const data = {
+                stickerData: contentDiv.textContent.slice(0, 30) || 'заметку'
+            }
+            const confirmed = await this.showDeleteConfirmation(data);
+            if (!confirmed) return;
+            const noteId = noteCard.dataset.id;
+            if (noteId) this.deleteNoteFromServer(noteId);
+            noteCard.remove();
+        });
 
-        if (currentUser === owner || currentUser === author_name) {
-            deleteBtn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                const data = {
-                    stickerData: contentDiv.textContent.slice(0, 30) || 'заметку'
-                }
-                const confirmed = await this.showDeleteConfirmation(data);
-                if (!confirmed) return;
-                const noteId = noteCard.dataset.id;
-                if (noteId) this.deleteNoteFromServer(noteId);
-                noteCard.remove();
-            });
-        } else {
-            deleteBtn.disabled = true;
-            deleteBtn.title = 'Вы не можете удалить заметку, вы ее не создавали';
-        }
+        // if (currentUser === owner || currentUser === author_name) {
+        //     deleteBtn.addEventListener('click', async (e) => {
+        //         e.stopPropagation();
+        //         const data = {
+        //             stickerData: contentDiv.textContent.slice(0, 30) || 'заметку'
+        //         }
+        //         const confirmed = await this.showDeleteConfirmation(data);
+        //         if (!confirmed) return;
+        //         const noteId = noteCard.dataset.id;
+        //         if (noteId) this.deleteNoteFromServer(noteId);
+        //         noteCard.remove();
+        //     });
+        // } else {
+        //     deleteBtn.disabled = true;
+        //     deleteBtn.title = 'Вы не можете удалить заметку, вы ее не создавали';
+        // }
 
         // --- Сборка карточки ---
         noteCard.append(authorContainer, contentDiv, deleteBtn);

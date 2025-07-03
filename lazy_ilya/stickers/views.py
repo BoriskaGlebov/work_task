@@ -8,10 +8,10 @@ from django.shortcuts import render
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-from django.db.models import Q, Case, When, Value, IntegerField
+from django.db.models import Q, Case, When, Value, IntegerField, OuterRef, Exists
 
 from myauth.models import CustomUser
-from .models import StickyNote, Task, Tag
+from .models import StickyNote, Task, Tag, StickyNoteVisibility
 from .forms import StickyNoteForm
 from lazy_ilya.utils.settings_for_app import logger
 
@@ -29,12 +29,22 @@ class StickyNoteView(LoginRequiredMixin, View):
         """
         Отображает HTML-страницу со списком заметок и пользователей.
         """
-        notes = StickyNote.objects.filter(
-            Q(owner=request.user)
-            | Q(author_name="Всем!")
-            | Q(author_name=f"{request.user.first_name} {request.user.last_name}")
-            | Q(author_name=request.user.first_name)
-            | Q(author_name=request.user.username)
+        visibility_qs = StickyNoteVisibility.objects.filter(
+            sticky_note=OuterRef('pk'),
+            user=request.user,
+        )
+        notes = StickyNote.objects.annotate(
+            visibility_record=Exists(visibility_qs.filter(is_visible=False))
+        ).filter(
+            Q(owner=request.user) |
+            Q(author_name__in=[
+                "Всем!",
+                f"{request.user.first_name} {request.user.last_name}",
+                request.user.first_name,
+                request.user.username,
+            ])
+        ).exclude(
+            Q(author_name="Всем!") & Q(visibility_record=True)
         )
         users = list(
             CustomUser.objects.filter(is_active=True).values(
@@ -157,11 +167,47 @@ class StickyNoteView(LoginRequiredMixin, View):
         """
         try:
             note = StickyNote.objects.get(id=note_id)
-            note.delete()
-            logger.bind(user=request.user.username).info(f"Удалена заметка #{note_id}")
-            return JsonResponse(
-                {"success": True, "data": {"message": f"Заметка {note_id} удалена"}}
-            )
+            user = request.user
+            # Проверяем условия
+            is_owner = note.owner == user
+            is_assigned_to_user = note.author_name in [
+                f"{user.first_name} {user.last_name}",
+                user.first_name,
+                user.username,
+            ]
+            is_assigned_to_all = note.author_name == "Всем!"
+
+            if is_owner or is_assigned_to_user:
+                # Пользователь владелец или назначен — удаляем заметку полностью
+                note.delete()
+                logger.bind(user=user.username).info(f"Удалена заметка #{note_id}")
+                return JsonResponse(
+                    {"success": True, "data": {"message": f"Заметка {note_id} удалена"}}
+                )
+            elif is_assigned_to_all and not is_owner:
+                # Заметка назначена "Всем!", но пользователь не владелец — скрываем
+                # Обновляем или создаём запись видимости с is_visible=False
+                from django.db.models import Q
+                visibility_obj, created = StickyNoteVisibility.objects.update_or_create(
+                    sticky_note=note,
+                    user=user,
+                    defaults={"is_visible": False},
+                )
+                logger.bind(user=user.username).info(
+                    f"Заметка #{note_id} скрыта для пользователя {user.username}"
+                )
+                return JsonResponse(
+                    {"success": True, "data": {"message": f"Заметка {note_id} скрыта"}}
+                )
+            else:
+                # Если не подходит ни одно условие — запрещаем удалять
+                logger.bind(user=user.username).warning(
+                    f"Попытка удалить заметку #{note_id} без прав"
+                )
+                return JsonResponse(
+                    {"success": False, "errors": {"permission": ["Нет прав на удаление"]}},
+                    status=403,
+                )
         except StickyNote.DoesNotExist:
             logger.bind(user=request.user.username).error(
                 f"Заметка #{note_id} не найдена"

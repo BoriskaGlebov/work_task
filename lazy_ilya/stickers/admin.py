@@ -3,9 +3,10 @@ from django.contrib import admin
 # Register your models here.
 # admin.py
 from django.contrib import admin
+from django.db.models import Prefetch
 from django.utils.html import format_html
 
-from .models import StickyNote, Tag, Task
+from .models import StickyNote, Tag, Task, StickyNoteVisibility
 from .forms import StickyNoteForm
 
 
@@ -15,41 +16,37 @@ class StickyNoteAdmin(admin.ModelAdmin):
     Конфигурация отображения модели StickyNote в административной панели Django.
     """
 
-    # Кастомная форма, если требуется валидация или настройка интерфейса.
     form = StickyNoteForm
 
-    # Отображаемые колонки в списке объектов.
     list_display = (
-        "id",  # ID записи
-        "owner",  # Владелец стикера (пользователь)
-        "short_text",  # Сокращённый текст стикера
-        "color",  # Цвет стикера
-        "author_name",  # Имя автора (возможно, свободный ввод)
-        "created_at",  # Дата создания
-        "updated_at",  # Дата последнего изменения
+        "id",
+        "owner",
+        "short_text",
+        "color",
+        "author_name",
+        "created_at",
+        "updated_at",
+        "visible_to_admin",  # Добавлено: видимость для текущего пользователя
     )
 
-    # Фильтры в списке объектов.
     list_filter = (
-        "color",  # По цвету
-        "created_at",  # По дате создания
-        "author_name",  # По имени автора
+        "color",
+        "created_at",
+        "author_name",
+        "visibilities__is_visible",  # Добавлено: фильтр по видимости
     )
 
-    # Поля для поиска.
     search_fields = (
-        "text",  # По полному тексту
-        "author_name",  # По имени автора
-        "owner__username",  # По имени пользователя владельца
+        "text",
+        "author_name",
+        "owner__username",
     )
 
-    # Только для чтения (не редактируются).
     readonly_fields = (
         "created_at",
         "updated_at",
     )
 
-    # Группировка полей на форме редактирования объекта.
     fieldsets = (
         (None, {"fields": ("owner", "text", "color", "author_name")}),
         ("Позиционирование", {"fields": ("width", "height", "order")}),
@@ -59,13 +56,41 @@ class StickyNoteAdmin(admin.ModelAdmin):
     def short_text(self, obj: StickyNote) -> str:
         """
         Возвращает сокращённую версию текста стикера (до 30 символов).
-
-        :param obj: Объект StickyNote
-        :return: Строка с усечённым текстом и троеточием, если длина > 30
         """
         return (obj.text[:30] + "...") if len(obj.text) > 30 else obj.text
 
     short_text.short_description = "Текст"
+
+    def visible_to_admin(self, obj: StickyNote) -> str:
+        """
+        Показывает, видит ли стикер текущий администратор.
+
+        Если пользователь не авторизован в админке или нет записи видимости — показывает "Неизвестно".
+        """
+        user = getattr(self.request, 'user', None)
+        if not user or user.is_anonymous:
+            return "Неизвестно"
+        visibility = obj.visibilities.filter(user=user).first()
+        if visibility is None:
+            return "Неизвестно"
+        return "Да" if visibility.is_visible else "Нет"
+
+    visible_to_admin.short_description = "Видимость для вас"
+    visible_to_admin.admin_order_field = "visibilities__is_visible"
+
+    def get_queryset(self, request):
+        """
+        Расширяем queryset, чтобы предзагружать связанные записи видимости для текущего пользователя.
+        """
+        qs = super().get_queryset(request)
+        self.request = request  # Сохраняем request для использования в visible_to_admin
+        return qs.prefetch_related(
+            Prefetch(
+                "visibilities",
+                queryset=StickyNoteVisibility.objects.filter(user=request.user)
+            )
+        )
+
 
 
 @admin.register(Tag)
