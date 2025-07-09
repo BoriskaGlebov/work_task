@@ -80,6 +80,7 @@ function checkInactivity() {
     const now = Date.now();
 
     if (now - lastActivity > AUTO_RELOAD_TIME) {
+        localStorage.removeItem('taskFilters');
         location.reload(); // Перезагрузка страницы
     }
 }

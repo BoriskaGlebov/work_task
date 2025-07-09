@@ -799,6 +799,7 @@ export class TaskFilter {
         this.populateTagOptions();
         this.attachEvents();
         this.initTagDropdown();
+        this.restoreFiltersFromStorage(); // <--- ДОБАВЛЕНО
 
     }
 
@@ -904,6 +905,7 @@ export class TaskFilter {
                 });
 
                 this.tagCheckboxes.forEach(cb => cb.checked = false);
+                localStorage.removeItem('taskFilters');  // <--- ДОБАВЬ ЭТО
                 this.applyFilters();
             });
         }
@@ -919,6 +921,42 @@ export class TaskFilter {
             .map(cb => cb.value.toLowerCase());
     }
 
+    saveFiltersToStorage() {
+        const filtersState = {
+            assignee: this.filters.assignee?.value || '',
+            priority: this.filters.priority?.value || '',
+            date: this.filters.date?.value || '',
+            status: this.filters.status?.value || '',
+            tags: this.getSelectedTags()
+        };
+        localStorage.setItem('taskFilters', JSON.stringify(filtersState));
+    }
+
+    restoreFiltersFromStorage() {
+        const saved = localStorage.getItem('taskFilters');
+        if (!saved) return;
+
+        try {
+            const {assignee, priority, date, status, tags} = JSON.parse(saved);
+
+            if (this.filters.assignee) this.filters.assignee.value = assignee;
+            if (this.filters.priority) this.filters.priority.value = priority;
+            if (this.filters.date) this.filters.date.value = date;
+            if (this.filters.status) this.filters.status.value = status;
+
+            this.populateTagOptions(tags || []);
+            setTimeout(() => {
+                this.tagCheckboxes?.forEach(cb => {
+                    cb.checked = tags.includes(cb.value.toLowerCase());
+                });
+                this.applyFilters();
+            }, 0);
+        } catch (e) {
+            console.error('Ошибка восстановления фильтров:', e);
+        }
+    }
+
+
     /**
      * Применяет фильтрацию и сортировку карточек в соответствии с выбранными значениями.
      */
@@ -927,6 +965,7 @@ export class TaskFilter {
         const priorityVal = this.filters.priority?.value.trim().toLowerCase() || '';
         const dateVal = this.filters.date?.value || '';
         const statusVal = this.filters.status?.value || '';
+        this.saveFiltersToStorage();  // <--- ДОБАВЬ ЭТО
 
         const selectedTags = this.getSelectedTags();
 
