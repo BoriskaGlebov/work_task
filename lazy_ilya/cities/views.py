@@ -434,42 +434,77 @@ def increment_city_counters(request: HttpRequest) -> JsonResponse:
 
 
 class CityDownload(LoginRequiredMixin, UserPassesTestMixin, View):
+    """
+    View для запуска фонового создания файла с данными города.
+
+    Доступ разрешён только администраторам и суперпользователям.
+    """
+
     login_url = reverse_lazy("myauth:login")
 
-    def test_func(self):
-        # Проверяем, что пользователь в группе admin
+    def test_func(self) -> bool:
+        """
+        Проверяет, входит ли пользователь в группу 'admins' или является суперпользователем.
+
+        Returns:
+            bool: True, если пользователь администратор или суперпользователь, иначе False.
+        """
         return (
                 self.request.user.groups.filter(name="admins").exists()
                 or self.request.user.is_superuser
         )
 
-    def handle_no_permission(self):
-        if not self.request.user.is_authenticated:
-            # Если не залогинен — редиректим на страницу логина
-            return redirect(self.login_url)
-        # Возвращаем 403 вместо редиректа
-        from django.http import HttpResponseForbidden
+    def handle_no_permission(self) -> HttpResponse:
+        """
+        Обрабатывает отказ в доступе. Если пользователь не авторизован, редиректит на логин.
+        Если авторизован, но не имеет прав — возвращает 403 Forbidden.
 
+        Returns:
+            HttpResponse: Редирект или сообщение об ошибке 403.
+        """
+        if not self.request.user.is_authenticated:
+            return redirect(self.login_url)
+
+        from django.http import HttpResponseForbidden
         return HttpResponseForbidden(
             "Доступ запрещён, только админ может сюда заходить"
         )
 
-    def get(self, request: HttpRequest):
+    def get(self, request: HttpRequest) -> JsonResponse:
+        """
+        Обрабатывает GET-запрос, запускает создание файла в отдельном потоке.
+
+        Args:
+            request (HttpRequest): Объект запроса от клиента.
+
+        Returns:
+            JsonResponse: Ответ об успешном запуске задачи.
+        """
         logger.bind(user=request.user.username).info(
             "Запуск создания файла в отдельном потоке"
         )
-        # Запускаем обработку файла в отдельном потоке
-        threading.Thread(
-            target=GlobusParser.create_globus
-        ).start()
-        logger.bind(user=request.user.username).info(f"Файл начал создание успешно")
+        threading.Thread(target=GlobusParser.create_globus).start()
+        logger.bind(user=request.user.username).info(
+            "Файл начал создание успешно"
+        )
         return JsonResponse({"status": "success"}, status=200)
 
 
 @login_required
-def download_file(request, filename):
+def download_file(request: HttpRequest, filename: str) -> HttpResponseForbidden | FileResponse | HttpResponseNotFound:
+    """
+    Позволяет администратору или суперпользователю скачать файл по имени.
+
+    Args:
+        request (HttpRequest): Объект HTTP-запроса.
+        filename (str): Имя файла для скачивания.
+
+    Returns:
+        HttpResponse: Ответ с файлом для загрузки или сообщение об ошибке:
+            - 403 Forbidden, если у пользователя нет прав.
+            - 404 Not Found, если файл не найден.
+    """
     user = request.user
-    # Проверяем, что пользователь суперпользователь или в группе 'admins'
     if not (user.is_superuser or user.groups.filter(name='admins').exists()):
         return HttpResponseForbidden("Доступ запрещён")
 
