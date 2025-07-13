@@ -13,12 +13,12 @@ class SimpleRateLimitMiddleware:
 
     def __init__(self, get_response):
         self.get_response = get_response
-        self.max_requests = 10  # максимум запросов
+        self.max_requests = 5  # максимум запросов
         self.window_seconds = 60  # окно в 60 секунд
-        self.limited_path = reverse("stickers:tasks")  # путь ручки, которую ограничиваем
+        self.limited_path = [reverse("stickers:tasks"),reverse("stickers:stickers")]  # путь ручки, которую ограничиваем
 
     def __call__(self, request):
-        if request.method == "POST" and request.path == self.limited_path:
+        if request.method == "POST" and request.path in self.limited_path:
             ip = self.get_client_ip(request)
             if not ip:
                 # Если IP получить не удалось — пропускаем
@@ -37,7 +37,7 @@ class SimpleRateLimitMiddleware:
                 error_response = {
                     "errors": {
                         "__all__": [
-                            "Превышено максимальное количество POST-запросов к этому API."
+                            f"Превышено максимальное количество POST-запросов к этому API. Подожди {int(retry_after)} секунд"
                         ]
                     },
                     "retry_after_seconds": int(retry_after),
