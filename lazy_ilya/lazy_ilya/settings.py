@@ -65,6 +65,7 @@ MIDDLEWARE = [
     "cities.middleware.cities_middleware.CitiesActionLoggingMiddleware",
     "stickers.middleware.sticky_note_middleware.StickyNoteActionLoggingMiddleware",
     "stickers.middleware.task_middleware.TaskActionLoggingMiddleware",
+    "stickers.middleware.rate_limit_middleware.SimpleRateLimitMiddleware",
 ]
 
 ROOT_URLCONF = "lazy_ilya.urls"
