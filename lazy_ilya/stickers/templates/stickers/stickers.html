@@ -164,7 +164,7 @@
                     </button>
 
                     <h2 class="text-center">Задача</h2>
-                    <input type="text" name="title" placeholder="Название задачи"
+                    <input type="text" name="title" placeholder="Название задачи" maxlength="40"
                            class="correct_input"/>
 
                     <textarea name="desc" rows="10" placeholder="Описание..."
@@ -172,7 +172,7 @@
 
                     <label class="correct_label">
                         Срок исполнения:</label>
-                    <input type="date" name="deadline"
+                    <input type="date" name="deadline" min="2024-01-01" max="2029-12-31"
                            class="correct_input"/>
 
 
@@ -191,9 +191,9 @@
                         <option value="">-- Выберите исполнителя --</option>
 
                     </select>
-                    <select id="tags-select" name="tags" multiple></select>
+                    <select id="tags-select" name="tags"  multiple></select>
                     <label class="flex justify-start items-center gap-5 cursor-pointer">
-                        <input type="checkbox" class="correct_icon rounded-full text-x" name="done"/>
+                        <input type="checkbox" class="correct_icon rounded-full text-x" maxlength="15" name="done"/>
                         <span class="correct_label">Выполнено</span>
                     </label>
 

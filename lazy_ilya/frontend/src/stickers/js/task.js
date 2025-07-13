@@ -53,7 +53,15 @@ export class KanbanTasks {
             removeItemButton: true,
             duplicateItemsAllowed: false,
             addItems: true,
-            addItemFilter: value => value.trim().length > 0,
+            addItemFilter: (value) => {
+                const trimmed = value.trim();
+                if (trimmed.length === 0) return false;
+                if (trimmed.length > 20) {
+                    showError('Тег не должен быть длиннее 20 символов', "server-error2");
+                    return false;
+                }
+                return true;
+            },
             addChoices: true,
             searchEnabled: true,
             shouldSort: false,
@@ -61,7 +69,7 @@ export class KanbanTasks {
             choices: window.tags_list.map(tag => ({
                 value: tag.name,
                 label: tag.name
-            }))
+            })),
         });
 
         // Клик по карточке открывает модалку для редактирования
@@ -138,7 +146,10 @@ export class KanbanTasks {
     openModal(taskId = null) {
         this.currentEditId = taskId;
         const saveBtn = this.taskForm.querySelector('button[type="submit"]');
-
+        const input = this.taskModal.querySelector('input.choices__input.choices__input--cloned');
+        if (input) {
+            input.setAttribute('maxlength', '20');
+        }
         if (taskId && this.tasks[taskId]) {
             if (taskId && this.tasks[taskId]?.deleted) {
                 // Задача удалена — отключаем кнопку
@@ -861,6 +872,7 @@ export class TaskFilter {
             label.className = 'correct_label flex items-center space-x-2 mb-3';
 
             const checkbox = document.createElement('input');
+
             checkbox.type = 'checkbox';
             checkbox.value = tag;
             checkbox.className = 'tag-checkbox correct_icon rounded-full text-xl';
