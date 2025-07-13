@@ -6,7 +6,7 @@
 {% block body %}
 
 
-    <div class="max-w-[95vw] mx-auto py-6 px-4 space-y-4 ">
+    <div class="max-w-[95vw] mx-auto py-6 px-4 space-y-4">
         <div id="server-error" class="hidden common_error"
              role="alert">
             <svg class="shrink-0 inline size-5 md:size-7 me-3" aria-hidden="true"
@@ -60,7 +60,7 @@
 
         <!-- Notes Board -->
         <div id="note-board"
-             class="relative border-b-2 border-b-accent min-h-[25vh] flex flex-wrap gap-4 p-4 justify-start">
+             class="relative border-b-2 border-b-accent min-h-[30vh] flex flex-wrap gap-4 p-4 justify-start">
 
             {% csrf_token %}
             <!-- карточки стикеров -->
@@ -138,7 +138,7 @@
 
         <!-- Tasks Board -->
         <div id="task-board"
-             class=" grid grid-cols-1 sm:grid-cols-2  lg:grid-cols-3 gap-4 min-h-[200px] transition-opacity">
+             class=" grid grid-cols-1 sm:grid-cols-2  lg:grid-cols-3 gap-4   min-h-[30vh] ransition-opacity">
 
             <!-- Модальное окно -->
             <div id="task-modal" class="fixed inset-0 backdrop-blur-xs flex items-center justify-center hidden z-30">

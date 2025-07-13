@@ -84,6 +84,7 @@ export class KanbanTasks {
 
     }
 
+
     /**
      * Устанавливает экземпляр фильтра задач для дальнейшего использования.
      *
@@ -111,8 +112,11 @@ export class KanbanTasks {
      *   @property {string} author - Автор задачи.
      */
     loadTasksFromBackend(tasksArray) {
+        this.allTaskIds = []; // список id в порядке получения
+
         tasksArray.forEach(task => {
             const id = task.id;
+
             // Сохраняем задачу в локальном объекте tasks
             this.tasks[id] = {
                 title: task.title,
@@ -128,8 +132,47 @@ export class KanbanTasks {
                 deleted_by: task.deleted_by || null,   // Кто удалил, если есть
             };
             // Отрисовываем карточку задачи в интерфейсе
-            this.renderTaskCard(id, this.tasks[id]);
+            // this.renderTaskCard(id, this.tasks[id]);
+            this.allTaskIds.push(id);
+
         });
+
+        this.PAGE_SIZE = 3;
+        this.loadedCount = 0;
+
+        this.renderNextTasks(); // первая порция
+        if (this.taskBoard && !this._scrollBound) {
+            window.addEventListener('scroll', () => this.onScroll());
+            this._scrollBound = true; // защита от повторного бинда
+        }
+    }
+
+
+    renderNextTasks() {
+        let rendered = 0;
+        while (this.loadedCount < this.allTaskIds.length && rendered < this.PAGE_SIZE) {
+            const id = this.allTaskIds[this.loadedCount];
+            const task = this.tasks[id];
+            this.loadedCount++;
+            this.renderTaskCard(id, task);
+            rendered++;
+
+        }
+    }
+
+    onScroll() {
+        const scrollTop = window.scrollY || window.pageYOffset;
+        const windowHeight = window.innerHeight;
+        const fullHeight = document.documentElement.scrollHeight;
+
+        const nearBottom = scrollTop + windowHeight >= fullHeight - 100;  // 100px до низа
+
+
+        if (nearBottom && this.loadedCount < this.allTaskIds.length) {
+            console.log("Loading more tasks...");
+            this.renderNextTasks();
+
+        }
     }
 
 
