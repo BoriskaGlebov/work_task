@@ -208,6 +208,15 @@ export class KanbanTasks {
             this.taskForm.deadline.value = task.deadline;
             this.taskForm.priority.value = task.priority;
             this.taskForm.done.checked = task.done;
+            // Если хотите дополнительно кликать по родителю
+            document.getElementById('deadline-input').addEventListener('click', function () {
+                this.showPicker?.(); // showPicker доступен не во всех браузерах
+            });
+
+            // Фоллбэк для Safari и др.
+            document.getElementById('deadline-input').addEventListener('focus', function () {
+                this.showPicker?.();
+            });
 
             // Обновление тегов с использованием Choices.js / Tom Select
             if (this.tagsSelect) {
