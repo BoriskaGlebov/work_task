@@ -83,7 +83,7 @@
                         {% csrf_token %}
                         <div>
                             <input type="file" name="cityFile" id="fileInput" accept=".docx" class="correct_input">
-                            <p id="errorMessage" class="error_message hidden">Имя файла должно быть
+                            <p id="errorMessage"  maxlength="55" class="error_message hidden">Имя файла должно быть
                                 <strong>globus.docx</strong>.
                             </p>
                         </div>
@@ -127,12 +127,12 @@
                         </div>
                         <div>
                             <label for="dock_num" class="block mb-2 correct_label">Порядковый номер в таблице</label>
-                            <input id="dock-num" name="dock_num" type="number" min="1"
+                            <input id="dock-num" name="dock_num" type="number" min="1" max="9999"
                                    placeholder="Введите номер больше нуля" class="correct_input"/>
                         </div>
                         <div>
                             <label for="location" class="block mb-2 correct_label">Название города</label>
-                            <input id="location" name="location" type="text" placeholder="Введите название города"
+                            <input id="location"  maxlength="55" name="location" type="text" placeholder="Введите название города"
                                    class="correct_input"/>
                         </div>
                         <div>
@@ -142,7 +142,7 @@
                         </div>
                         <div>
                             <label for="pseudonim" class="block mb-2 correct_label">Псевдоним</label>
-                            <input id="pseudonim" name="pseudonim" type="text" placeholder="Псевдоним"
+                            <input id="pseudonim"  maxlength="55" name="pseudonim" type="text" placeholder="Псевдоним"
                                    class="correct_input"/>
                         </div>
                         <div class="flex justify-start items-center gap-5">
@@ -164,12 +164,12 @@
                         </div>
                         <div>
                             <label for="some-number" class="block mb-2 correct_label">Спец номер</label>
-                            <input id="some-number" name="some_number" type="text" placeholder="Спец номер"
+                            <input id="some-number"  maxlength="55" name="some_number" type="text" placeholder="Спец номер"
                                    class="correct_input"/>
                         </div>
                         <div>
                             <label for="work-time" class="block mb-2 correct_label">Рабочее время</label>
-                            <input id="work-time" name="work_time" type="text" placeholder="Время работы"
+                            <input id="work-time"  maxlength="155" name="work_time" type="text" placeholder="Время работы"
                                    class="correct_input"/>
                         </div>
                         <div class="flex justify-between gap-3 mt-4 mb-3">

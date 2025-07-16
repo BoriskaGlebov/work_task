@@ -53,7 +53,7 @@
                     </div>
 
                     <input type="search" id="default-search"
-                           class="ps-12 w-full correct_input"
+                           class="ps-12 w-full correct_input" maxlength="100"
                            placeholder="Введи какой-то адресок" required autocomplete="off"/>
 
                     <ul id="suggestions"
@@ -80,39 +80,39 @@
                 {% csrf_token %}
                 <div>
                     <label for="modal-location" class="block mb-2 correct_label">Адрес</label>
-                    <input id="modal-location" type="text" placeholder="Город" class="correct_input"/>
+                    <input id="modal-location" type="text" maxlength="55" placeholder="Город" class="correct_input"/>
                 </div>
                 <div>
                     <label for="modal-name_organ" class="block mb-2 correct_label">Наименование органа</label>
-                    <input id="modal-name_organ" type="text" placeholder="Организация" class="correct_input"/>
+                    <input id="modal-name_organ" type="text"   maxlength="55"placeholder="Организация" class="correct_input"/>
                 </div>
                 <div>
                     <label for="modal-pseudonim" class="block mb-2 correct_label">Псевдоним</label>
-                    <input id="modal-pseudonim" type="text" placeholder="Псевдоним" class="correct_input"/>
+                    <input id="modal-pseudonim" type="text"  maxlength="55" placeholder="Псевдоним" class="correct_input"/>
                 </div>
                 <div>
                     <label for="modal-work_time" class="block mb-2 correct_label">Рабочее время</label>
-                    <input id="modal-work_time" type="text" placeholder="Время работы" class="correct_input"/>
+                    <input id="modal-work_time" type="text" maxlength="155" placeholder="Время работы" class="correct_input"/>
                 </div>
                 <div>
                     <label for="modal-table_name" class="block mb-2 correct_label">Название таблицы</label>
-                    <input id="modal-table_name" readonly type="text" placeholder="Номер раздела"
+                    <input id="modal-table_name" readonly type="text"  maxlength="55" placeholder="Номер раздела"
                            class="correct_input"/>
                 </div>
                 <div>
                     <label for="modal-number" class="block mb-2 correct_label">Номер записи в таблице</label>
-                    <input id="modal-number" readonly type="text" placeholder="Порядковый номер"
+                    <input id="modal-number" readonly type="text"  maxlength="55" placeholder="Порядковый номер"
                            class="correct_input"/>
                 </div>
                 <div>
                     <label for="modal-some_number" class="block mb-2 correct_label">Спец номер</label>
-                    <input id="modal-some_number" type="text" placeholder="Спец номер"
+                    <input id="modal-some_number"  maxlength="55" type="text" placeholder="Спец номер"
                            class="correct_input"/>
                 </div>
 
                 <div>
                     <label for="modal-ip_address" class="block mb-2 correct_label">IP address</label>
-                    <input id="modal-ip_address" type="text" placeholder="IP address" class="correct_input"/>
+                    <input id="modal-ip_address"  maxlength="55" type="text" placeholder="IP address" class="correct_input"/>
                 </div>
             </form>
             <div class="flex justify-end gap-3 mt-4">
