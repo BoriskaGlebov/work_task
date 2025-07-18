@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const passwordError = document.getElementById('password-error');
     const loginIcon = document.getElementById('login-icon');
     const passwordIcon = document.getElementById('password-icon');
+    const eyeIcon = document.getElementById('eye-icon');
 
     /**
      * Сбрасывает стили и ошибки для поля формы.
@@ -135,4 +136,17 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Ошибка при отправке формы:', error);
         }
     });
+    eyeIcon.addEventListener('mousedown', () => {
+        passwordInput.type = 'text'; // показать пароль
+    });
+
+    eyeIcon.addEventListener('mouseup', () => {
+        passwordInput.type = 'password'; // скрыть пароль
+    });
+
+    eyeIcon.addEventListener('mouseleave', () => {
+        passwordInput.type = 'password'; // скрыть пароль, если мышь ушла с иконки
+    });
+
+
 });
