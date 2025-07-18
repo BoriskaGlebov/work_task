@@ -5,6 +5,7 @@ from typing import List, Dict, Any
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.views import redirect_to_login
 from django.db.models import Q
 from django.http import HttpRequest, HttpResponse, JsonResponse, Http404, FileResponse, HttpResponseNotFound, \
     HttpResponseForbidden
@@ -32,7 +33,7 @@ def base_view(request):
     return render(request=request, template_name="cities/admin-cities.html")
 
 
-class Cities(LoginRequiredMixin, View):
+class Cities(View):
     """
     Класс для обработки запросов, связанных с городами.
 
@@ -41,6 +42,16 @@ class Cities(LoginRequiredMixin, View):
     """
 
     login_url = reverse_lazy("myauth:login")
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.method in ["PUT", "DELETE"]:
+            if not request.user.is_authenticated:
+                # Для обычного запроса — редирект
+                if request.content_type == "text/html":
+                    return redirect_to_login(request.get_full_path(), self.login_url)
+                # Для JS/AJAX — 403 Forbidden
+                return JsonResponse({ "status": "error", "message": "Authentication required" }, status=403)
+        return super().dispatch(request, *args, **kwargs)
 
     def get(self, request: HttpRequest) -> HttpResponse:
         """

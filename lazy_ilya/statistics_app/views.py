@@ -1,7 +1,8 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import redirect_to_login
 from django.db.models import Sum
 from django.db.models.functions import TruncDate
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views import View
@@ -16,8 +17,18 @@ def base_view(request: HttpRequest):
     return render(request, "statistics_app/statistics_app.html")
 
 
-class StatisticsApp(LoginRequiredMixin, View):
+class StatisticsApp(View):
     login_url = reverse_lazy("myauth:login")
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.method in ["PUT", "DELETE"]:
+            if not request.user.is_authenticated:
+                # Для обычного запроса — редирект
+                if request.content_type == "text/html":
+                    return redirect_to_login(request.get_full_path(), self.login_url)
+                # Для JS/AJAX — 403 Forbidden
+                return JsonResponse({"status": "error", "message": "Authentication required"}, status=403)
+        return super().dispatch(request, *args, **kwargs)
 
     def get(self, request: HttpRequest) -> HttpResponse:
         """ """
@@ -46,8 +57,8 @@ class StatisticsApp(LoginRequiredMixin, View):
         ).order_by(  # Чтобы избежать дополнительных запросов
             "-count_responses"
         )[
-            :3
-        ]
+                     :3
+                     ]
         total_sticky_notes = StickyNote.objects.count()
         total_tasks = Task.objects.count()
         tasks_done = Task.objects.filter(done=True).count()

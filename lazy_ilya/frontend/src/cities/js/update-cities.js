@@ -144,6 +144,10 @@ export class CityModalHandler {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => null);
+                if (errorData && errorData.message === "Authentication required") {
+                    window.location.href = "/login/?next=" + encodeURIComponent(window.location.pathname);
+                    return;
+                }
                 let errorMsg = '';
                 for (const field in errorData.errors) {
                     errorMsg += `${field}: ${errorData.errors[field].join(', ')}\n`;
@@ -225,6 +229,10 @@ export class CityModalHandler {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => null);
+                if (errorData && errorData.message === "Authentication required") {
+                    window.location.href = "/login/?next=" + encodeURIComponent(window.location.pathname);
+                    return;
+                }
                 showError(errorData?.message || 'Ошибка при удалении города');
                 return;
             }

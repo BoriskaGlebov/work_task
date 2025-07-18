@@ -2,7 +2,7 @@ from typing import Tuple, List
 
 from django.contrib import admin
 
-from cities.models import CityData, TableNames, CounterCities
+from cities.models import CityData, TableNames, CounterCities, CityInfoDO
 
 
 class CityDataInline(admin.TabularInline):
@@ -102,3 +102,9 @@ class CounterCitiesAdmin(admin.ModelAdmin):
     list_display: Tuple[str] = ("id", "dock_num", "count_responses")
     list_display_links: Tuple[str] = "id", "dock_num"
     list_filter: Tuple[str] = ("processed_at", "dock_num", "count_responses")
+
+@admin.register(CityInfoDO)
+class CityInfoDOAdmin(admin.ModelAdmin):
+    list_display=("id","korr","m_b_number","cipa","globus")
+    list_display_links = ("id", "korr", "m_b_number", "cipa", "globus")
+
