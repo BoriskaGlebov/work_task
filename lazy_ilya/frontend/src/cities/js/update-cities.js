@@ -74,9 +74,12 @@ export class CityModalHandler {
             if (!card) return;
 
             const cityData = card.dataset.city ? JSON.parse(card.dataset.city) : null;
-            if (cityData) {
+            if ("pseudonim" in cityData && this.modal.querySelector('#modal-pseudonim')) {
+                this.showModal(cityData);
+            } else if ("korr" in cityData && this.modal.querySelector('#modal-korr')) {
                 this.showModal(cityData);
             }
+
         });
     }
 
@@ -86,8 +89,8 @@ export class CityModalHandler {
      */
     showModal(city) {
         this.currentCity = city;
-
-        if (this.modal) {
+        // console.log(this.currentCity);
+        if (this.modal && "pseudonim" in this.currentCity) {
             this.modal.querySelector('#modal-location').value = city.location || '';
             this.modal.querySelector('#modal-name_organ').value = city.name_organ || '';
             this.modal.querySelector('#modal-pseudonim').value = city.pseudonim || '';
@@ -96,6 +99,19 @@ export class CityModalHandler {
             this.modal.querySelector('#modal-number').value = city.dock_num || '';
             this.modal.querySelector('#modal-some_number').value = city.some_number || '';
             this.modal.querySelector('#modal-ip_address').value = city.ip_address || '';
+            this.modal.classList.remove('hidden');
+            this.form?.classList.add('animate-popup');
+
+        } else if (this.modal && "korr" in this.currentCity) {
+            console.log(city);
+            this.modal.querySelector('#modal-korr').value = city.korr || '';
+            this.modal.querySelector('#modal-m_b_number').value = city.m_b_number || '';
+            this.modal.querySelector('#modal-cipa').value = city.cipa || '';
+            this.modal.querySelector('#modal-globus').value = city.globus || '';
+            this.modal.querySelector('#modal-recipient').value = city.recipient || '';
+            this.modal.querySelector('#modal-phone_number').value = city.phone_number || '';
+            this.modal.querySelector('#modal-ip_phone').value = city.ip_phone || '';
+            this.modal.querySelector('#modal-notes').value = city.notes || '';
             this.modal.classList.remove('hidden');
             this.form?.classList.add('animate-popup');
         }

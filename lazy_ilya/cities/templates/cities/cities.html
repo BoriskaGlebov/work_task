@@ -127,6 +127,64 @@
             </div>
         </div>
     </div>
+    <div id="city-modal2"
+         class="hidden fixed inset-0 z-50 flex items-center justify-center">
+        <!-- Размытие фона -->
+        <div class="absolute inset-0 bg-background/80 dark:bg-background-dark/80 backdrop-blur-sm"></div>
+        <!-- Форма (не размытая) -->
+        <div class="relative bg-background dark:bg-background-dark rounded-xl max-w-2xl min-w-xs w-full z-10">
+
+
+            <form class="relative form-style !max-w-2xl z-10">
+                {% csrf_token %}
+                <div>
+                    <label for="modal-korr" class="block mb-2 correct_label">№ корреспондента</label>
+                    <input id="modal-korr" type="text" maxlength="55" placeholder="№ корреспондента" class="correct_input"/>
+                </div>
+                <div>
+                    <label for="modal-m_b_number" class="block mb-2 correct_label">№ Части</label>
+                    <input id="modal-m_b_number" type="text" maxlength="55" placeholder="№ части" class="correct_input"/>
+                </div>
+                <div>
+                    <label for="modal-cipa" class="block mb-2 correct_label">Номер CIPA</label>
+                    <input id="modal-cipa" type="text"   maxlength="55"placeholder="Номер CIPA" class="correct_input"/>
+                </div>
+                 <div>
+                    <label for="modal-globus" class="block mb-2 correct_label">Номерок в таблице Глобуса</label>
+                    <input id="modal-globus" type="text"  maxlength="55" placeholder="Номерок в таблице Глобуса" class="correct_input"/>
+                </div>
+                <div>
+                    <label for="modal-recipient" class="block mb-2 correct_label">Получатель</label>
+                    <input id="modal-recipient" type="text"  maxlength="55" placeholder="Получатель" class="correct_input"/>
+                </div>
+                <div>
+                    <label for="modal-phone_number" class="block mb-2 correct_label">Телефон</label>
+                    <input id="modal-phone_number" type="text" maxlength="155" placeholder="Телефон" class="correct_input"/>
+                </div>
+                <div>
+                    <label for="modal-ip_phone" class="block mb-2 correct_label">IP телефон</label>
+                    <input id="modal-ip_phone" readonly type="text"  maxlength="55" placeholder="IP телефон"
+                           class="correct_input"/>
+                </div>
+                <div>
+                    <label for="modal-notes" class="block mb-2 correct_label">Заметки</label>
+                    <input id="modal-notes" readonly type="text"  maxlength="55" placeholder="Заметки"
+                           class="correct_input"/>
+                </div>
+
+            </form>
+            <div class="flex justify-end gap-3 mt-4">
+                <button id="save-city" class="btn-submit">Сохранить</button>
+                {% if is_admin %}
+                <button id="delete-city" class="btn-delete !w-full !font-semibold">Удалить</button>
+                {% else %}
+                <button id="delete-city" class="btn-delete !hidden !w-full !font-semibold" disabled>Удалить</button>
+                {% endif %}
+                {#   <button id="delete-city" class="btn-delete !w-full !font-semibold">Удалить</button>#}
+                <button id="close-modal" class="btn-cancel ">Отмена</button>
+            </div>
+        </div>
+    </div>
 
 
 
@@ -139,6 +197,8 @@
     {% endif %}
     <script>
         window.citiesData = JSON.parse('{{ cities_json|escapejs }}');
+        window.infoDO=JSON.parse('{{ cities_do_json|escapejs }}');
+        console.log(infoDO)
     </script>
 
 {% endblock %}

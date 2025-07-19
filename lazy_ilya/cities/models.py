@@ -127,6 +127,7 @@ class CityData(models.Model):
     def to_dict(self) -> dict:
         """Преобразует объект в словарь."""
         return {
+            "pk":self.pk,
             "table_id": self.table_id.id,
             "table_name": self.table_id.table_name,
             "dock_num": self.dock_num,
@@ -252,12 +253,13 @@ class CityInfoDO(models.Model):
         """Преобразует объект в словарь."""
         return {
             "pk": self.pk,
-            "korr": self.korr,
+            "korr": f"korr{self.korr}" if self.korr else "",
             "m_b_number": self.m_b_number,
             "cipa": self.cipa,
-            "globus": self.globus.id,
+            "globus_id":self.globus.id if self.globus else "",
+            "globus": self.globus.pseudonim if self.globus else "",
             "recipient": self.recipient,
-            "phone_number": self.phone_number,
+            "phone_number": str(self.phone_number) if self.phone_number else "",
             "ip_phone": self.ip_phone,
             "notes": self.notes,
         }

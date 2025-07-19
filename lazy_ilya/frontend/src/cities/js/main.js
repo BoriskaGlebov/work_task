@@ -5,9 +5,9 @@ import {CityModalHandler} from "./update-cities.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     toggleAccentClasses('a-cities','a-cities-mob')
-    console.log(citiesData)
-
     const cities = citiesData;  // массив с данными
-    new CityAutocomplete('default-search', 'suggestions', cities);
+    const citiesDO= infoDO;
+    new CityAutocomplete('default-search', 'suggestions', cities,citiesDO);
     new CityModalHandler('city-modal',cities);
+    new CityModalHandler('city-modal2',cities);
 });

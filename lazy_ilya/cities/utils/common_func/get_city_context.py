@@ -11,7 +11,7 @@ from typing import List, Dict, Any
 from django.db.models import Q
 from django.http import HttpRequest
 
-from cities.models import CityData, TableNames
+from cities.models import CityData, TableNames, CityInfoDO
 
 
 def get_all_cities(request: HttpRequest):
@@ -24,14 +24,17 @@ def get_all_cities(request: HttpRequest):
     all_rows = CityData.objects.select_related("table_id").exclude(
         Q(location__isnull=True) | Q(location__exact="")
     )
+    all_info_do = CityInfoDO.objects.select_related('globus').all()
 
     # Преобразуем данные в словарь для каждого города
     cities: List[Dict[str, Any]] = [row.to_dict() for row in all_rows]
-
+    cities_do:List[Dict[str, Any]] = [el.to_dict() for el in all_info_do]
     # Преобразуем данные в JSON
     cities_json: str = json.dumps(cities, ensure_ascii=False)
+    cities_do_json:str = json.dumps(cities_do, ensure_ascii=False)
     context = {
         "cities_json": cities_json,
+        "cities_do_json": cities_do_json,
         "is_admin": is_admin,
         "is_ilia": is_ilia,
     }
