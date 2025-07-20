@@ -154,11 +154,14 @@ export class KanbanTasks {
             const id = this.allTaskIds[this.loadedCount];
             const task = this.tasks[id];
             this.loadedCount++;
-            this.renderTaskCard(id, task);
-            rendered++;
 
+            if (!this.taskFilterInstance || this.taskFilterInstance.isTaskPassingFilters(task)) {
+                this.renderTaskCard(id, task);
+                rendered++;
+            }
         }
     }
+
 
     onScroll() {
         const scrollTop = window.scrollY || window.pageYOffset;
@@ -985,6 +988,9 @@ export class TaskFilter {
             .map(cb => cb.value.toLowerCase());
     }
 
+    /**
+     * Сохранение данных для фильтрации в локальное хранилище
+     */
     saveFiltersToStorage() {
         const filtersState = {
             assignee: this.filters.assignee?.value || '',
@@ -1135,6 +1141,44 @@ export class TaskFilter {
         filteredCards.forEach(card => card.classList.remove('hidden'));
         filteredCards.forEach(card => this.container.appendChild(card));
 
+    }
+
+    // В твоём фильтрующем классе
+    isTaskPassingFilters(taskObj) {
+        const assigneeVal = this.filters.assignee?.value.trim().toLowerCase() || '';
+        const priorityVal = this.filters.priority?.value.trim().toLowerCase() || '';
+        const dateVal = this.filters.date?.value || '';
+        const statusVal = this.filters.status?.value || '';
+        const selectedTags = this.getSelectedTags();
+
+        const cardAssignee = (taskObj.assignee || '').toLowerCase();
+        const cardPriority = (taskObj.priority || '').toLowerCase();
+        const cardDone = (taskObj.done ? 'true' : 'false').toLowerCase();
+        const cardDeleted = (taskObj.deleted ? 'true' : 'false').toLowerCase();
+        const cardTags = (taskObj.tags || '').toLowerCase().split(',').map(t => t.trim()).filter(Boolean);
+
+        const matchAssignee = !assigneeVal || cardAssignee === assigneeVal;
+        const matchPriority = !priorityVal || cardPriority === priorityVal;
+        const matchTags = selectedTags.length === 0 || selectedTags.every(tag => cardTags.includes(tag));
+
+        let matchStatus = false;
+
+        if (statusVal === 'deleted') {
+            matchStatus = cardDeleted === 'true';
+        } else if (!assigneeVal && !priorityVal && !dateVal && selectedTags.length === 0 && !statusVal) {
+            matchStatus = true;
+        } else {
+            if (cardDeleted === 'true') return false;
+            if (!statusVal) {
+                matchStatus = true;
+            } else if (statusVal === 'true') {
+                matchStatus = cardDone === 'true';
+            } else if (statusVal === 'false') {
+                matchStatus = cardDone !== 'true';
+            }
+        }
+
+        return matchAssignee && matchPriority && matchTags && matchStatus;
     }
 
 
