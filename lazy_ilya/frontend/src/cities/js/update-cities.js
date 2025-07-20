@@ -103,7 +103,6 @@ export class CityModalHandler {
             this.form?.classList.add('animate-popup');
 
         } else if (this.modal && "korr" in this.currentCity) {
-            console.log(city);
             this.modal.querySelector('#modal-korr').value = city.korr || '';
             this.modal.querySelector('#modal-m_b_number').value = city.m_b_number || '';
             this.modal.querySelector('#modal-cipa').value = city.cipa || '';

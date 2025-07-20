@@ -157,14 +157,20 @@
                 </div>
                 <div>
                     <label for="modal-globus" class="block mb-2 correct_label">Номерок в таблице Глобуса</label>
-                    <div class="relative autocomplete-wrapper w-full">
+
+                    <div class="relative w-full">
+                        <input id="globus-hint"
+                               type="text"
+                               disabled
+                               tabindex="-1"
+                               class="absolute inset-0 w-full px-3 text-gray-500 pointer-events-none bg-transparent border border-transparent"/>
+
                         <input id="modal-globus"
                                type="text"
                                maxlength="55"
                                placeholder="Номерок в таблице Глобуса"
-                               class="correct_input dark:!bg-transparent !bg-transparent relative z-10"/>
-
-                        <div class="absolute top-0 left-0 w-full h-full pointer-events-none flex items-center px-2 text-text dark:text-text-dark bg-background dark:bg-background-dark autocomplete-hint  z-0"></div>
+                               class="correct_input relative z-10 w-full px-3 !bg-transparent"
+                        />
                     </div>
                 </div>
 
@@ -216,8 +222,8 @@
     <script>
         window.citiesData = JSON.parse('{{ cities_json|escapejs }}');
         window.infoDO = JSON.parse('{{ cities_do_json|escapejs }}');
-        console.log(infoDO);
-        console.log(citiesData);
+        {#console.log(infoDO);#}
+        {#console.log(citiesData);#}
     </script>
 
 {% endblock %}
