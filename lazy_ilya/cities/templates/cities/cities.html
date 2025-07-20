@@ -84,35 +84,39 @@
                 </div>
                 <div>
                     <label for="modal-name_organ" class="block mb-2 correct_label">Наименование органа</label>
-                    <input id="modal-name_organ" type="text"   maxlength="55"placeholder="Организация" class="correct_input"/>
+                    <input id="modal-name_organ" type="text" maxlength="55" placeholder="Организация"
+                           class="correct_input"/>
                 </div>
                 <div>
                     <label for="modal-pseudonim" class="block mb-2 correct_label">Псевдоним</label>
-                    <input id="modal-pseudonim" type="text"  maxlength="55" placeholder="Псевдоним" class="correct_input"/>
+                    <input id="modal-pseudonim" type="text" maxlength="55" placeholder="Псевдоним"
+                           class="correct_input"/>
                 </div>
                 <div>
                     <label for="modal-work_time" class="block mb-2 correct_label">Рабочее время</label>
-                    <input id="modal-work_time" type="text" maxlength="155" placeholder="Время работы" class="correct_input"/>
+                    <input id="modal-work_time" type="text" maxlength="155" placeholder="Время работы"
+                           class="correct_input"/>
                 </div>
                 <div>
                     <label for="modal-table_name" class="block mb-2 correct_label">Название таблицы</label>
-                    <input id="modal-table_name" readonly type="text"  maxlength="55" placeholder="Номер раздела"
+                    <input id="modal-table_name" readonly type="text" maxlength="55" placeholder="Номер раздела"
                            class="correct_input"/>
                 </div>
                 <div>
                     <label for="modal-number" class="block mb-2 correct_label">Номер записи в таблице</label>
-                    <input id="modal-number" readonly type="text"  maxlength="55" placeholder="Порядковый номер"
+                    <input id="modal-number" readonly type="text" maxlength="55" placeholder="Порядковый номер"
                            class="correct_input"/>
                 </div>
                 <div>
                     <label for="modal-some_number" class="block mb-2 correct_label">Спец номер</label>
-                    <input id="modal-some_number"  maxlength="55" type="text" placeholder="Спец номер"
+                    <input id="modal-some_number" maxlength="55" type="text" placeholder="Спец номер"
                            class="correct_input"/>
                 </div>
 
                 <div>
                     <label for="modal-ip_address" class="block mb-2 correct_label">IP address</label>
-                    <input id="modal-ip_address"  maxlength="55" type="text" placeholder="IP address" class="correct_input"/>
+                    <input id="modal-ip_address" maxlength="55" type="text" placeholder="IP address"
+                           class="correct_input"/>
                 </div>
             </form>
             <div class="flex justify-end gap-3 mt-4">
@@ -139,36 +143,50 @@
                 {% csrf_token %}
                 <div>
                     <label for="modal-korr" class="block mb-2 correct_label">№ корреспондента</label>
-                    <input id="modal-korr" type="text" maxlength="55" placeholder="№ корреспондента" class="correct_input"/>
+                    <input id="modal-korr" type="text" maxlength="55" placeholder="№ корреспондента"
+                           class="correct_input"/>
                 </div>
                 <div>
                     <label for="modal-m_b_number" class="block mb-2 correct_label">№ Части</label>
-                    <input id="modal-m_b_number" type="text" maxlength="55" placeholder="№ части" class="correct_input"/>
+                    <input id="modal-m_b_number" type="text" maxlength="55" placeholder="№ части"
+                           class="correct_input"/>
                 </div>
                 <div>
                     <label for="modal-cipa" class="block mb-2 correct_label">Номер CIPA</label>
-                    <input id="modal-cipa" type="text"   maxlength="55"placeholder="Номер CIPA" class="correct_input"/>
-                </div>
-                 <div>
-                    <label for="modal-globus" class="block mb-2 correct_label">Номерок в таблице Глобуса</label>
-                    <input id="modal-globus" type="text"  maxlength="55" placeholder="Номерок в таблице Глобуса" class="correct_input"/>
+                    <input id="modal-cipa" type="text" maxlength="55" placeholder="Номер CIPA" class="correct_input"/>
                 </div>
                 <div>
+                    <label for="modal-globus" class="block mb-2 correct_label">Номерок в таблице Глобуса</label>
+                    <div class="relative autocomplete-wrapper w-full">
+                        <input id="modal-globus"
+                               type="text"
+                               maxlength="55"
+                               placeholder="Номерок в таблице Глобуса"
+                               class="correct_input dark:!bg-transparent !bg-transparent relative z-10"/>
+
+                        <div class="absolute top-0 left-0 w-full h-full pointer-events-none flex items-center px-2 text-text dark:text-text-dark bg-background dark:bg-background-dark autocomplete-hint  z-0"></div>
+                    </div>
+                </div>
+
+
+                <div>
                     <label for="modal-recipient" class="block mb-2 correct_label">Получатель</label>
-                    <input id="modal-recipient" type="text"  maxlength="55" placeholder="Получатель" class="correct_input"/>
+                    <input id="modal-recipient" type="text" maxlength="55" placeholder="Получатель"
+                           class="correct_input"/>
                 </div>
                 <div>
                     <label for="modal-phone_number" class="block mb-2 correct_label">Телефон</label>
-                    <input id="modal-phone_number" type="text" maxlength="155" placeholder="Телефон" class="correct_input"/>
+                    <input id="modal-phone_number" type="text" maxlength="155" placeholder="Телефон"
+                           class="correct_input"/>
                 </div>
                 <div>
                     <label for="modal-ip_phone" class="block mb-2 correct_label">IP телефон</label>
-                    <input id="modal-ip_phone" readonly type="text"  maxlength="55" placeholder="IP телефон"
+                    <input id="modal-ip_phone" readonly type="text" maxlength="55" placeholder="IP телефон"
                            class="correct_input"/>
                 </div>
                 <div>
                     <label for="modal-notes" class="block mb-2 correct_label">Заметки</label>
-                    <input id="modal-notes" readonly type="text"  maxlength="55" placeholder="Заметки"
+                    <input id="modal-notes" readonly type="text" maxlength="55" placeholder="Заметки"
                            class="correct_input"/>
                 </div>
 
@@ -176,9 +194,9 @@
             <div class="flex justify-end gap-3 mt-4">
                 <button id="save-city" class="btn-submit">Сохранить</button>
                 {% if is_admin %}
-                <button id="delete-city" class="btn-delete !w-full !font-semibold">Удалить</button>
+                    <button id="delete-city" class="btn-delete !w-full !font-semibold">Удалить</button>
                 {% else %}
-                <button id="delete-city" class="btn-delete !hidden !w-full !font-semibold" disabled>Удалить</button>
+                    <button id="delete-city" class="btn-delete !hidden !w-full !font-semibold" disabled>Удалить</button>
                 {% endif %}
                 {#   <button id="delete-city" class="btn-delete !w-full !font-semibold">Удалить</button>#}
                 <button id="close-modal" class="btn-cancel ">Отмена</button>
@@ -197,8 +215,9 @@
     {% endif %}
     <script>
         window.citiesData = JSON.parse('{{ cities_json|escapejs }}');
-        window.infoDO=JSON.parse('{{ cities_do_json|escapejs }}');
-        console.log(infoDO)
+        window.infoDO = JSON.parse('{{ cities_do_json|escapejs }}');
+        console.log(infoDO);
+        console.log(citiesData);
     </script>
 
 {% endblock %}
