@@ -178,6 +178,11 @@ export class KanbanTasks {
         }
     }
 
+    resetAndRender() {
+        this.loadedCount = 0;
+        this.taskBoard.innerHTML = '';  // Очищаем контейнер от всех карточек
+        this.renderNextTasks();         // Запускаем ленивую отрисовку с нуля, с фильтрами
+    }
 
     /**
      * Открывает модальное окно для создания новой задачи или редактирования существующей.
@@ -869,6 +874,9 @@ export class TaskFilter {
 
     }
 
+    setKanbanTasksInstance(KanbanTasksInstance) {
+        this.kanbanTasksInstance = KanbanTasksInstance;
+    }
     /**
      * Заполняет селектор с пользователями, основываясь на данных из `window.username_data`.
      */
@@ -1036,7 +1044,9 @@ export class TaskFilter {
         const dateVal = this.filters.date?.value || '';
         const statusVal = this.filters.status?.value || '';
         this.saveFiltersToStorage();  // <--- ДОБАВЬ ЭТО
-
+        if (this.kanbanTasksInstance){
+            this.kanbanTasksInstance.resetAndRender();
+        }
         const selectedTags = this.getSelectedTags();
 
         // Проверяем, есть ли активные фильтры (кроме статуса)
