@@ -1,4 +1,5 @@
 import {showError} from "./utils.js";
+import {InlineGlobusAutocomplete} from "./globus-search.js";
 
 /**
  * Обработчик модального окна редактирования и удаления карточек городов.
@@ -8,7 +9,7 @@ export class CityModalHandler {
      * @param {string} modalId - ID модального окна.
      * @param {Array<Object>} citiesData - Массив объектов с данными о городах.
      */
-    constructor(modalId, citiesData = []) {
+    constructor(modalId, citiesData = [],) {
         /** @type {HTMLElement|null} */
         this.modal = document.getElementById(modalId);
         /** @type {HTMLFormElement|null} */
@@ -37,6 +38,7 @@ export class CityModalHandler {
         this.saveBtn?.addEventListener('click', async () => {
             if (!this.currentCity) return;
             const updatedData = this.getFormData();
+            console.log(this.currentCity);
             await this.updateCity(this.currentCity, updatedData);
             this.hideModal();
         });
@@ -49,7 +51,6 @@ export class CityModalHandler {
 
         window.addEventListener('click', (e) => {
             if (!this.modal || this.modal.classList.contains('hidden')) return;
-
             const isClickOutside = !this.modal.querySelector('form')?.contains(e.target);
             const isClickInsideModal = this.modal.contains(e.target);
 
@@ -72,7 +73,6 @@ export class CityModalHandler {
         document.addEventListener('click', (e) => {
             const card = e.target.closest('.card-style');
             if (!card) return;
-
             const cityData = card.dataset.city ? JSON.parse(card.dataset.city) : null;
             if ("pseudonim" in cityData && this.modal.querySelector('#modal-pseudonim')) {
                 this.showModal(cityData);
@@ -89,7 +89,6 @@ export class CityModalHandler {
      */
     showModal(city) {
         this.currentCity = city;
-        // console.log(this.currentCity);
         if (this.modal && "pseudonim" in this.currentCity) {
             this.modal.querySelector('#modal-location').value = city.location || '';
             this.modal.querySelector('#modal-name_organ').value = city.name_organ || '';
@@ -129,16 +128,33 @@ export class CityModalHandler {
      * @returns {Object} Объект с обновлёнными данными города.
      */
     getFormData() {
-        return {
-            location: this.modal.querySelector('#modal-location').value.trim(),
-            name_organ: this.modal.querySelector('#modal-name_organ').value.trim(),
-            pseudonim: this.modal.querySelector('#modal-pseudonim').value.trim(),
-            work_time: this.modal.querySelector('#modal-work_time').value.trim(),
-            table_name: this.modal.querySelector('#modal-table_name').value.trim(),
-            some_number: this.modal.querySelector('#modal-some_number').value.trim(),
-            ip_address: this.modal.querySelector('#modal-ip_address').value.trim(),
-            table_id: this.currentCity?.table_id || null
-        };
+        if (this.modal.querySelector('#modal-pseudonim')) {
+            return {
+                location: this.modal.querySelector('#modal-location').value.trim(),
+                name_organ: this.modal.querySelector('#modal-name_organ').value.trim(),
+                pseudonim: this.modal.querySelector('#modal-pseudonim').value.trim(),
+                work_time: this.modal.querySelector('#modal-work_time').value.trim(),
+                table_name: this.modal.querySelector('#modal-table_name').value.trim(),
+                some_number: this.modal.querySelector('#modal-some_number').value.trim(),
+                ip_address: this.modal.querySelector('#modal-ip_address').value.trim(),
+                table_id: this.currentCity?.table_id || null
+            };
+        } else if (this.modal.querySelector('#modal-korr')) {
+            globusAutocomplete.updateHint();
+            this.globusID = globusAutocomplete.getSelectedPk();
+            this.currentCity.globus_id = this.globusID
+            return {
+                korr: this.modal.querySelector('#modal-korr').value.trim(),
+                m_b_number: this.modal.querySelector('#modal-m_b_number').value.trim(),
+                cipa: this.modal.querySelector('#modal-cipa').value.trim(),
+                globus: this.modal.querySelector('#modal-globus').value.trim(),
+                recipient: this.modal.querySelector('#modal-recipient').value.trim(),
+                phone_number: this.modal.querySelector('#modal-phone_number').value.trim(),
+                ip_phone: this.modal.querySelector('#modal-ip_phone').value.trim(),
+                globus_id: this.currentCity?.globus_id || null
+            };
+        }
+
     }
 
     /**
@@ -148,7 +164,15 @@ export class CityModalHandler {
      */
     async updateCity(currentCity, data) {
         try {
-            const response = await fetch(`cities/${currentCity.table_id}/${currentCity.dock_num}/`, {
+            const id1 = currentCity.table_id ?? currentCity.pk;
+            const id2 = currentCity.dock_num ?? currentCity.globus_id;
+
+            if (!id1 || !id2) {
+                showError('Отсутствуют идентификаторы для обновления города');
+                return;
+            }
+
+            const response = await fetch(`cities/${id1}/${id2}/`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

@@ -14,8 +14,8 @@ from django.urls import reverse_lazy
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from cities.forms import CityDataForm
-from cities.models import CityData, CounterCities
+from cities.forms import CityDataForm, CityInfoDoForm
+from cities.models import CityData, CounterCities, CityInfoDO
 from cities.utils.common_func.get_city_context import (
     get_all_cities,
     get_context_admin_cities,
@@ -50,7 +50,7 @@ class Cities(View):
                 if request.content_type == "text/html":
                     return redirect_to_login(request.get_full_path(), self.login_url)
                 # Для JS/AJAX — 403 Forbidden
-                return JsonResponse({ "status": "error", "message": "Authentication required" }, status=403)
+                return JsonResponse({"status": "error", "message": "Authentication required"}, status=403)
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request: HttpRequest) -> HttpResponse:
@@ -83,32 +83,39 @@ class Cities(View):
             JsonResponse: Ответ с сообщением об успехе или ошибке.
         """
         try:
-            # Получаем город по ID таблицы и номеру доки
-            city = get_object_or_404(CityData, table_id=table_id, dock_num=dock_num)
-
             # Загружаем данные из тела запроса
             data = json.loads(request.body)
             print(data)
-            form = CityDataForm(data, instance=city)
-            if form.is_valid():
-                form.save()
-                # # Обновляем поля города
-                # city.location = data.get("location", city.location)
-                # city.name_organ = data.get("name_organ", city.name_organ)
-                # city.pseudonim = data.get("pseudonim", city.pseudonim)
-                # city.ip_address = data.get("ip_address", city.ip_address)
-                # city.work_time = data.get("work_time", city.work_time)
-                # city.some_number = data.get("some_number", city.some_number)
-                # city.save()
-                logger.bind(user=request.user.username).info(
-                    f"Произошло обновление города {city.name_organ} - {city.location}"
-                )
-                return JsonResponse({"status": "success"})
-            else:
-                logger.bind(user=request.user.username).error(
-                    f"Ошибка при создании города: {json.dumps(form.errors.get_json_data(), ensure_ascii=False, indent=2)}"
-                )
-                return JsonResponse({"errors": form.errors}, status=400)
+            if "pseudonim" in data:
+                # Получаем город по ID таблицы и номеру доки
+                city = get_object_or_404(CityData, table_id=table_id, dock_num=dock_num)
+                form = CityDataForm(data, instance=city)
+                if form.is_valid():
+                    form.save()
+                    logger.bind(user=request.user.username).info(
+                        f"Произошло обновление города {city.name_organ} - {city.location}"
+                    )
+                    return JsonResponse({"status": "success"})
+                else:
+                    logger.bind(user=request.user.username).error(
+                        f"Ошибка при создании города: {json.dumps(form.errors.get_json_data(), ensure_ascii=False, indent=2)}"
+                    )
+                    return JsonResponse({"errors": form.errors}, status=400)
+            elif "korr" in data:
+                city_do = get_object_or_404(CityInfoDO, pk=table_id)
+                form_do = CityInfoDoForm(data, instance=city_do)
+                if form_do.is_valid():
+                    form_do.save()
+                    logger.bind(user=request.user.username).info(
+                        f"Произошло обновление города {city_do.pk} - {city_do.korr}"
+                    )
+                    return JsonResponse({"status": "success"})
+                else:
+                    logger.bind(user=request.user.username).error(
+                        f"Ошибка при создании города: {json.dumps(form_do.errors.get_json_data(), ensure_ascii=False, indent=2)}"
+                    )
+                    return JsonResponse({"errors": form_do.errors}, status=400)
+
 
         except Http404:
             logger.bind(user=request.user.username).error(f"Город не найден")
