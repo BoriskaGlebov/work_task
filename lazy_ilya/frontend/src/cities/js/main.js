@@ -11,6 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const citiesDO= infoDO;
     new CityAutocomplete('default-search', 'suggestions', cities,citiesDO);
     new CityModalHandler('city-modal',cities);
-    new CityModalHandler('city-modal2',cities);
+    new CityModalHandler('city-modal2',citiesDO);
     window.globusAutocomplete=new InlineGlobusAutocomplete('#modal-globus','#globus-hint',cities);
 });

@@ -38,7 +38,6 @@ export class CityModalHandler {
         this.saveBtn?.addEventListener('click', async () => {
             if (!this.currentCity) return;
             const updatedData = this.getFormData();
-            console.log(this.currentCity);
             await this.updateCity(this.currentCity, updatedData);
             this.hideModal();
         });
@@ -167,12 +166,16 @@ export class CityModalHandler {
             const id1 = currentCity.table_id ?? currentCity.pk;
             const id2 = currentCity.dock_num ?? currentCity.globus_id;
 
-            if (!id1 || !id2) {
-                showError('Отсутствуют идентификаторы для обновления города');
+            if (!id1) {
+                showError('Отсутствует основной идентификатор (table_id или pk)');
                 return;
             }
+            let url = `cities/${id1}/`;
+            if (id2 !== undefined && id2 !== null) {
+                url += `${id2}/`;
+            }
 
-            const response = await fetch(`cities/${id1}/${id2}/`, {
+            const response = await fetch(url, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -197,16 +200,17 @@ export class CityModalHandler {
 
             // Обновляем citiesData
             const index = this.citiesData.findIndex(city =>
-                city.table_id === currentCity.table_id &&
-                city.dock_num === currentCity.dock_num
-            );
+                (city.table_id && city.dock_num &&
+                    city.table_id === currentCity.table_id &&
+                    city.dock_num === currentCity.dock_num) ||
 
+                (city.pk && city.pk === currentCity.pk)
+            );
             if (index !== -1) {
                 Object.assign(this.citiesData[index], data);
             }
 
             Object.assign(currentCity, data);
-
             // Обновляем DOM
             const container = document.getElementById('city-cards');
             const cards = container.querySelectorAll('.card-style');
@@ -214,32 +218,42 @@ export class CityModalHandler {
             for (const card of cards) {
                 const cityData = JSON.parse(card.dataset.city || '{}');
                 if (
-                    cityData.table_id === currentCity.table_id &&
-                    cityData.dock_num === currentCity.dock_num
+                    (cityData.table_id !== undefined &&
+                        cityData.dock_num !== undefined &&
+                        cityData.table_id === currentCity.table_id &&
+                        cityData.dock_num === currentCity.dock_num)
+                    ||
+                    (cityData.table_id === undefined && Number(cityData.pk) === Number(currentCity.pk))
                 ) {
+
                     card.dataset.city = JSON.stringify(currentCity);
-
-                    const props = [
-                        ['Организация', currentCity.name_organ],
-                        ['Псевдоним', currentCity.pseudonim],
-                        ['Время работы', currentCity.work_time],
-                        ['Название раздела', currentCity.table_name],
-                        ['Номер в таблице', currentCity.some_number],
-                        ['IP address', currentCity.ip_address],
-                    ];
-
-                    card.innerHTML = `<h3 class="text-lg font-semibold mb-2 text-center">${currentCity.location || 'Неизвестно'}</h3>` +
-                        props
-                            .filter(([_, val]) => val)
-                            .map(([label, val]) => `<p><strong>${label}:</strong> ${val}</p>`)
-                            .join('');
+                    console.log(card)
+                    const props = cityData.table_id
+                        ? [
+                            ['Организация', currentCity.name_organ],
+                            ['Псевдоним', currentCity.pseudonim],
+                            ['Время работы', currentCity.work_time],
+                            ['Название раздела', currentCity.table_name],
+                            ['Номер в таблице', currentCity.some_number],
+                            ['IP address', currentCity.ip_address],
+                        ]
+                        : [
+                            ['№ Корреспондента', currentCity.korr],
+                            ['Номер части', currentCity.m_b_number],
+                            ['Номер CIPA', currentCity.cipa],
+                            ['Название раздела', currentCity.globus],
+                            ['Номерок в таблице Глобуса', currentCity.some_number],
+                            ['Данные получателя', currentCity.recipient]
+                        ];
+                    card.innerHTML = `<h3 class="text-lg font-semibold mb-2 text-center">${currentCity.location || currentCity.m_b_number || 'Неизвестно'}</h3>` +
+                        props.filter(([_, val]) => val).map(([label, val]) => `<p><strong>${label}:</strong> ${val}</p>`).join('');
 
                     break;
-
                 }
+
             }
 
-            this.showSuccessMessage(`Город "${data.name_organ}" успешно обновлён`);
+            this.showSuccessMessage(`Город "${data.name_organ || data.korr}" успешно обновлён`);
         } catch (error) {
             console.error('Ошибка PUT-запроса:', error);
             showError(error);

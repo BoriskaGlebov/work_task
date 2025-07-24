@@ -70,14 +70,14 @@ class Cities(View):
             context={**context},
         )
 
-    def put(self, request: HttpRequest, table_id: int, dock_num: int) -> JsonResponse:
+    def put(self, request: HttpRequest, table_id: int, dock_num: int|None=None) -> JsonResponse:
         """
         Обновляет информацию о городе.
 
         Args:
             request (HttpRequest): Объект запроса.
             table_id (int): ID таблицы.
-            dock_num (int): Номер доки.
+            dock_num (int|None): Номер доки| None.
 
         Returns:
             JsonResponse: Ответ с сообщением об успехе или ошибке.
@@ -85,7 +85,6 @@ class Cities(View):
         try:
             # Загружаем данные из тела запроса
             data = json.loads(request.body)
-            print(data)
             if "pseudonim" in data:
                 # Получаем город по ID таблицы и номеру доки
                 city = get_object_or_404(CityData, table_id=table_id, dock_num=dock_num)

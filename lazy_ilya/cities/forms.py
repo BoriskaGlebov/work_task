@@ -79,7 +79,7 @@ class CityInfoDoForm(ModelForm):
         return korr
 
     def clean_globus_id(self):
-        globus_id = int(self.cleaned_data.get('globus_id'))
+        globus_id = int(self.cleaned_data.get('globus_id')) if self.cleaned_data.get('globus_id') else None
         if globus_id:
             try:
                 globus_obj = CityData.objects.get(pk=globus_id)

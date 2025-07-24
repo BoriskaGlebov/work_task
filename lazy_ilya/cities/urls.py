@@ -11,6 +11,7 @@ from cities.views import (
 app_name = "cities"
 urlpatterns = [
     path("", Cities.as_view(), name="base_template"),
+    path("cities/<int:table_id>/", Cities.as_view(), name="edit_city_no_doc_num"),
     path("cities/<int:table_id>/<int:dock_num>/", Cities.as_view(), name="edit_city"),
     path(
         "cities/delete/<int:table_id>/<int:dock_num>/",
