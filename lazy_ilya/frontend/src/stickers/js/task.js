@@ -195,6 +195,7 @@ export class KanbanTasks {
      * @param {string|null} [taskId=null] - Идентификатор задачи для редактирования. Если не указан или не существует, открывается форма для новой задачи.
      */
     openModal(taskId = null) {
+        console.log('openModal вызвана с taskId =', taskId);
         this.currentEditId = taskId;
         const saveBtn = this.taskForm.querySelector('button[type="submit"]');
         const input = this.taskModal.querySelector('input.choices__input.choices__input--cloned');
@@ -216,15 +217,24 @@ export class KanbanTasks {
             this.taskForm.deadline.value = task.deadline;
             this.taskForm.priority.value = task.priority;
             this.taskForm.done.checked = task.done;
-            // Если хотите дополнительно кликать по родителю
-            document.getElementById('deadline-input').addEventListener('click', function () {
-                this.showPicker?.(); // showPicker доступен не во всех браузерах
-            });
 
-            // Фоллбэк для Safari и др.
-            document.getElementById('deadline-input').addEventListener('focus', function () {
-                this.showPicker?.();
-            });
+            const deadlineInput = document.getElementById('deadline-input');
+            if (deadlineInput) {
+                deadlineInput.addEventListener('click', function () {
+                    this.showPicker?.();
+                });
+
+                deadlineInput.addEventListener('focus', function () {
+                    this.showPicker?.();
+                });
+                // Фоллбэк для Safari и др.
+                document.getElementById('deadline-input').addEventListener('focus', function () {
+                    this.showPicker?.();
+                });
+            } else {
+                console.warn('Элемент #deadline-input не найден');
+            }
+
 
             // Обновление тегов с использованием Choices.js / Tom Select
             if (this.tagsSelect) {
@@ -877,6 +887,7 @@ export class TaskFilter {
     setKanbanTasksInstance(KanbanTasksInstance) {
         this.kanbanTasksInstance = KanbanTasksInstance;
     }
+
     /**
      * Заполняет селектор с пользователями, основываясь на данных из `window.username_data`.
      */
@@ -1044,7 +1055,7 @@ export class TaskFilter {
         const dateVal = this.filters.date?.value || '';
         const statusVal = this.filters.status?.value || '';
         this.saveFiltersToStorage();  // <--- ДОБАВЬ ЭТО
-        if (this.kanbanTasksInstance){
+        if (this.kanbanTasksInstance) {
             this.kanbanTasksInstance.resetAndRender();
         }
         const selectedTags = this.getSelectedTags();

@@ -141,76 +141,76 @@
              class=" grid grid-cols-1 sm:grid-cols-2  lg:grid-cols-3 gap-4   min-h-[30vh] ransition-opacity">
 
             <!-- Модальное окно -->
-            <div id="task-modal" class="fixed inset-0 backdrop-blur-xs flex items-center justify-center hidden z-30">
 
-                <form id="task-form" class="form-style relative ">
-                    <div id="server-error2" class="hidden common_error"
-                         role="alert">
-                        <svg class="shrink-0 inline size-5 md:size-7 me-3" aria-hidden="true"
-                             xmlns="http://www.w3.org/2000/svg"
-                             fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"></path>
-                        </svg>
-                        <span class="sr-only">Info</span>
-                        <div>
-                            <span class="!font-bold">Danger alert!</span>
-                            <p>Change a few things up and try submitting again.</p>
-                        </div>
+
+        </div>
+        <div id="task-modal" class="fixed inset-0 backdrop-blur-xs flex items-center justify-center hidden z-30">
+
+            <form id="task-form" class="form-style relative ">
+                <div id="server-error2" class="hidden common_error"
+                     role="alert">
+                    <svg class="shrink-0 inline size-5 md:size-7 me-3" aria-hidden="true"
+                         xmlns="http://www.w3.org/2000/svg"
+                         fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"></path>
+                    </svg>
+                    <span class="sr-only">Info</span>
+                    <div>
+                        <span class="!font-bold">Danger alert!</span>
+                        <p>Change a few things up and try submitting again.</p>
                     </div>
-                    {% csrf_token %}
-                    <button id="close-modal"
-                            class="absolute top-2 right-3 text-gray-500 hover:text-gray-700 text-xl">
-                        &times;
+                </div>
+                {% csrf_token %}
+                <button id="close-modal"
+                        class="absolute top-2 right-3 text-gray-500 hover:text-gray-700 text-xl">
+                    &times;
+                </button>
+
+                <h2 class="text-center">Задача</h2>
+                <input type="text" name="title" placeholder="Название задачи" maxlength="40"
+                       class="correct_input"/>
+
+                <textarea name="desc" rows="10" placeholder="Описание..."
+                          class="correct_input"></textarea>
+
+                <label class="correct_label">
+                    Срок исполнения:</label>
+                <input type="date" name="deadline" min="2024-01-01" max="2029-12-31"
+                       class="correct_input" id="deadline-input"/>
+
+
+                <label class="correct_label">
+                    Приоритет:</label>
+                <select name="priority"
+                        class="correct_input">
+                    <option value="">-</option>
+                    <option value="low">🟢 Низкий</option>
+                    <option value="medium">🟡 Средний</option>
+                    <option value="high">🔴 Высокий</option>
+                </select>
+
+
+                <select name="assignee" id="assignee-select" class="correct_input">
+                    <option value="">-- Выберите исполнителя --</option>
+
+                </select>
+                <select id="tags-select" name="tags" multiple></select>
+                <label class="flex justify-start items-center gap-5 cursor-pointer">
+                    <input type="checkbox" class="correct_icon rounded-full text-x" maxlength="15" name="done"/>
+                    <span class="correct_label">Выполнено</span>
+                </label>
+
+
+                <div class="flex justify-end gap-2 mt-4">
+
+                    <button type="submit" class="btn-submit">
+                        Сохранить
                     </button>
-
-                    <h2 class="text-center">Задача</h2>
-                    <input type="text" name="title" placeholder="Название задачи" maxlength="40"
-                           class="correct_input"/>
-
-                    <textarea name="desc" rows="10" placeholder="Описание..."
-                              class="correct_input"></textarea>
-
-                    <label class="correct_label">
-                        Срок исполнения:</label>
-                    <input type="date" name="deadline" min="2024-01-01" max="2029-12-31"
-                           class="correct_input" id="deadline-input"/>
-
-
-                    <label class="correct_label">
-                        Приоритет:</label>
-                    <select name="priority"
-                            class="correct_input">
-                        <option value="">-</option>
-                        <option value="low">🟢 Низкий</option>
-                        <option value="medium">🟡 Средний</option>
-                        <option value="high">🔴 Высокий</option>
-                    </select>
-
-
-                    <select name="assignee" id="assignee-select" class="correct_input">
-                        <option value="">-- Выберите исполнителя --</option>
-
-                    </select>
-                    <select id="tags-select" name="tags"  multiple></select>
-                    <label class="flex justify-start items-center gap-5 cursor-pointer">
-                        <input type="checkbox" class="correct_icon rounded-full text-x" maxlength="15" name="done"/>
-                        <span class="correct_label">Выполнено</span>
-                    </label>
-
-
-                    <div class="flex justify-end gap-2 mt-4">
-
-                        <button type="submit" class="btn-submit">
-                            Сохранить
-                        </button>
-                        <button type="button" id="cancel-btn"
-                                class="btn-cancel">Отмена
-                        </button>
-                    </div>
-                </form>
-
-            </div>
-
+                    <button type="button" id="cancel-btn"
+                            class="btn-cancel">Отмена
+                    </button>
+                </div>
+            </form>
 
         </div>
 
