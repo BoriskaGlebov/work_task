@@ -4,6 +4,9 @@
  */
 
 import {showError} from "./utils.js";
+import {InlineGlobusAutocomplete} from "./globus-search.js";
+
+const globus = new InlineGlobusAutocomplete("#modal-globus", "#globus-hint", globusInf)
 
 export class CityFormHandler {
     /**
@@ -211,6 +214,151 @@ export class CityFormHandler {
                 this.form.reset();
                 this.saveCity.textContent = 'Сохранить';
                 this.isEditMode = false;
+            });
+        }
+    }
+
+    /**
+     * Показывает анимированное сообщение об успешной операции
+     * @param {string} message
+     */
+    showSuccessMessage(message) {
+        const serverInfo = document.getElementById('server-info');
+        const messageParagraph = serverInfo.querySelector('p');
+
+        // Очистка предыдущего таймера, если он ещё активен
+        if (this.successMessageTimeout) {
+            clearTimeout(this.successMessageTimeout);
+        }
+
+        // Показываем сообщение
+        serverInfo.classList.remove('hidden', 'animate-popup-reverse');
+        serverInfo.classList.add('flex', 'animate-popup');
+        messageParagraph.textContent = message;
+        serverInfo.scrollIntoView({behavior: 'smooth', block: 'start'});
+
+        // Устанавливаем новый таймер скрытия
+        this.successMessageTimeout = setTimeout(() => {
+            serverInfo.classList.remove('animate-popup');
+            serverInfo.classList.add('animate-popup-reverse');
+            setTimeout(() => {
+                serverInfo.classList.add('hidden');
+                serverInfo.classList.remove('flex', 'animate-popup-reverse');
+            }, 1000);
+            this.successMessageTimeout = null; // очищаем
+        }, 5000);
+    }
+}
+
+export class DOFormHandler {
+    /**
+     * @param {string} formId - ID формы, которую нужно обрабатывать
+     */
+    constructor(formId) {
+        /** @type {HTMLFormElement} */
+        this.form = document.getElementById(formId);
+
+        this.closeModalBtn = document.getElementById('close-modal2');
+        /** @type {HTMLButtonElement} */
+        this.saveCity = document.getElementById('save-city2');
+
+        /** @type {string} */
+        this.csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        /** @type {HTMLElement} */
+        this.infoMessage = document.getElementById('server-info');
+        globus.updateHint();
+        /** @type {Record<string, HTMLInputElement>} */
+        this.fields = {
+            korr: this.form.querySelector('#modal-korr'),
+            m_b_number: this.form.querySelector('#modal-m_b_number'),
+            cipa: this.form.querySelector('#modal-cipa'),
+            globus: this.form.querySelector('#modal-globus'),
+            recipient: this.form.querySelector('#modal-recipient'),
+            phone_number: this.form.querySelector('#modal-phone_number'),
+            ip_phone: this.form.querySelector('#modal-ip_phone'),
+            notes: this.form.querySelector("#modal-notes"),
+            globus_id: globus.getSelectedPk()
+        };
+
+        this.initCancelButton();
+        this.initSaveButton();
+    }
+
+
+    /**
+     * Инициализирует кнопку сохранения, отправляет форму на сервер
+     */
+    initSaveButton() {
+        this.saveCity.addEventListener('click', async () => {
+            const method = 'POST';
+            const url = 'city-info/';
+            globus.updateHint();
+            const data = {
+                korr: this.fields.korr.value.trim(),
+                m_b_number: this.fields.m_b_number.value.trim(),
+                cipa: this.fields.cipa.value.trim(),
+                globus: this.fields.globus.value.trim(),
+                recipient: this.fields.recipient.value.trim(),
+                phone_number: this.fields.phone_number.value.trim(),
+                ip_phone: this.fields.ip_phone.value.trim(),
+                notes: this.fields.notes.value.trim(),
+                globus_id: globus.getSelectedPk()
+
+            };
+            console.log(data);
+
+            try {
+                const response = await fetch(url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': this.csrfToken,
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    this.showSuccessMessage(`Данные успешно сохранены для записи №${data.dock_num}${data.name_organ ? ' - ' + data.name_organ : ''}${data.location ? ' - ' + data.location : ''}`);
+                    this.form.reset();
+                    this.saveCity.textContent = 'Сохранить';
+                } else {
+                    const errorData = await response.json();
+                    let errorMsg = '';
+                    console.log(errorData)
+                    for (const field in errorData.errors) {
+                        errorMsg += `${field}: ${errorData.errors[field].join(', ')}\n`;
+                        if (field === "some_number") {
+                            const input = document.querySelector(`input[name="${field}"]`);
+                            if (input) {
+                                input.classList.remove("correct_input");
+                                input.classList.add("error_input");
+                                setTimeout(() => {
+                                    input.classList.remove("error_input");
+                                    input.classList.add("correct_input");
+                                    input.focus();
+                                }, 4000);
+                            }
+                        }
+                    }
+
+                    showError('Ошибка при сохранении:\n' + errorMsg);
+                }
+            } catch (err) {
+                console.error('Ошибка при отправке формы:', err);
+            }
+        });
+    }
+
+
+
+    /**
+     * Обработчик кнопки "отмена" — сбрасывает форму
+     */
+    initCancelButton() {
+        if (this.closeModalBtn) {
+            this.closeModalBtn.addEventListener('click', () => {
+                this.form.reset();
+                this.saveCity.textContent = 'Сохранить';
             });
         }
     }

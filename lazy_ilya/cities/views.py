@@ -70,7 +70,7 @@ class Cities(View):
             context={**context},
         )
 
-    def put(self, request: HttpRequest, table_id: int, dock_num: int|None=None) -> JsonResponse:
+    def put(self, request: HttpRequest, table_id: int, dock_num: int | None = None) -> JsonResponse:
         """
         Обновляет информацию о городе.
 
@@ -135,7 +135,7 @@ class Cities(View):
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
     def delete(
-            self, request: HttpRequest, table_id: int, dock_num: int|None=None
+            self, request: HttpRequest, table_id: int, dock_num: int | None = None
     ) -> JsonResponse:
         """
         Удаляет город.
@@ -152,7 +152,7 @@ class Cities(View):
             if dock_num is not None:
                 try:
                     # Получаем город по ID таблицы и номеру доки
-                    city= CityData.objects.get(table_id=table_id, dock_num=dock_num)
+                    city = CityData.objects.get(table_id=table_id, dock_num=dock_num)
                     logger.bind(user=request.user.username).info(
                         f"Проиcходит удаление города {city.name_organ} - {city.location}"
                     )
@@ -367,18 +367,33 @@ class CityInfoView(LoginRequiredMixin, UserPassesTestMixin, View):
         :return: JSON-ответ с результатом создания или ошибками валидации
         """
         data = json.loads(request.body)
-        form = CityDataForm(data)
-        if form.is_valid():
-            obj: CityData = form.save()
-            logger.bind(user=request.user.username).info(
-                f"Город успешно создан: {obj.id}"
-            )
-            return JsonResponse({"created": True, "id": obj.id})
-        else:
-            logger.bind(user=request.user.username).error(
-                f"Ошибка при создании города: {json.dumps(form.errors.get_json_data(), ensure_ascii=False, indent=2)}"
-            )
-            return JsonResponse({"errors": form.errors}, status=400)
+        if "pseudonim" in data:
+            form = CityDataForm(data)
+            if form.is_valid():
+                obj: CityData = form.save()
+                logger.bind(user=request.user.username).info(
+                    f"Город успешно создан: {obj.id}"
+                )
+                return JsonResponse({"created": True, "id": obj.id})
+            else:
+                logger.bind(user=request.user.username).error(
+                    f"Ошибка при создании города: {json.dumps(form.errors.get_json_data(), ensure_ascii=False, indent=2)}"
+                )
+                return JsonResponse({"errors": form.errors}, status=400)
+
+        elif "korr" in data:
+            form = CityInfoDoForm(data)
+            if form.is_valid():
+                obj = form.save()
+                logger.bind(user=request.user.username).info(
+                    f"Город успешно создан: {obj.id}"
+                )
+                return JsonResponse({"created": True, "id": obj.id})
+            else:
+                logger.bind(user=request.user.username).error(
+                    f"Ошибка при создании города: {json.dumps(form.errors.get_json_data(), ensure_ascii=False, indent=2)}"
+                )
+                return JsonResponse({"errors": form.errors}, status=400)
 
     def put(self, request: HttpRequest) -> JsonResponse:
         """

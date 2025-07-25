@@ -89,3 +89,24 @@ class CityInfoDoForm(ModelForm):
         else:
             self.cleaned_data['globus'] = None
         return globus_id
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        # Список проверяемых полей
+        required_any_fields = [
+            'korr',
+            'm_b_number',
+            'cipa',
+            'recipient',
+            'phone_number',
+            'ip_phone',
+            'notes',
+            'globus_id',
+        ]
+
+        # Проверка: есть ли хотя бы одно непустое поле
+        if not any(cleaned_data.get(field) for field in required_any_fields):
+            raise ValidationError("Необходимо заполнить хотя бы одно поле.")
+
+        return cleaned_data

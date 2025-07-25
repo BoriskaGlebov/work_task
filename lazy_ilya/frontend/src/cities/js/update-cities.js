@@ -150,6 +150,7 @@ export class CityModalHandler {
                 recipient: this.modal.querySelector('#modal-recipient').value.trim(),
                 phone_number: this.modal.querySelector('#modal-phone_number').value.trim(),
                 ip_phone: this.modal.querySelector('#modal-ip_phone').value.trim(),
+                notes:this.modal.querySelector("#modal-notes").value.trim(),
                 globus_id: this.currentCity?.globus_id || null
             };
         }
@@ -245,7 +246,7 @@ export class CityModalHandler {
                             ['Номерок в таблице Глобуса', currentCity.some_number],
                             ['Данные получателя', currentCity.recipient]
                         ];
-                    card.innerHTML = `<h3 class="text-lg font-semibold mb-2 text-center">${currentCity.location || city.m_b_number || city.cipa || 'Неизвестно'}</h3>` +
+                    card.innerHTML = `<h3 class="text-lg font-semibold mb-2 text-center">${currentCity.location || currentCity.m_b_number || currentCity.cipa || 'Неизвестно'}</h3>` +
                         props.filter(([_, val]) => val).map(([label, val]) => `<p><strong>${label}:</strong> ${val}</p>`).join('');
 
                     break;
