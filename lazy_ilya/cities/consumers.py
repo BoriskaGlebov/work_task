@@ -24,6 +24,7 @@ class UploadProgressConsumer(AsyncWebsocketConsumer):
     """
 
     group_name: str
+    download_name:str
 
     async def connect(self) -> None:
         """
@@ -41,12 +42,17 @@ class UploadProgressConsumer(AsyncWebsocketConsumer):
             logger.info("Анонимный пользователь подключен к WebSocket")
 
         self.group_name = "progress_updates"
+        self.download_name="download_progress"
 
         await self.channel_layer.group_add(self.group_name, self.channel_name)
+        await self.channel_layer.group_add(self.download_name,self.channel_name)
         await self.accept()
 
         logger.bind(user=user.username).info(
             f"Клиент подключен к группе: {self.group_name}"
+        )
+        logger.bind(user=user.username).info(
+            f"Клиент подключен к группе: {self.download_name}"
         )
 
     async def disconnect(self, close_code: int) -> None:
@@ -60,6 +66,8 @@ class UploadProgressConsumer(AsyncWebsocketConsumer):
         """
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
         logger.info(f"Клиент отключился от WebSocket: {self.group_name}")
+        await self.channel_layer.group_discard(self.download_name, self.channel_name)
+        logger.info(f"Клиент отключился от WebSocket: {self.download_name}")
 
     async def send_progress(self, event: dict) -> None:
         """

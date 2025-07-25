@@ -174,3 +174,8 @@ cython_debug/
 /test_dir/
 /lazy_ilya/logs/
 /lazy_ilya/collected_static/
+/lazy_ilya/staticfiles
+/.env.sha256
+/lazy_ilya/.env.sha256
+/lazy_ilya/db
+/lazy_ilya/media/globus_new.docx

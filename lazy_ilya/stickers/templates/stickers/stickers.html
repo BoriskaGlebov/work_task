@@ -6,7 +6,7 @@
 {% block body %}
 
 
-    <div class="container mx-auto py-6 px-4 space-y-4">
+    <div class="max-w-[95vw] mx-auto py-6 px-4 space-y-4">
         <div id="server-error" class="hidden common_error"
              role="alert">
             <svg class="shrink-0 inline size-5 md:size-7 me-3" aria-hidden="true"
@@ -60,11 +60,17 @@
 
         <!-- Notes Board -->
         <div id="note-board"
-             class="relative border-b-2 border-b-accent min-h-[25vh] flex flex-wrap gap-4 p-4 justify-start">
+             class="relative border-b-2 border-b-accent min-h-[30vh] flex flex-wrap gap-4 p-4 justify-start">
 
             {% csrf_token %}
             <!-- карточки стикеров -->
+            <!-- Add button -->
+            <button id="add-card"
+                    class="add-button">
+                +
+            </button>
         </div>
+
 
         <!-- Панель фильтров и сортировки -->
         <div id="filter-panel"
@@ -86,7 +92,7 @@
             <select id="filter-assignee" class="correct_input w-full">
                 <option value="">Исполнитель: все</option>
                 {% for user in username_list %}
-                    <option value="{{ user }}">{{ user }}</option>
+                <option value="{{ user }}">{{ user }}</option>
                 {% endfor %}
             </select>
 
@@ -100,7 +106,7 @@
             <svg class="w-7 h-7 font-bold text-gray-500" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd"
                       d="M5.23 7.21a.75.75 0 011.06.02L10 10.939l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.23 8.27a.75.75 0 01.02-1.06z"
-                      clip-rule="evenodd"/>
+                      clip-rule="evenodd"></path>
             </svg>
         </span>
                 </button>
@@ -108,10 +114,10 @@
                      class="absolute z-30 mt-2 w-full bg-background dark:bg-background-dark border rounded shadow hidden">
                     <div class="p-2 max-h-60 overflow-y-auto">
                         {% for tag in tags_list %}
-                            <label class="flex items-center space-x-2 mb-1">
-                                <input type="checkbox" value="{{ tag }}" class="correct_input">
-                                <span>{{ tag }}</span>
-                            </label>
+                        <label class="flex items-center space-x-2 mb-1">
+                            <input type="checkbox" value="{{ tag }}" class="correct_input">
+                            <span>{{ tag }}</span>
+                        </label>
                         {% endfor %}
                     </div>
                 </div>
@@ -120,8 +126,8 @@
                 <option value="">Все</option>
                 <option value="true">Выполнено</option>
                 <option value="false">В процессе</option>
-                {% if user.is_superuser%}
-                    <option value="deleted">Удалена</option>
+                {% if user.is_superuser %}
+                <option value="deleted">Удалена</option>
                 {% endif %}
             </select>
 
@@ -132,7 +138,7 @@
 
         <!-- Tasks Board -->
         <div id="task-board"
-             class=" grid grid-cols-1 sm:grid-cols-2  lg:grid-cols-3 gap-4 min-h-[200px] transition-opacity">
+             class=" grid grid-cols-1 sm:grid-cols-2  lg:grid-cols-3 gap-4   min-h-[30vh] ransition-opacity">
 
             <!-- Модальное окно -->
             <div id="task-modal" class="fixed inset-0 backdrop-blur-xs flex items-center justify-center hidden z-30">
@@ -158,7 +164,7 @@
                     </button>
 
                     <h2 class="text-center">Задача</h2>
-                    <input type="text" name="title" placeholder="Название задачи"
+                    <input type="text" name="title" placeholder="Название задачи" maxlength="40"
                            class="correct_input"/>
 
                     <textarea name="desc" rows="10" placeholder="Описание..."
@@ -166,8 +172,8 @@
 
                     <label class="correct_label">
                         Срок исполнения:</label>
-                    <input type="date" name="deadline"
-                           class="correct_input"/>
+                    <input type="date" name="deadline" min="2024-01-01" max="2029-12-31"
+                           class="correct_input" id="deadline-input"/>
 
 
                     <label class="correct_label">
@@ -185,9 +191,9 @@
                         <option value="">-- Выберите исполнителя --</option>
 
                     </select>
-                    <select id="tags-select" name="tags" multiple></select>
+                    <select id="tags-select" name="tags"  multiple></select>
                     <label class="flex justify-start items-center gap-5 cursor-pointer">
-                        <input type="checkbox" class="correct_icon rounded-full text-x" name="done"/>
+                        <input type="checkbox" class="correct_icon rounded-full text-x" maxlength="15" name="done"/>
                         <span class="correct_label">Выполнено</span>
                     </label>
 
@@ -207,13 +213,11 @@
 
 
         </div>
+
     </div>
 
-    <!-- Add button -->
-    <button id="add-card"
-            class="add-button">
-        +
-    </button>
+
+
 
 {% endblock %}
 {% block extra_js %}
@@ -237,7 +241,7 @@
         {#console.log(notes_data);#}
         {#console.log(username_data);#}
         {#console.log(username)#}
-        console.log(tasks_data);
+        {#console.log(tasks_data);#}
         {#console.log(tags_list);#}
     </script>
 

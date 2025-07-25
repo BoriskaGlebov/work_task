@@ -23,6 +23,7 @@ export class AccordionUploader {
         this.initAccordion();
         this.initWebSocket();
         this.initFileUpload();
+        this.initDownloadButton();  // <-- добавляем инициализацию кнопки скачивания
     }
 
     /**
@@ -66,8 +67,19 @@ export class AccordionUploader {
         this.socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
             console.log("Прогресс с сервера:", data);
-            this.updateProgress(data);
+
+            // Если данные содержат source, направляем в нужную функцию
+            if (data.source === "download" && data.download_url) {
+                this.triggerDownload(data.download_url);
+                this.updateProgress(data.percent, "download");
+            } else if (data.source === "download") {
+                this.updateProgress(data.percent, "download");
+            } else {
+                // по умолчанию upload
+                this.updateProgress(data.percent, "upload");
+            }
         };
+
 
         this.socket.onclose = (event) => {
             console.log("WebSocket закрыт", event);
@@ -79,13 +91,28 @@ export class AccordionUploader {
     }
 
     /**
-     * Обновляет визуальный прогресс загрузки на основе полученного значения.
-     * @param {number} progress - Значение прогресса от 0 до 100.
+     * Инициирует скачивание файла по переданному URL.
+     * @param {string} url - Относительный путь к файлу (например, /media/globus_new.docx)
      */
-    updateProgress(progress) {
-        const container = document.getElementById("upload-progress-container");
-        const bar = document.getElementById("upload-progress-bar");
-        const text = document.getElementById("upload-progress-text");
+    triggerDownload(url) {
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "globus_new.docx"; // можно задать имя файла, например: "globus.docx"
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+
+    /**
+     * Обновляет визуальный прогресс загрузки или скачивания.
+     * @param {number} progress - Значение прогресса от 0 до 100.
+     * @param {string} type - Тип прогресса: 'upload' или 'download'.
+     */
+    updateProgress(progress, type = "upload") {
+        const container = document.getElementById(`${type}-progress-container`);
+        const bar = document.getElementById(`${type}-progress-bar`);
+        const text = document.getElementById(`${type}-progress-text`);
 
         if (container && bar && text) {
             container.classList.remove("hidden");
@@ -94,8 +121,9 @@ export class AccordionUploader {
         }
 
         if (progress >= 100) {
-            this.showSuccessMessage("Обработка успешно завершена!");
-            this.fileInput.value = '';
+            this.showSuccessMessage(`${type === "download" ? "Загрузка" : "Обработка"} успешно завершена!`);
+            this.fileInput.value = '';  // если нужно — только для upload
+
             setTimeout(() => {
                 container.classList.add("hidden");
                 bar.style.width = "0%";
@@ -103,6 +131,7 @@ export class AccordionUploader {
             }, 2000);
         }
     }
+
 
     /**
      * Инициализирует обработку отправки формы и валидацию файла.
@@ -188,5 +217,36 @@ export class AccordionUploader {
             }, 1000);
             this.successMessageTimeout = null; // очищаем
         }, 5000);
+    }
+
+    /**
+     * Инициализация обработки кнопки "Скачать файл".
+     */
+    initDownloadButton() {
+        const downloadBtn = document.getElementById('downloadFileBtn');
+        if (!downloadBtn) return;
+
+        downloadBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+
+            try {
+                const response = await fetch('city-download/'); // Укажи правильный URL для загрузки файла
+
+                if (!response.ok) {
+                    throw new Error(`Ошибка при запросе: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    this.showSuccessMessage('Создание файла запущено. Следите за прогрессом.');
+                    // Здесь можно запускать визуальный прогресс-бар или слушать WebSocket-сообщения
+                } else {
+                    this.showErrorMessage('Ошибка на сервере при запуске создания файла.');
+                }
+            } catch (error) {
+                this.showErrorMessage(`Ошибка: ${error.message}`);
+            }
+        });
     }
 }

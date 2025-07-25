@@ -118,8 +118,8 @@
 
                 <label id="start-number-label" for="start-number" class="correct_label">Начальный
                     номер</label>
-                <input type="number" name="start_number" id="start-number" min="1"
-                       class="correct_input" placeholder="Номер больше нуля">
+                <input type="text" name="start_number" id="start-number" inputmode="numeric"
+                       pattern="^[1-9][0-9]{0,3}$" class="correct_input"  maxlength="4" placeholder="Номер больше нуля">
                 <p id="start-number-error" class="hidden error_message">Введите число больше
                     нуля.</p>
             </div>

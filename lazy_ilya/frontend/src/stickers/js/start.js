@@ -50,4 +50,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Устанавливаем связь между фильтром и Kanban-доской задач
     kanbanTask.setTaskFilterInstance(taskFilter);
+    taskFilter.setKanbanTasksInstance(kanbanTask);
 });

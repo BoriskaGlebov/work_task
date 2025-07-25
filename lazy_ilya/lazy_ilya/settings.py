@@ -27,7 +27,12 @@ SECRET_KEY = "django-insecure-f)sqft2b+v-rn(9%g76ii2yp(nr)er4@sm@9u(lrvq0vp5q6*#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "vpn-boriska.ru",
+    "lazy-iliya.vpn-boriska.ru",
+]
 
 # Application definition
 
@@ -60,6 +65,7 @@ MIDDLEWARE = [
     "cities.middleware.cities_middleware.CitiesActionLoggingMiddleware",
     "stickers.middleware.sticky_note_middleware.StickyNoteActionLoggingMiddleware",
     "stickers.middleware.task_middleware.TaskActionLoggingMiddleware",
+    "stickers.middleware.rate_limit_middleware.SimpleRateLimitMiddleware",
 ]
 
 ROOT_URLCONF = "lazy_ilya.urls"
@@ -71,6 +77,8 @@ TEMPLATES = [
             BASE_DIR / "myauth/templates",
             BASE_DIR / "file_creator/templates",
             BASE_DIR / "cities/templates",
+            BASE_DIR / "statistics_app/templates",
+            BASE_DIR / "stickers/templates",
         ],
         "APP_DIRS": True,
         "OPTIONS": {
@@ -93,7 +101,7 @@ WSGI_APPLICATION = "lazy_ilya.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": BASE_DIR / "db/db.sqlite3",
     }
 }
 
@@ -138,6 +146,8 @@ STATICFILES_DIRS = [
     BASE_DIR / "lazy_ilya/static",
     BASE_DIR / "file_creator/static",
     BASE_DIR / "cities/static",
+    BASE_DIR / "statistics_app/static",
+    BASE_DIR / "stickers/static",
 ]
 
 # Default primary key field type
@@ -169,9 +179,19 @@ CHANNEL_LAYERS = {
 }
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_COOKIE_AGE = 30 * 60  # Время жизни сессии в секундах (например, 30 минут)
+SESSION_COOKIE_AGE = 4 * 60 * 60  # Время жизни сессии в секундах (например, 4 часа)
 SESSION_SAVE_EVERY_REQUEST = True  # Обновляет таймер сессии при каждом запросе
 AUTH_USER_MODEL = "myauth.CustomUser"
+# FORCE_SCRIPT_NAME = '/work_task'
+# STATIC_URL = '/work_task/static/'
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+    "https://vpn-boriska.ru",
+    "https://lazy-iliya.vpn-boriska.ru",
+]
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 if __name__ == "__main__":
     print(BASE_DIR)

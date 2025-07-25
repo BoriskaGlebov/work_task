@@ -12,7 +12,7 @@ from myauth.models import CustomUser
 class CityInfoViewTests(TestCase):
     def setUp(self):
         # Создаем пользователя и группу admin
-        self.admin_group = Group.objects.create(name="admin")
+        self.admin_group = Group.objects.create(name="admins")
         self.admin_user = CustomUser.objects.create_user(
             username="adminuser", password="pass", phone_number="+79852000338"
         )

@@ -2,12 +2,15 @@ import '../../css/base.css';
 import {toggleAccentClasses} from "./toggleAccent.js";
 import {CityAutocomplete} from "./city-search.js";
 import {CityModalHandler} from "./update-cities.js";
+import {InlineGlobusAutocomplete} from "./globus-search.js";
+
 
 document.addEventListener('DOMContentLoaded', () => {
     toggleAccentClasses('a-cities','a-cities-mob')
-    console.log(citiesData)
-
     const cities = citiesData;  // массив с данными
-    new CityAutocomplete('default-search', 'suggestions', cities);
+    const citiesDO= infoDO;
+    new CityAutocomplete('default-search', 'suggestions', cities,citiesDO);
     new CityModalHandler('city-modal',cities);
+    new CityModalHandler('city-modal2',citiesDO);
+    window.globusAutocomplete=new InlineGlobusAutocomplete('#modal-globus','#globus-hint',cities);
 });

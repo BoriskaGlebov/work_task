@@ -53,7 +53,7 @@
                     </div>
 
                     <input type="search" id="default-search"
-                           class="ps-12 w-full correct_input"
+                           class="ps-12 w-full correct_input" maxlength="100"
                            placeholder="Введи какой-то адресок" required autocomplete="off"/>
 
                     <ul id="suggestions"
@@ -80,39 +80,43 @@
                 {% csrf_token %}
                 <div>
                     <label for="modal-location" class="block mb-2 correct_label">Адрес</label>
-                    <input id="modal-location" type="text" placeholder="Город" class="correct_input"/>
+                    <input id="modal-location" type="text" maxlength="55" placeholder="Город" class="correct_input"/>
                 </div>
                 <div>
                     <label for="modal-name_organ" class="block mb-2 correct_label">Наименование органа</label>
-                    <input id="modal-name_organ" type="text" placeholder="Организация" class="correct_input"/>
+                    <input id="modal-name_organ" type="text" maxlength="55" placeholder="Организация"
+                           class="correct_input"/>
                 </div>
                 <div>
                     <label for="modal-pseudonim" class="block mb-2 correct_label">Псевдоним</label>
-                    <input id="modal-pseudonim" type="text" placeholder="Псевдоним" class="correct_input"/>
+                    <input id="modal-pseudonim" type="text" maxlength="55" placeholder="Псевдоним"
+                           class="correct_input"/>
                 </div>
                 <div>
                     <label for="modal-work_time" class="block mb-2 correct_label">Рабочее время</label>
-                    <input id="modal-work_time" type="text" placeholder="Время работы" class="correct_input"/>
+                    <input id="modal-work_time" type="text" maxlength="155" placeholder="Время работы"
+                           class="correct_input"/>
                 </div>
                 <div>
                     <label for="modal-table_name" class="block mb-2 correct_label">Название таблицы</label>
-                    <input id="modal-table_name" readonly type="text" placeholder="Номер раздела"
+                    <input id="modal-table_name" readonly type="text" maxlength="55" placeholder="Номер раздела"
                            class="correct_input"/>
                 </div>
                 <div>
                     <label for="modal-number" class="block mb-2 correct_label">Номер записи в таблице</label>
-                    <input id="modal-number" readonly type="text" placeholder="Порядковый номер"
+                    <input id="modal-number" readonly type="text" maxlength="55" placeholder="Порядковый номер"
                            class="correct_input"/>
                 </div>
                 <div>
                     <label for="modal-some_number" class="block mb-2 correct_label">Спец номер</label>
-                    <input id="modal-some_number" type="text" placeholder="Спец номер"
+                    <input id="modal-some_number" maxlength="55" type="text" placeholder="Спец номер"
                            class="correct_input"/>
                 </div>
 
                 <div>
                     <label for="modal-ip_address" class="block mb-2 correct_label">IP address</label>
-                    <input id="modal-ip_address" type="text" placeholder="IP address" class="correct_input"/>
+                    <input id="modal-ip_address" maxlength="55" type="text" placeholder="IP address"
+                           class="correct_input"/>
                 </div>
             </form>
             <div class="flex justify-end gap-3 mt-4">
@@ -123,6 +127,84 @@
                     <button id="delete-city" class="btn-delete !hidden !w-full !font-semibold" disabled>Удалить</button>
                 {% endif %}
                 {#                <button id="delete-city" class="btn-delete !w-full !font-semibold">Удалить</button>#}
+                <button id="close-modal" class="btn-cancel ">Отмена</button>
+            </div>
+        </div>
+    </div>
+    <div id="city-modal2"
+         class="hidden fixed inset-0 z-50 flex items-center justify-center">
+        <!-- Размытие фона -->
+        <div class="absolute inset-0 bg-background/80 dark:bg-background-dark/80 backdrop-blur-sm"></div>
+        <!-- Форма (не размытая) -->
+        <div class="relative bg-background dark:bg-background-dark rounded-xl max-w-2xl min-w-xs w-full z-10">
+
+
+            <form class="relative form-style !max-w-2xl z-10">
+                {% csrf_token %}
+                <div>
+                    <label for="modal-korr" class="block mb-2 correct_label">№ корреспондента</label>
+                    <input id="modal-korr" type="text" maxlength="55" placeholder="№ корреспондента"
+                           class="correct_input"/>
+                </div>
+                <div>
+                    <label for="modal-m_b_number" class="block mb-2 correct_label">№ Части</label>
+                    <input id="modal-m_b_number" type="text" maxlength="55" placeholder="№ части"
+                           class="correct_input"/>
+                </div>
+                <div>
+                    <label for="modal-cipa" class="block mb-2 correct_label">Номер CIPA</label>
+                    <input id="modal-cipa" type="text" maxlength="55" placeholder="Номер CIPA" class="correct_input"/>
+                </div>
+                <div>
+                    <label for="modal-globus" class="block mb-2 correct_label">Номерок в таблице Глобуса</label>
+
+                    <div class="relative w-full">
+                        <input id="globus-hint"
+                               type="text"
+                               disabled
+                               tabindex="-1"
+                               class="absolute inset-0 w-full px-3 text-gray-500 pointer-events-none bg-transparent border border-transparent"/>
+
+                        <input id="modal-globus"
+                               type="text"
+                               maxlength="55"
+                               placeholder="Номерок в таблице Глобуса"
+                               class="correct_input relative z-10 w-full px-3 !bg-transparent"
+                        />
+                    </div>
+                </div>
+
+
+                <div>
+                    <label for="modal-recipient" class="block mb-2 correct_label">Получатель</label>
+                    <input id="modal-recipient" type="text" maxlength="55" placeholder="Получатель"
+                           class="correct_input"/>
+                </div>
+                <div>
+                    <label for="modal-phone_number" class="block mb-2 correct_label">Телефон</label>
+                    <input id="modal-phone_number" type="text" maxlength="155" placeholder="Телефон"
+                           class="correct_input"/>
+                </div>
+                <div>
+                    <label for="modal-ip_phone" class="block mb-2 correct_label">IP телефон</label>
+                    <input id="modal-ip_phone" type="text" maxlength="55" placeholder="IP телефон"
+                           class="correct_input"/>
+                </div>
+                <div>
+                    <label for="modal-notes" class="block mb-2 correct_label">Заметки</label>
+                    <input id="modal-notes" type="text" maxlength="55" placeholder="Заметки"
+                           class="correct_input"/>
+                </div>
+
+            </form>
+            <div class="flex justify-end gap-3 mt-4">
+                <button id="save-city" class="btn-submit">Сохранить</button>
+                {% if is_admin %}
+                    <button id="delete-city" class="btn-delete !w-full !font-semibold">Удалить</button>
+                {% else %}
+                    <button id="delete-city" class="btn-delete !hidden !w-full !font-semibold" disabled>Удалить</button>
+                {% endif %}
+                {#   <button id="delete-city" class="btn-delete !w-full !font-semibold">Удалить</button>#}
                 <button id="close-modal" class="btn-cancel ">Отмена</button>
             </div>
         </div>
@@ -139,6 +221,9 @@
     {% endif %}
     <script>
         window.citiesData = JSON.parse('{{ cities_json|escapejs }}');
+        window.infoDO = JSON.parse('{{ cities_do_json|escapejs }}');
+        console.log(infoDO);
+        {#console.log(citiesData);#}
     </script>
 
 {% endblock %}

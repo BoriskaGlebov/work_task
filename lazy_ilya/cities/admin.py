@@ -2,7 +2,7 @@ from typing import Tuple, List
 
 from django.contrib import admin
 
-from cities.models import CityData, TableNames, CounterCities
+from cities.models import CityData, TableNames, CounterCities, CityInfoDO
 
 
 class CityDataInline(admin.TabularInline):
@@ -102,3 +102,21 @@ class CounterCitiesAdmin(admin.ModelAdmin):
     list_display: Tuple[str] = ("id", "dock_num", "count_responses")
     list_display_links: Tuple[str] = "id", "dock_num"
     list_filter: Tuple[str] = ("processed_at", "dock_num", "count_responses")
+
+
+@admin.register(CityInfoDO)
+class CityInfoDOAdmin(admin.ModelAdmin):
+    list_display = ("id", "korr", "m_b_number", "cipa", "get_globus_pseudonim")
+    list_display_links = ("id", "korr", "m_b_number", "cipa","get_globus_pseudonim")
+
+    readonly_fields = ("globus_pseudonim_display",)
+
+    @admin.display(description="Псевдоним Глобуса")
+    def get_globus_pseudonim(self, obj):
+        return obj.globus.pseudonim if obj.globus else "-"
+
+    @admin.display(description="Псевдоним Глобуса (подробно)")
+    def globus_pseudonim_display(self, obj):
+        if obj.globus:
+            return f"{obj.globus.pseudonim} (ID: {obj.globus.id})"
+        return "-"

@@ -43,17 +43,25 @@ export class KanbanTasks {
         if (!select) {
             throw new Error('Select с name="tags" не найден в форме');
         }
-        this.taskModal.addEventListener('click', (e) => {
-            if (!this.taskForm.contains(e.target)) {
-                this.taskModal.classList.add('hidden');
-            }
-        });
+        // this.taskModal.addEventListener('click', (e) => {
+        //     if (!this.taskForm.contains(e.target)) {
+        //         this.taskModal.classList.add('hidden');
+        //     }
+        // });
 
         this.tagsSelect = new Choices(select, {
             removeItemButton: true,
             duplicateItemsAllowed: false,
             addItems: true,
-            addItemFilter: value => value.trim().length > 0,
+            addItemFilter: (value) => {
+                const trimmed = value.trim();
+                if (trimmed.length === 0) return false;
+                if (trimmed.length > 20) {
+                    showError('Тег не должен быть длиннее 20 символов', "server-error2");
+                    return false;
+                }
+                return true;
+            },
             addChoices: true,
             searchEnabled: true,
             shouldSort: false,
@@ -61,7 +69,7 @@ export class KanbanTasks {
             choices: window.tags_list.map(tag => ({
                 value: tag.name,
                 label: tag.name
-            }))
+            })),
         });
 
         // Клик по карточке открывает модалку для редактирования
@@ -75,6 +83,7 @@ export class KanbanTasks {
         this.loadTasksFromBackend(tasks_data || []);
 
     }
+
 
     /**
      * Устанавливает экземпляр фильтра задач для дальнейшего использования.
@@ -103,8 +112,11 @@ export class KanbanTasks {
      *   @property {string} author - Автор задачи.
      */
     loadTasksFromBackend(tasksArray) {
+        this.allTaskIds = []; // список id в порядке получения
+
         tasksArray.forEach(task => {
             const id = task.id;
+
             // Сохраняем задачу в локальном объекте tasks
             this.tasks[id] = {
                 title: task.title,
@@ -120,10 +132,57 @@ export class KanbanTasks {
                 deleted_by: task.deleted_by || null,   // Кто удалил, если есть
             };
             // Отрисовываем карточку задачи в интерфейсе
-            this.renderTaskCard(id, this.tasks[id]);
+            // this.renderTaskCard(id, this.tasks[id]);
+            this.allTaskIds.push(id);
+
         });
+
+        this.PAGE_SIZE = 3;
+        this.loadedCount = 0;
+
+        this.renderNextTasks(); // первая порция
+        if (this.taskBoard && !this._scrollBound) {
+            window.addEventListener('scroll', () => this.onScroll());
+            this._scrollBound = true; // защита от повторного бинда
+        }
     }
 
+
+    renderNextTasks() {
+        let rendered = 0;
+        while (this.loadedCount < this.allTaskIds.length && rendered < this.PAGE_SIZE) {
+            const id = this.allTaskIds[this.loadedCount];
+            const task = this.tasks[id];
+            this.loadedCount++;
+
+            if (!this.taskFilterInstance || this.taskFilterInstance.isTaskPassingFilters(task)) {
+                this.renderTaskCard(id, task);
+                rendered++;
+            }
+        }
+    }
+
+
+    onScroll() {
+        const scrollTop = window.scrollY || window.pageYOffset;
+        const windowHeight = window.innerHeight;
+        const fullHeight = document.documentElement.scrollHeight;
+
+        const nearBottom = scrollTop + windowHeight >= fullHeight - 100;  // 100px до низа
+
+
+        if (nearBottom && this.loadedCount < this.allTaskIds.length) {
+            console.log("Loading more tasks...");
+            this.renderNextTasks();
+
+        }
+    }
+
+    resetAndRender() {
+        this.loadedCount = 0;
+        this.taskBoard.innerHTML = '';  // Очищаем контейнер от всех карточек
+        this.renderNextTasks();         // Запускаем ленивую отрисовку с нуля, с фильтрами
+    }
 
     /**
      * Открывает модальное окно для создания новой задачи или редактирования существующей.
@@ -138,7 +197,10 @@ export class KanbanTasks {
     openModal(taskId = null) {
         this.currentEditId = taskId;
         const saveBtn = this.taskForm.querySelector('button[type="submit"]');
-
+        const input = this.taskModal.querySelector('input.choices__input.choices__input--cloned');
+        if (input) {
+            input.setAttribute('maxlength', '20');
+        }
         if (taskId && this.tasks[taskId]) {
             if (taskId && this.tasks[taskId]?.deleted) {
                 // Задача удалена — отключаем кнопку
@@ -154,6 +216,15 @@ export class KanbanTasks {
             this.taskForm.deadline.value = task.deadline;
             this.taskForm.priority.value = task.priority;
             this.taskForm.done.checked = task.done;
+            // Если хотите дополнительно кликать по родителю
+            document.getElementById('deadline-input').addEventListener('click', function () {
+                this.showPicker?.(); // showPicker доступен не во всех браузерах
+            });
+
+            // Фоллбэк для Safari и др.
+            document.getElementById('deadline-input').addEventListener('focus', function () {
+                this.showPicker?.();
+            });
 
             // Обновление тегов с использованием Choices.js / Tom Select
             if (this.tagsSelect) {
@@ -228,7 +299,9 @@ export class KanbanTasks {
      */
     closeModal() {
         this.taskModal.classList.add('hidden');
+        let tagsVal = this.tagsSelect.getValue().map(tag => tag.value);
         this.taskFilterInstance.applyFilters();
+        this.taskFilterInstance.populateTagOptions(tagsVal)
     }
 
 
@@ -336,11 +409,17 @@ export class KanbanTasks {
         // Срок исполнения (с подсветкой просрочки или приближения срока)
         if (taskData.deadline && !taskData.done) {
             const deadlineEl = document.createElement('div');
-            deadlineEl.className = 'text-xs text-text dark:text-text-dark mb-1';
-            deadlineEl.textContent = 'Срок исполнения: ' + taskData.deadline;
-
+            deadlineEl.className = 'text-xs md:text-sm xl:text-base text-text dark:text-text-dark mb-1';
             const today = new Date();
             const deadlineDate = new Date(taskData.deadline);
+            // Форматируем дату в ДД.ММ.ГГГГ
+            const formattedDeadline = deadlineDate.toLocaleDateString('ru-RU', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+            });
+            deadlineEl.textContent = 'Срок исполнения: ' + formattedDeadline;
+
 
             if (deadlineDate < today.setHours(0, 0, 0, 0)) {
                 // Просрочено
@@ -373,7 +452,7 @@ export class KanbanTasks {
             };
 
             const priorityEl = document.createElement('div');
-            priorityEl.className = 'text-xs mb-1';
+            priorityEl.className = 'text-xs md:text-sm xl:text-base mb-1';
             const colorClass = priorityColorMap[taskData.priority] || 'text-gray-500';
             const priorityText = priorityMap[taskData.priority] || taskData.priority;
 
@@ -384,7 +463,7 @@ export class KanbanTasks {
         // Исполнитель задачи с отображением полного имени, если доступно
         if (taskData.assignee) {
             const assigneeEl = document.createElement('div');
-            assigneeEl.className = 'text-xs text-text dark:text-text-dark mb-1';
+            assigneeEl.className = 'text-xs md:text-sm xl:text-base text-text dark:text-text-dark mb-1';
 
             const userData = window.username_data.find(user => user.username === taskData.assignee);
             let displayName;
@@ -404,7 +483,7 @@ export class KanbanTasks {
         // Автор задачи с отображением полного имени, если доступно
         if (taskData.author) {
             const authorEl = document.createElement('div');
-            authorEl.className = 'text-xs text-text dark:text-text-dark mb-1';
+            authorEl.className = 'text-xs md:text-sm xl:text-base text-text dark:text-text-dark mb-1';
 
             const authorData = window.username_data.find(user => user.username === taskData.author);
             let authorName;
@@ -423,7 +502,7 @@ export class KanbanTasks {
 
         // Дата создания задачи с форматированием "Сегодня" или датой
         const createdAtEl = document.createElement('div');
-        createdAtEl.className = 'text-xs text-gray-500 dark:text-gray-400 mb-1';
+        createdAtEl.className = 'text-xs md:text-sm xl:text-base text-gray-500 dark:text-gray-400 mb-1';
 
         let date = taskData.createdAt ? new Date(taskData.createdAt) : new Date();
 
@@ -451,7 +530,7 @@ export class KanbanTasks {
         // Отображение тегов с иконкой и цветами
         if (taskData.tags) {
             const tagsEl = document.createElement('div');
-            tagsEl.className = 'text-xs mb-1 flex flex-wrap items-center gap-1';
+            tagsEl.className = 'text-xs md:text-sm xl:text-base mb-1 flex flex-wrap items-center gap-1';
 
             const icon = document.createElement('span');
             icon.innerHTML = `
@@ -481,11 +560,11 @@ export class KanbanTasks {
 
         // Статус выполнения задачи с иконкой и цветом
         const doneEl = document.createElement('div');
-        doneEl.className = 'text-xs font-semibold flex items-center gap-1 ' + (taskData.done ? 'text-green-700' : 'text-red-600');
+        doneEl.className = 'text-xs md:text-sm xl:text-base font-semibold flex items-center gap-1 ' + (taskData.done ? 'text-green-700' : 'text-red-600');
 
         const statusIcon = document.createElement('span');
         statusIcon.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 md:size-5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
             </svg>
@@ -791,8 +870,13 @@ export class TaskFilter {
         this.populateTagOptions();
         this.attachEvents();
         this.initTagDropdown();
+        this.restoreFiltersFromStorage(); // <--- ДОБАВЛЕНО
+
     }
 
+    setKanbanTasksInstance(KanbanTasksInstance) {
+        this.kanbanTasksInstance = KanbanTasksInstance;
+    }
     /**
      * Заполняет селектор с пользователями, основываясь на данных из `window.username_data`.
      */
@@ -823,21 +907,46 @@ export class TaskFilter {
     /**
      * Заполняет выпадающий список тегов из `window.tags_list`.
      */
-    populateTagOptions() {
+    populateTagOptions(tagsVal = []) {
         if (!this.tagContainer || !window.tags_list) return;
+        // Получить имена существующих тегов
+        const existingTagNames = window.tags_list.map(tag => tag.name);
+
+        // Добавить новые теги в window.tags_list, если их ещё нет
+        tagsVal.forEach(tagName => {
+            if (!existingTagNames.includes(tagName)) {
+                const maxId = window.tags_list.reduce((max, tag) => Math.max(max, tag.id), 0);
+                const newTag = {
+                    id: maxId + 1, // временный ID
+                    name: tagName
+                };
+                window.tags_list.push(newTag);
+            }
+        });
+
+        // Повторно собрать имена всех тегов
+        const allTags = window.tags_list.map(tag => tag.name);
+
+        // Очистить контейнер перед созданием новых чекбоксов
         this.tagContainer.innerHTML = '';
 
-        window.tags_list.forEach(tag => {
+        allTags.forEach(tag => {
             const label = document.createElement('label');
             label.className = 'correct_label flex items-center space-x-2 mb-3';
 
             const checkbox = document.createElement('input');
+
             checkbox.type = 'checkbox';
-            checkbox.value = tag.name || tag;
+            checkbox.value = tag;
             checkbox.className = 'tag-checkbox correct_icon rounded-full text-xl';
 
+            // Отметить чекбокс, если он есть в tagsVal
+            if (tagsVal.includes(tag)) {
+                checkbox.checked = false;
+            }
+
             const span = document.createElement('span');
-            span.textContent = tag.name || tag;
+            span.textContent = tag;
 
             label.appendChild(checkbox);
             label.appendChild(span);
@@ -845,7 +954,11 @@ export class TaskFilter {
         });
 
         this.tagCheckboxes = Array.from(this.tagContainer.querySelectorAll('.tag-checkbox'));
+        this.tagCheckboxes.forEach(cb =>
+            cb.addEventListener('change', () => this.applyFilters())
+        );
     }
+
 
     /**
      * Назначает обработчики событий на элементы фильтров и чекбоксы тегов.
@@ -867,6 +980,7 @@ export class TaskFilter {
                 });
 
                 this.tagCheckboxes.forEach(cb => cb.checked = false);
+                localStorage.removeItem('taskFilters');  // <--- ДОБАВЬ ЭТО
                 this.applyFilters();
             });
         }
@@ -883,6 +997,45 @@ export class TaskFilter {
     }
 
     /**
+     * Сохранение данных для фильтрации в локальное хранилище
+     */
+    saveFiltersToStorage() {
+        const filtersState = {
+            assignee: this.filters.assignee?.value || '',
+            priority: this.filters.priority?.value || '',
+            date: this.filters.date?.value || '',
+            status: this.filters.status?.value || '',
+            tags: this.getSelectedTags()
+        };
+        localStorage.setItem('taskFilters', JSON.stringify(filtersState));
+    }
+
+    restoreFiltersFromStorage() {
+        const saved = localStorage.getItem('taskFilters');
+        if (!saved) return;
+
+        try {
+            const {assignee, priority, date, status, tags} = JSON.parse(saved);
+
+            if (this.filters.assignee) this.filters.assignee.value = assignee;
+            if (this.filters.priority) this.filters.priority.value = priority;
+            if (this.filters.date) this.filters.date.value = date;
+            if (this.filters.status) this.filters.status.value = status;
+
+            this.populateTagOptions(tags || []);
+            setTimeout(() => {
+                this.tagCheckboxes?.forEach(cb => {
+                    cb.checked = tags.includes(cb.value.toLowerCase());
+                });
+                this.applyFilters();
+            }, 0);
+        } catch (e) {
+            console.error('Ошибка восстановления фильтров:', e);
+        }
+    }
+
+
+    /**
      * Применяет фильтрацию и сортировку карточек в соответствии с выбранными значениями.
      */
     applyFilters() {
@@ -890,7 +1043,10 @@ export class TaskFilter {
         const priorityVal = this.filters.priority?.value.trim().toLowerCase() || '';
         const dateVal = this.filters.date?.value || '';
         const statusVal = this.filters.status?.value || '';
-
+        this.saveFiltersToStorage();  // <--- ДОБАВЬ ЭТО
+        if (this.kanbanTasksInstance){
+            this.kanbanTasksInstance.resetAndRender();
+        }
         const selectedTags = this.getSelectedTags();
 
         // Проверяем, есть ли активные фильтры (кроме статуса)
@@ -995,6 +1151,44 @@ export class TaskFilter {
         filteredCards.forEach(card => card.classList.remove('hidden'));
         filteredCards.forEach(card => this.container.appendChild(card));
 
+    }
+
+    // В твоём фильтрующем классе
+    isTaskPassingFilters(taskObj) {
+        const assigneeVal = this.filters.assignee?.value.trim().toLowerCase() || '';
+        const priorityVal = this.filters.priority?.value.trim().toLowerCase() || '';
+        const dateVal = this.filters.date?.value || '';
+        const statusVal = this.filters.status?.value || '';
+        const selectedTags = this.getSelectedTags();
+
+        const cardAssignee = (taskObj.assignee || '').toLowerCase();
+        const cardPriority = (taskObj.priority || '').toLowerCase();
+        const cardDone = (taskObj.done ? 'true' : 'false').toLowerCase();
+        const cardDeleted = (taskObj.deleted ? 'true' : 'false').toLowerCase();
+        const cardTags = (taskObj.tags || '').toLowerCase().split(',').map(t => t.trim()).filter(Boolean);
+
+        const matchAssignee = !assigneeVal || cardAssignee === assigneeVal;
+        const matchPriority = !priorityVal || cardPriority === priorityVal;
+        const matchTags = selectedTags.length === 0 || selectedTags.every(tag => cardTags.includes(tag));
+
+        let matchStatus = false;
+
+        if (statusVal === 'deleted') {
+            matchStatus = cardDeleted === 'true';
+        } else if (!assigneeVal && !priorityVal && !dateVal && selectedTags.length === 0 && !statusVal) {
+            matchStatus = true;
+        } else {
+            if (cardDeleted === 'true') return false;
+            if (!statusVal) {
+                matchStatus = true;
+            } else if (statusVal === 'true') {
+                matchStatus = cardDone === 'true';
+            } else if (statusVal === 'false') {
+                matchStatus = cardDone !== 'true';
+            }
+        }
+
+        return matchAssignee && matchPriority && matchTags && matchStatus;
     }
 
 

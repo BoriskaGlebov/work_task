@@ -1,6 +1,7 @@
 import os
 
 from django.db import models
+from phonenumber_field.modelfields import PhoneNumberField
 
 
 # Create your models here.
@@ -126,6 +127,7 @@ class CityData(models.Model):
     def to_dict(self) -> dict:
         """Преобразует объект в словарь."""
         return {
+            "pk":self.pk,
             "table_id": self.table_id.id,
             "table_name": self.table_id.table_name,
             "dock_num": self.dock_num,
@@ -151,10 +153,10 @@ class CityData(models.Model):
         if is_new:
             # Получаем максимальный dock_num для текущей table_id
             last_dock_num = (
-                CityData.objects.filter(table_id=self.table_id).aggregate(
-                    models.Max("dock_num")
-                )["dock_num__max"]
-                or 0
+                    CityData.objects.filter(table_id=self.table_id).aggregate(
+                        models.Max("dock_num")
+                    )["dock_num__max"]
+                    or 0
             )
 
             # Если dock_num явно указан и он больше
@@ -179,6 +181,88 @@ class CityData(models.Model):
                 self.dock_num = last_dock_num + 1
 
         super().save(*args, **kwargs)
+
+
+class CityInfoDO(models.Model):
+    """
+    Модель с адресами дежурного смены.
+
+    Методы:
+        to_dict(): Преобразует объект в словарь для удобства работы с данными.
+    """
+
+    processed_at: models.DateTimeField = models.DateTimeField(
+        auto_now_add=True, verbose_name="Дата создания/обновления"
+    )
+    korr: models.CharField = models.CharField(
+        verbose_name="№ Корреспондента",
+        max_length=25,
+        null=True,
+        blank=True,
+    )
+    m_b_number: models.CharField = models.CharField(
+        max_length=255,
+        verbose_name="Номер части",
+        null=True,
+        blank=True,
+    )
+    cipa: models.CharField = models.CharField(
+        max_length=255,
+        verbose_name="Номер CIPA",
+        null=True,
+        blank=True,
+    )
+    globus: models.ForeignKey = models.ForeignKey(
+        CityData, on_delete=models.CASCADE,
+        verbose_name="Номерок в таблице Глобуса",
+        null=True,
+        blank=True,
+    )
+    recipient: models.CharField = models.CharField(
+        max_length=255,
+        verbose_name="Данные получателя",
+        null=True,
+        blank=True,
+    )
+    phone_number: PhoneNumberField = PhoneNumberField(
+        verbose_name=("Телефон"),
+        null=True,
+        blank=True,
+        region="RU",  # Установить регион по умолчанию на Россию
+        help_text=("Номер в международном формате, например: +7 912 345 6789"),
+    )
+    ip_phone: models.CharField = models.CharField(
+        max_length=255,
+        verbose_name="IP телефон",
+        null=True,
+        blank=True,
+    )
+    notes: models.CharField = models.CharField(
+        max_length=255,
+        verbose_name="Заметки",
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        ordering = ["pk", "korr", "m_b_number", "cipa", "globus"]
+        verbose_name = "Справочник дежурного"
+        verbose_name_plural = "Справочник дежурного"
+
+    def to_dict(self) -> dict:
+        """Преобразует объект в словарь."""
+        return {
+            "pk": self.pk,
+            "korr": f"korr{self.korr}" if self.korr else "",
+            "m_b_number": self.m_b_number,
+            "cipa": self.cipa,
+            "globus_id":self.globus.id if self.globus else "",
+            "globus": self.globus.pseudonim if self.globus else "",
+            "recipient": self.recipient,
+            "phone_number": str(self.phone_number) if self.phone_number else "",
+            "ip_phone": self.ip_phone,
+            "notes": self.notes,
+        }
 
 
 class CounterCities(models.Model):

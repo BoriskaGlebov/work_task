@@ -20,19 +20,31 @@ class StickyNote(models.Model):
         updated_at (datetime): Последнее обновление.
     """
 
-    text: str = models.TextField(default='Новая заметка...', blank=True, verbose_name="Текст заметки")
-    color: str = models.CharField(max_length=20, default='#FFEB3B', verbose_name="Цвет заметки")
-    author_name: str = models.CharField(max_length=500, blank=True, verbose_name="Кому назначена")
-    owner: User = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sticky_notes',
-                                    verbose_name="Автор заметки")
+    text: str = models.TextField(
+        default="Новая заметка...", blank=True, verbose_name="Текст заметки"
+    )
+    color: str = models.CharField(
+        max_length=20, default="#FFEB3B", verbose_name="Цвет заметки"
+    )
+    author_name: str = models.CharField(
+        max_length=500, blank=True, verbose_name="Кому назначена"
+    )
+    owner: User = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="sticky_notes",
+        verbose_name="Автор заметки",
+    )
     width: int = models.PositiveIntegerField(default=300, verbose_name="Ширина (px)")
     height: int = models.PositiveIntegerField(default=200, verbose_name="Высота (px)")
-    order: int = models.PositiveIntegerField(default=0, verbose_name="Порядок отображения")
+    order: int = models.PositiveIntegerField(
+        default=0, verbose_name="Порядок отображения"
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата изменения")
 
     class Meta:
-        ordering = ['order']
+        ordering = ["order"]
         verbose_name = "Стикер"
         verbose_name_plural = "Стикеры"
 
@@ -45,9 +57,15 @@ class StickyNote(models.Model):
         super().save(*args, **kwargs)
 
     def to_dict(self) -> dict:
+        owner_name = (
+            f"{self.owner.first_name} {self.owner.last_name}".strip()
+            if self.owner.first_name and self.owner.last_name
+            else self.owner.first_name or self.owner.username
+        )
+
         return {
             "id": self.id,
-            "owner": self.owner.first_name or self.owner.username,
+            "owner": owner_name,
             "text": self.text,
             "color": self.color,
             "width": self.width,
@@ -55,6 +73,46 @@ class StickyNote(models.Model):
             "author_name": self.author_name,
             "order": self.order,
         }
+
+
+class StickyNoteVisibility(models.Model):
+    """
+    Видимость стикера для конкретного пользователя.
+
+    Атрибуты:
+        sticky_note (StickyNote): Ссылка на стикер.
+        user (User): Пользователь, для которого задана видимость.
+        is_visible (bool): Статус видимости стикера для пользователя.
+                           True — стикер виден,
+                           False — стикер "удален" для этого пользователя (скрыт).
+    """
+
+    sticky_note = models.ForeignKey(
+        StickyNote,
+        on_delete=models.CASCADE,
+        related_name="visibilities",
+        verbose_name="Стикер"
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="sticky_note_visibilities",
+        verbose_name="Пользователь"
+    )
+    is_visible = models.BooleanField(
+        default=True,
+        verbose_name="Видимость",
+        help_text="True — стикер виден пользователю, False — скрыт (удален для себя)"
+    )
+
+    class Meta:
+        unique_together = ("sticky_note", "user")
+        verbose_name = "Видимость стикера"
+        verbose_name_plural = "Видимости стикеров"
+
+    def __str__(self):
+        status = "Виден" if self.is_visible else "Скрыт"
+        return f"Видимость стикера {self.sticky_note.id} для пользователя {self.user.username}: {status}"
 
 
 class Task(models.Model):
@@ -75,23 +133,42 @@ class Task(models.Model):
     """
 
     PRIORITY_CHOICES = [
-        ('low', '🟢 Низкий'),
-        ('medium', '🟡 Средний'),
-        ('high', '🔴 Высокий'),
+        ("low", "🟢 Низкий"),
+        ("medium", "🟡 Средний"),
+        ("high", "🔴 Высокий"),
     ]
 
     title: str = models.CharField(max_length=255, verbose_name="Заголовок задачи")
     desc: str = models.TextField(blank=True, verbose_name="Содержание задачи")
     deadline = models.DateField(null=True, blank=True, verbose_name="Срок исполнения")
-    priority: str = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium',
-                                     verbose_name="Приоритет")
-    done: bool = models.BooleanField(default=False, verbose_name="Отметка об исполнении")
+    priority: str = models.CharField(
+        max_length=10,
+        choices=PRIORITY_CHOICES,
+        default="medium",
+        verbose_name="Приоритет",
+    )
+    done: bool = models.BooleanField(
+        default=False, verbose_name="Отметка об исполнении"
+    )
 
-    author: User = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tasks_author', verbose_name="Автор")
-    assignee: User = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
-                                       related_name='tasks', verbose_name="Исполнитель")
+    author: User = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="tasks_author",
+        verbose_name="Автор",
+    )
+    assignee: User = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tasks",
+        verbose_name="Исполнитель",
+    )
 
-    tags = models.ManyToManyField('Tag', blank=True, related_name='tasks', verbose_name="Теги")
+    tags = models.ManyToManyField(
+        "Tag", blank=True, related_name="tasks", verbose_name="Теги"
+    )
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
@@ -101,8 +178,8 @@ class Task(models.Model):
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
-        related_name='deleted_tasks',
-        verbose_name="Удалена пользователем"
+        related_name="deleted_tasks",
+        verbose_name="Удалена пользователем",
     )
 
     class Meta:
@@ -114,18 +191,18 @@ class Task(models.Model):
 
     def to_dict(self) -> dict:
         return {
-            'id': self.id,
-            'title': self.title,
-            'desc': self.desc,
-            'deadline': self.deadline.isoformat() if self.deadline else None,
-            'priority': self.priority,
-            'done': self.done,
-            'author': self.author.username,
-            'assignee': self.assignee.username if self.assignee else None,
-            'tags': [{'id': tag.id, 'name': tag.name} for tag in self.tags.all()],
-            'created_at': self.created_at.isoformat(),
-            'deleted': self.deleted,
-            'deleted_by': self.deleted_by.username if self.deleted_by else None,
+            "id": self.id,
+            "title": self.title,
+            "desc": self.desc,
+            "deadline": self.deadline.isoformat() if self.deadline else None,
+            "priority": self.priority,
+            "done": self.done,
+            "author": self.author.username,
+            "assignee": self.assignee.username if self.assignee else None,
+            "tags": [{"id": tag.id, "name": tag.name} for tag in self.tags.all()],
+            "created_at": self.created_at.isoformat(),
+            "deleted": self.deleted,
+            "deleted_by": self.deleted_by.username if self.deleted_by else None,
         }
 
 
@@ -136,7 +213,10 @@ class Tag(models.Model):
     Атрибуты:
         name (str): Название тега, уникальное.
     """
-    name: str = models.CharField(max_length=50, unique=True, verbose_name="Название тега")
+
+    name: str = models.CharField(
+        max_length=50, unique=True, verbose_name="Название тега"
+    )
 
     class Meta:
         verbose_name = "Тег"
@@ -147,6 +227,6 @@ class Tag(models.Model):
 
     def to_dict(self) -> dict:
         return {
-            'id': self.id,
-            'name': self.name,
+            "id": self.id,
+            "name": self.name,
         }

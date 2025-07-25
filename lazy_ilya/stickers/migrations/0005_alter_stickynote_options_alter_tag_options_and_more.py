@@ -8,71 +8,102 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stickers', '0004_alter_task_priority'),
+        ("stickers", "0004_alter_task_priority"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='stickynote',
-            options={'ordering': ['order'], 'verbose_name': 'Стикер', 'verbose_name_plural': 'Стикеры'},
+            name="stickynote",
+            options={
+                "ordering": ["order"],
+                "verbose_name": "Стикер",
+                "verbose_name_plural": "Стикеры",
+            },
         ),
         migrations.AlterModelOptions(
-            name='tag',
-            options={'verbose_name': 'Тег', 'verbose_name_plural': 'Теги'},
+            name="tag",
+            options={"verbose_name": "Тег", "verbose_name_plural": "Теги"},
         ),
         migrations.AlterModelOptions(
-            name='task',
-            options={'verbose_name': 'Задача', 'verbose_name_plural': 'Задачи'},
+            name="task",
+            options={"verbose_name": "Задача", "verbose_name_plural": "Задачи"},
         ),
         migrations.AddField(
-            model_name='task',
-            name='deleted',
-            field=models.BooleanField(default=False, verbose_name='Удалена'),
+            model_name="task",
+            name="deleted",
+            field=models.BooleanField(default=False, verbose_name="Удалена"),
         ),
         migrations.AddField(
-            model_name='task',
-            name='deleted_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='deleted_tasks', to=settings.AUTH_USER_MODEL, verbose_name='Удалена пользователем'),
+            model_name="task",
+            name="deleted_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="deleted_tasks",
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="Удалена пользователем",
+            ),
         ),
         migrations.AlterField(
-            model_name='stickynote',
-            name='author_name',
-            field=models.CharField(blank=True, max_length=500, verbose_name='Кому назначена'),
+            model_name="stickynote",
+            name="author_name",
+            field=models.CharField(
+                blank=True, max_length=500, verbose_name="Кому назначена"
+            ),
         ),
         migrations.AlterField(
-            model_name='stickynote',
-            name='height',
-            field=models.PositiveIntegerField(default=200, verbose_name='Высота (px)'),
+            model_name="stickynote",
+            name="height",
+            field=models.PositiveIntegerField(default=200, verbose_name="Высота (px)"),
         ),
         migrations.AlterField(
-            model_name='stickynote',
-            name='order',
-            field=models.PositiveIntegerField(default=0, verbose_name='Порядок отображения'),
+            model_name="stickynote",
+            name="order",
+            field=models.PositiveIntegerField(
+                default=0, verbose_name="Порядок отображения"
+            ),
         ),
         migrations.AlterField(
-            model_name='stickynote',
-            name='owner',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sticky_notes', to=settings.AUTH_USER_MODEL, verbose_name='Автор заметки'),
+            model_name="stickynote",
+            name="owner",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="sticky_notes",
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="Автор заметки",
+            ),
         ),
         migrations.AlterField(
-            model_name='stickynote',
-            name='width',
-            field=models.PositiveIntegerField(default=300, verbose_name='Ширина (px)'),
+            model_name="stickynote",
+            name="width",
+            field=models.PositiveIntegerField(default=300, verbose_name="Ширина (px)"),
         ),
         migrations.AlterField(
-            model_name='tag',
-            name='name',
-            field=models.CharField(max_length=50, unique=True, verbose_name='Название тега'),
+            model_name="tag",
+            name="name",
+            field=models.CharField(
+                max_length=50, unique=True, verbose_name="Название тега"
+            ),
         ),
         migrations.AlterField(
-            model_name='task',
-            name='priority',
-            field=models.CharField(choices=[('low', '🟢 Низкий'), ('medium', '🟡 Средний'), ('high', '🔴 Высокий')], default='medium', max_length=10, verbose_name='Приоритет'),
+            model_name="task",
+            name="priority",
+            field=models.CharField(
+                choices=[
+                    ("low", "🟢 Низкий"),
+                    ("medium", "🟡 Средний"),
+                    ("high", "🔴 Высокий"),
+                ],
+                default="medium",
+                max_length=10,
+                verbose_name="Приоритет",
+            ),
         ),
         migrations.AlterField(
-            model_name='task',
-            name='updated_at',
-            field=models.DateTimeField(auto_now=True, verbose_name='Дата обновления'),
+            model_name="task",
+            name="updated_at",
+            field=models.DateTimeField(auto_now=True, verbose_name="Дата обновления"),
         ),
     ]

@@ -8,7 +8,7 @@ export class CityModalHandler {
      * @param {string} modalId - ID модального окна.
      * @param {Array<Object>} citiesData - Массив объектов с данными о городах.
      */
-    constructor(modalId, citiesData = []) {
+    constructor(modalId, citiesData = [],) {
         /** @type {HTMLElement|null} */
         this.modal = document.getElementById(modalId);
         /** @type {HTMLFormElement|null} */
@@ -49,7 +49,6 @@ export class CityModalHandler {
 
         window.addEventListener('click', (e) => {
             if (!this.modal || this.modal.classList.contains('hidden')) return;
-
             const isClickOutside = !this.modal.querySelector('form')?.contains(e.target);
             const isClickInsideModal = this.modal.contains(e.target);
 
@@ -72,11 +71,13 @@ export class CityModalHandler {
         document.addEventListener('click', (e) => {
             const card = e.target.closest('.card-style');
             if (!card) return;
-
             const cityData = card.dataset.city ? JSON.parse(card.dataset.city) : null;
-            if (cityData) {
+            if ("pseudonim" in cityData && this.modal.querySelector('#modal-pseudonim')) {
+                this.showModal(cityData);
+            } else if ("korr" in cityData && this.modal.querySelector('#modal-korr')) {
                 this.showModal(cityData);
             }
+
         });
     }
 
@@ -86,8 +87,7 @@ export class CityModalHandler {
      */
     showModal(city) {
         this.currentCity = city;
-
-        if (this.modal) {
+        if (this.modal && "pseudonim" in this.currentCity) {
             this.modal.querySelector('#modal-location').value = city.location || '';
             this.modal.querySelector('#modal-name_organ').value = city.name_organ || '';
             this.modal.querySelector('#modal-pseudonim').value = city.pseudonim || '';
@@ -96,6 +96,18 @@ export class CityModalHandler {
             this.modal.querySelector('#modal-number').value = city.dock_num || '';
             this.modal.querySelector('#modal-some_number').value = city.some_number || '';
             this.modal.querySelector('#modal-ip_address').value = city.ip_address || '';
+            this.modal.classList.remove('hidden');
+            this.form?.classList.add('animate-popup');
+
+        } else if (this.modal && "korr" in this.currentCity) {
+            this.modal.querySelector('#modal-korr').value = city.korr || '';
+            this.modal.querySelector('#modal-m_b_number').value = city.m_b_number || '';
+            this.modal.querySelector('#modal-cipa').value = city.cipa || '';
+            this.modal.querySelector('#modal-globus').value = city.globus || '';
+            this.modal.querySelector('#modal-recipient').value = city.recipient || '';
+            this.modal.querySelector('#modal-phone_number').value = city.phone_number || '';
+            this.modal.querySelector('#modal-ip_phone').value = city.ip_phone || '';
+            this.modal.querySelector('#modal-notes').value = city.notes || '';
             this.modal.classList.remove('hidden');
             this.form?.classList.add('animate-popup');
         }
@@ -114,16 +126,34 @@ export class CityModalHandler {
      * @returns {Object} Объект с обновлёнными данными города.
      */
     getFormData() {
-        return {
-            location: this.modal.querySelector('#modal-location').value.trim(),
-            name_organ: this.modal.querySelector('#modal-name_organ').value.trim(),
-            pseudonim: this.modal.querySelector('#modal-pseudonim').value.trim(),
-            work_time: this.modal.querySelector('#modal-work_time').value.trim(),
-            table_name: this.modal.querySelector('#modal-table_name').value.trim(),
-            some_number: this.modal.querySelector('#modal-some_number').value.trim(),
-            ip_address: this.modal.querySelector('#modal-ip_address').value.trim(),
-            table_id: this.currentCity?.table_id || null
-        };
+        if (this.modal.querySelector('#modal-pseudonim')) {
+            return {
+                location: this.modal.querySelector('#modal-location').value.trim(),
+                name_organ: this.modal.querySelector('#modal-name_organ').value.trim(),
+                pseudonim: this.modal.querySelector('#modal-pseudonim').value.trim(),
+                work_time: this.modal.querySelector('#modal-work_time').value.trim(),
+                table_name: this.modal.querySelector('#modal-table_name').value.trim(),
+                some_number: this.modal.querySelector('#modal-some_number').value.trim(),
+                ip_address: this.modal.querySelector('#modal-ip_address').value.trim(),
+                table_id: this.currentCity?.table_id || null
+            };
+        } else if (this.modal.querySelector('#modal-korr')) {
+            globusAutocomplete.updateHint();
+            this.globusID = globusAutocomplete.getSelectedPk();
+            this.currentCity.globus_id = this.globusID
+            return {
+                korr: this.modal.querySelector('#modal-korr').value.trim(),
+                m_b_number: this.modal.querySelector('#modal-m_b_number').value.trim(),
+                cipa: this.modal.querySelector('#modal-cipa').value.trim(),
+                globus: this.modal.querySelector('#modal-globus').value.trim(),
+                recipient: this.modal.querySelector('#modal-recipient').value.trim(),
+                phone_number: this.modal.querySelector('#modal-phone_number').value.trim(),
+                ip_phone: this.modal.querySelector('#modal-ip_phone').value.trim(),
+                notes:this.modal.querySelector("#modal-notes").value.trim(),
+                globus_id: this.currentCity?.globus_id || null
+            };
+        }
+
     }
 
     /**
@@ -133,7 +163,19 @@ export class CityModalHandler {
      */
     async updateCity(currentCity, data) {
         try {
-            const response = await fetch(`cities/${currentCity.table_id}/${currentCity.dock_num}/`, {
+            const id1 = currentCity.table_id ?? currentCity.pk;
+            const id2 = currentCity.dock_num ?? currentCity.globus_id;
+
+            if (!id1) {
+                showError('Отсутствует основной идентификатор (table_id или pk)');
+                return;
+            }
+            let url = `cities/${id1}/`;
+            if (id2 !== undefined && id2 !== null) {
+                url += `${id2}/`;
+            }
+
+            const response = await fetch(url, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -144,6 +186,10 @@ export class CityModalHandler {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => null);
+                if (errorData && errorData.message === "Authentication required") {
+                    window.location.href = "/login/?next=" + encodeURIComponent(window.location.pathname);
+                    return;
+                }
                 let errorMsg = '';
                 for (const field in errorData.errors) {
                     errorMsg += `${field}: ${errorData.errors[field].join(', ')}\n`;
@@ -154,16 +200,17 @@ export class CityModalHandler {
 
             // Обновляем citiesData
             const index = this.citiesData.findIndex(city =>
-                city.table_id === currentCity.table_id &&
-                city.dock_num === currentCity.dock_num
-            );
+                (city.table_id && city.dock_num &&
+                    city.table_id === currentCity.table_id &&
+                    city.dock_num === currentCity.dock_num) ||
 
+                (city.pk && city.pk === currentCity.pk)
+            );
             if (index !== -1) {
                 Object.assign(this.citiesData[index], data);
             }
 
             Object.assign(currentCity, data);
-
             // Обновляем DOM
             const container = document.getElementById('city-cards');
             const cards = container.querySelectorAll('.card-style');
@@ -171,32 +218,42 @@ export class CityModalHandler {
             for (const card of cards) {
                 const cityData = JSON.parse(card.dataset.city || '{}');
                 if (
-                    cityData.table_id === currentCity.table_id &&
-                    cityData.dock_num === currentCity.dock_num
+                    (cityData.table_id !== undefined &&
+                        cityData.dock_num !== undefined &&
+                        cityData.table_id === currentCity.table_id &&
+                        cityData.dock_num === currentCity.dock_num)
+                    ||
+                    (cityData.table_id === undefined && Number(cityData.pk) === Number(currentCity.pk))
                 ) {
+
                     card.dataset.city = JSON.stringify(currentCity);
-
-                    const props = [
-                        ['Организация', currentCity.name_organ],
-                        ['Псевдоним', currentCity.pseudonim],
-                        ['Время работы', currentCity.work_time],
-                        ['Название раздела', currentCity.table_name],
-                        ['Номер в таблице', currentCity.some_number],
-                        ['IP address', currentCity.ip_address],
-                    ];
-
-                    card.innerHTML = `<h3 class="text-lg font-semibold mb-2 text-center">${currentCity.location || 'Неизвестно'}</h3>` +
-                        props
-                            .filter(([_, val]) => val)
-                            .map(([label, val]) => `<p><strong>${label}:</strong> ${val}</p>`)
-                            .join('');
+                    console.log(card)
+                    const props = cityData.table_id
+                        ? [
+                            ['Организация', currentCity.name_organ],
+                            ['Псевдоним', currentCity.pseudonim],
+                            ['Время работы', currentCity.work_time],
+                            ['Название раздела', currentCity.table_name],
+                            ['Номер в таблице', currentCity.some_number],
+                            ['IP address', currentCity.ip_address],
+                        ]
+                        : [
+                            ['№ Корреспондента', currentCity.korr],
+                            ['Номер части', currentCity.m_b_number],
+                            ['Номер CIPA', currentCity.cipa],
+                            ['Название раздела', currentCity.globus],
+                            ['Номерок в таблице Глобуса', currentCity.some_number],
+                            ['Данные получателя', currentCity.recipient]
+                        ];
+                    card.innerHTML = `<h3 class="text-lg font-semibold mb-2 text-center">${currentCity.location || currentCity.m_b_number || currentCity.cipa || 'Неизвестно'}</h3>` +
+                        props.filter(([_, val]) => val).map(([label, val]) => `<p><strong>${label}:</strong> ${val}</p>`).join('');
 
                     break;
-
                 }
+
             }
 
-            this.showSuccessMessage(`Город "${data.name_organ}" успешно обновлён`);
+            this.showSuccessMessage(`Город "${data.name_organ || data.korr}" успешно обновлён`);
         } catch (error) {
             console.error('Ошибка PUT-запроса:', error);
             showError(error);
@@ -213,9 +270,20 @@ export class CityModalHandler {
         if (!confirmed) {
             return; // Пользователь отменил удаление
         }
+        const id1 = currentCity.table_id ?? currentCity.pk;
+        const id2 = currentCity.dock_num ?? currentCity.globus_id;
+
+        if (!id1) {
+            showError('Отсутствует основной идентификатор (table_id или pk)');
+            return;
+        }
+        let url = `cities/delete/${id1}/`;
+        if (id2 !== undefined && id2 !== null && id2 !== '') {
+            url += `${id2}/`;
+        }
 
         try {
-            const response = await fetch(`cities/${currentCity.table_id}/${currentCity.dock_num}/`, {
+            const response = await fetch(url, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -225,13 +293,21 @@ export class CityModalHandler {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => null);
+                if (errorData && errorData.message === "Authentication required") {
+                    window.location.href = "/login/?next=" + encodeURIComponent(window.location.pathname);
+                    return;
+                }
                 showError(errorData?.message || 'Ошибка при удалении города');
                 return;
             }
 
             // Удаляем из локальных данных
             const index = this.citiesData.findIndex(city =>
-                city.table_id === currentCity.table_id && city.dock_num === currentCity.dock_num
+                (city.table_id && city.dock_num &&
+                    city.table_id === currentCity.table_id &&
+                    city.dock_num === currentCity.dock_num) ||
+
+                (city.pk && city.pk === currentCity.pk)
             );
 
             if (index !== -1) {
@@ -246,15 +322,19 @@ export class CityModalHandler {
             for (const card of cards) {
                 const cityData = JSON.parse(card.dataset.city || '{}');
                 if (
-                    cityData.table_id === currentCity.table_id &&
-                    cityData.dock_num === currentCity.dock_num
+                    (cityData.table_id !== undefined &&
+                        cityData.dock_num !== undefined &&
+                        cityData.table_id === currentCity.table_id &&
+                        cityData.dock_num === currentCity.dock_num)
+                    ||
+                    (cityData.table_id === undefined && Number(cityData.pk) === Number(currentCity.pk))
                 ) {
                     card.remove();
                     break;
                 }
             }
 
-            this.showSuccessMessage(`Город "${currentCity.name_organ}" успешно удалён`);
+            this.showSuccessMessage(`Город "${currentCity.name_organ || currentCity.m_b_number || 'Выбранный город'}" успешно удалён`);
             this.hideModal();
         } catch (error) {
             console.error('Ошибка DELETE-запроса:', error);
@@ -308,7 +388,7 @@ export class CityModalHandler {
             serverInfo.classList.remove('hidden', 'animate-popup-reverse');
             serverInfo.classList.add('flex', 'animate-popup');
             serverInfo.querySelector('h3').textContent = 'Подтверждение удаления';
-            serverInfo.querySelector('p').textContent = `Вы уверены, что хотите удалить "${cityToDelete.name_organ}"?`;
+            serverInfo.querySelector('p').textContent = `Вы уверены, что хотите удалить "${cityToDelete.name_organ || cityToDelete.m_b_number || 'Выбранный город'}"?`;
             serverInfo.scrollIntoView({behavior: 'smooth', block: 'start'});
 
             const divBtn = document.getElementById('btn-div');

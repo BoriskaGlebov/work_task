@@ -8,12 +8,14 @@ export class CityAutocomplete {
      * @param {string} inputId - ID текстового поля ввода.
      * @param {string} suggestionsId - ID контейнера подсказок.
      * @param {Array<Object>} citiesData - Список данных по городам.
+     * @param {Array<Object>} infoDO - данные из справчоника.
      */
-    constructor(inputId, suggestionsId, citiesData = []) {
+    constructor(inputId, suggestionsId, citiesData = [], infoDO = []) {
         this.input = document.getElementById(inputId);
         this.suggestions = document.getElementById(suggestionsId);
         this.counter = document.getElementById('counter');
         this.citiesData = citiesData;
+        this.infoDO = infoDO;
 
         this.selectedIndex = -1;
         this.renderedCities = [];
@@ -114,17 +116,29 @@ export class CityAutocomplete {
         card.style.cursor = 'pointer'; // ✅ указатель "рука" для визуального отклика
         // ✅ Добавляем сериализованные данные города в data-атрибут
         card.dataset.city = JSON.stringify(city);
+        let props = [];
+        if ("pseudonim" in city) {
+            props = [
+                ['Организация', city.name_organ],
+                ['Псевдоним', city.pseudonim],
+                ['Время работы', city.work_time],
+                ['Название раздела', city.table_name],
+                ['Номер в таблице', city.some_number],
+                ['IP address', city.ip_address]
+            ];
+        } else if ("korr" in city) {
+            props = [
+                ['№ Корреспондента', city.korr],
+                ['Номер части', city.m_b_number],
+                ['Номер CIPA', city.cipa],
+                ['Название раздела', city.globus],
+                ['Номерок в таблице Глобуса', city.some_number],
+                ['Данные получателя', city.recipient]
+            ];
+        }
 
-        const props = [
-            ['Организация', city.name_organ],
-            ['Псевдоним', city.pseudonim],
-            ['Время работы', city.work_time],
-            ['Название раздела', city.table_name],
-            ['Номер в таблице', city.some_number],
-            ['IP address', city.ip_address]
-        ];
 
-        card.innerHTML = `<h3 class="text-lg font-semibold mb-2 text-center">${city.location || 'Неизвестно'}</h3>` +
+        card.innerHTML = `<h3 class="text-lg font-semibold mb-2 text-center">${city.location || city.m_b_number || city.cipa || 'Неизвестно'}</h3>` +
             props.filter(([_, val]) => val).map(([label, val]) => `<p><strong>${label}:</strong> ${val}</p>`).join('');
 
         const sentinel = document.getElementById('scroll-sentinel');
@@ -185,30 +199,54 @@ export class CityAutocomplete {
             (city.name_organ && city.name_organ.toLowerCase().includes(query)) ||
             (city.pseudonim && city.pseudonim.toLowerCase().includes(query))
         );
+        const infoMatches = this.infoDO.filter(cityEL =>
+            (cityEL.korr && cityEL.korr.toLowerCase().includes(query)) ||
+            (cityEL.m_b_number && cityEL.m_b_number.toLowerCase().includes(query)) ||
+            (cityEL.cipa && cityEL.cipa.toLowerCase().includes(query)) ||
+            (cityEL.recipient && cityEL.recipient.toLowerCase().includes(query)) ||
+            (cityEL.notes && cityEL.notes.toLowerCase().includes(query))
+        );
 
         this.counter?.classList.remove('opacity-0');
-        if (this.counter) this.counter.textContent = `Найдено совпадений: ${matches.length}`;
+        if (this.counter) this.counter.textContent = `Найдено совпадений: ${matches.length + infoMatches.length}`;
 
-        if (!matches.length) {
+        if (!matches.length && !infoMatches.length) {
             this.suggestions.style.display = 'none';
             return;
-        }
-
-        matches.slice(0, 20).forEach(city => {
-            const li = document.createElement('li');
-            li.classList.add('cursor-pointer', 'px-3', 'py-1', 'hover:bg-gray-200');
-            li.textContent = `${city.location || ''}${city.name_organ ? ` — ${city.name_organ}` : ''}${city.pseudonim ? ` — (${city.pseudonim})` : ''}`;
-            li.addEventListener('click', () => {
-                this.input.value = `${city.location} - ${city.name_organ || ''} - ${city.pseudonim || ''}`;
-                this.suggestions.style.display = 'none';
-                this.clearCityCards();
-                this.cancelRendering();
-                this.createCityCard(city);
-                // 👇 Отправка статистики при одиночном выборе
-                this.sendRenderedCityStats([city]);
+        } else if (matches.length) {
+            matches.slice(0, 20).forEach(city => {
+                const li = document.createElement('li');
+                li.classList.add('cursor-pointer', 'px-3', 'py-1', 'hover:bg-gray-200');
+                li.textContent = `${city.location || ''}${city.name_organ ? ` — ${city.name_organ}` : ''}${city.pseudonim ? ` — (${city.pseudonim})` : ''}`;
+                li.addEventListener('click', () => {
+                    this.input.value = `${city.location} - ${city.name_organ || ''} - ${city.pseudonim || ''}`;
+                    this.suggestions.style.display = 'none';
+                    this.clearCityCards();
+                    this.cancelRendering();
+                    this.createCityCard(city);
+                    // 👇 Отправка статистики при одиночном выборе
+                    this.sendRenderedCityStats([city]);
+                });
+                this.suggestions.appendChild(li);
             });
-            this.suggestions.appendChild(li);
-        });
+        } else if (infoMatches.length) {
+            infoMatches.slice(0, 20).forEach(cityEl => {
+                const li = document.createElement('li');
+                li.classList.add('cursor-pointer', 'px-3', 'py-1', 'hover:bg-gray-200');
+                li.textContent = `${cityEl.korr || ''}${cityEl.m_b_number ? ` — ${cityEl.m_b_number}` : ''}${cityEl.cipa ? ` — (${cityEl.cipa})` : ''}`;
+                li.addEventListener('click', () => {
+                    this.input.value = `${cityEl.korr} - ${cityEl.m_b_number || ''} - ${cityEl.m_b_number || ''}`;
+                    this.suggestions.style.display = 'none';
+                    this.clearCityCards();
+                    this.cancelRendering();
+                    this.createCityCard(cityEl);
+                    // 👇 Отправка статистики при одиночном выборе
+                    // this.sendRenderedCityStats([city]);
+                });
+                this.suggestions.appendChild(li);
+            });
+
+        }
 
         this.suggestions.style.display = 'block';
     }
@@ -245,7 +283,19 @@ export class CityAutocomplete {
                         (city.name_organ && city.name_organ.toLowerCase().includes(query)) ||
                         (city.pseudonim && city.pseudonim.toLowerCase().includes(query))
                     );
-                    this.renderCardsWithDelay(matches);
+                    const infoMatches = this.infoDO.filter(cityEL =>
+                        (cityEL.korr && cityEL.korr.toLowerCase().includes(query)) ||
+                        (cityEL.m_b_number && cityEL.m_b_number.toLowerCase().includes(query)) ||
+                        (cityEL.cipa && cityEL.cipa.toLowerCase().includes(query)) ||
+                        (cityEL.recipient && cityEL.recipient.toLowerCase().includes(query)) ||
+                        (cityEL.notes && cityEL.notes.toLowerCase().includes(query))
+                    );
+                    if (matches.length) {
+                        this.renderCardsWithDelay(matches);
+                    } else if (infoMatches.length) {
+                        this.renderCardsWithDelay(infoMatches);
+                    }
+
                     this.suggestions.style.display = 'none';
                 }
                 break;

@@ -6,13 +6,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stickers', '0003_alter_tag_options_alter_task_options_task_author_and_more'),
+        ("stickers", "0003_alter_tag_options_alter_task_options_task_author_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='task',
-            name='priority',
-            field=models.CharField(choices=[('low', '🟢 Низкий'), ('medium', '🟡 Средний'), ('high', '🔴 Высокий')], default='medium', max_length=10, verbose_name='Приоритет задачи'),
+            model_name="task",
+            name="priority",
+            field=models.CharField(
+                choices=[
+                    ("low", "🟢 Низкий"),
+                    ("medium", "🟡 Средний"),
+                    ("high", "🔴 Высокий"),
+                ],
+                default="medium",
+                max_length=10,
+                verbose_name="Приоритет задачи",
+            ),
         ),
     ]
