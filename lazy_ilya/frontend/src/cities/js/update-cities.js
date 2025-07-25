@@ -1,5 +1,4 @@
 import {showError} from "./utils.js";
-import {InlineGlobusAutocomplete} from "./globus-search.js";
 
 /**
  * Обработчик модального окна редактирования и удаления карточек городов.

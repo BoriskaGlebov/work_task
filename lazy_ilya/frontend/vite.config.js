@@ -21,6 +21,7 @@ export default defineConfig({
 
                 'cities/js/main': resolve(__dirname, 'src/cities/js/main.js'),
                 'cities/js/update-form': resolve(__dirname, 'src/cities/js/update-form.js'),
+                'cities/js/globus-search': resolve(__dirname, 'src/cities/js/globus-search.js'),
 
                 'statistics_app/js/main': resolve(__dirname, 'src/statistics_app/js/main.js'),
 
