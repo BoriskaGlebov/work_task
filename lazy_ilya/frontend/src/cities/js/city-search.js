@@ -138,7 +138,7 @@ export class CityAutocomplete {
         }
 
 
-        card.innerHTML = `<h3 class="text-lg font-semibold mb-2 text-center">${city.location || city.m_b_number || 'Неизвестно'}</h3>` +
+        card.innerHTML = `<h3 class="text-lg font-semibold mb-2 text-center">${city.location || city.m_b_number || city.cipa || 'Неизвестно'}</h3>` +
             props.filter(([_, val]) => val).map(([label, val]) => `<p><strong>${label}:</strong> ${val}</p>`).join('');
 
         const sentinel = document.getElementById('scroll-sentinel');
@@ -290,9 +290,9 @@ export class CityAutocomplete {
                         (cityEL.recipient && cityEL.recipient.toLowerCase().includes(query)) ||
                         (cityEL.notes && cityEL.notes.toLowerCase().includes(query))
                     );
-                    if (matches.length){
+                    if (matches.length) {
                         this.renderCardsWithDelay(matches);
-                    } else if(infoMatches.length){
+                    } else if (infoMatches.length) {
                         this.renderCardsWithDelay(infoMatches);
                     }
 

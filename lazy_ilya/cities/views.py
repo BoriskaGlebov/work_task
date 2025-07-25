@@ -135,7 +135,7 @@ class Cities(View):
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
     def delete(
-            self, request: HttpRequest, table_id: int, dock_num: int
+            self, request: HttpRequest, table_id: int, dock_num: int|None=None
     ) -> JsonResponse:
         """
         Удаляет город.
@@ -143,38 +143,54 @@ class Cities(View):
         Args:
             request (HttpRequest): Объект запроса.
             table_id (int): ID таблицы.
-            dock_num (int): Номер доки.
+            dock_num (int|None): Номер доки. или Nonr
 
         Returns:
             JsonResponse: Ответ с сообщением об успехе или ошибке.
         """
         try:
-            # Получаем город по ID таблицы и номеру доки
-            city = get_object_or_404(CityData, table_id=table_id, dock_num=dock_num)
-            logger.bind(user=request.user.username).info(
-                f"Проиcходит удаление города {city.name_organ} - {city.location}"
-            )
-            if city:
+            if dock_num is not None:
                 try:
-                    counter_city = CounterCities.objects.get(
-                        dock_num=city
-                    )  # changed name to the name u have in related model
-                    counter_city.delete()  # Удаляем запись CounterCities
-                except CounterCities.DoesNotExist:
-                    # Если CounterCities не существует, ничего страшного, продолжаем
-                    pass
-                # Очищаем поля города
-                city.location = ""
-                city.name_organ = ""
-                city.pseudonim = ""
-                city.letters = False
-                city.writing = False
-                city.ip_address = ""
-                city.some_number = ""
-                city.work_timme = ""
-                city.save()
+                    # Получаем город по ID таблицы и номеру доки
+                    city= CityData.objects.get(table_id=table_id, dock_num=dock_num)
+                    logger.bind(user=request.user.username).info(
+                        f"Проиcходит удаление города {city.name_organ} - {city.location}"
+                    )
+                    if city:
+                        try:
+                            counter_city = CounterCities.objects.get(
+                                dock_num=city
+                            )  # changed name to the name u have in related model
+                            counter_city.delete()  # Удаляем запись CounterCities
+                        except CounterCities.DoesNotExist:
+                            # Если CounterCities не существует, ничего страшного, продолжаем
+                            pass
+                        # Очищаем поля города
+                        city.location = ""
+                        city.name_organ = ""
+                        city.pseudonim = ""
+                        city.letters = False
+                        city.writing = False
+                        city.ip_address = ""
+                        city.some_number = ""
+                        city.work_timme = ""
+                        city.save()
 
-            return JsonResponse({"status": "success"})
+                    return JsonResponse({"status": "success"})
+                except CityData.DoesNotExist:
+                    pass
+            # Пытаемся удалить CityInfoDO, если dock_num не передан или CityData не найден
+            try:
+                city_do = CityInfoDO.objects.get(pk=table_id)
+                logger.bind(user=request.user.username).info(
+                    f"Удаление CityInfoDO: ID {city_do.pk}, korr: {city_do.korr}"
+                )
+                city_do.delete()
+                return JsonResponse({"status": "success"})
+
+            except CityInfoDO.DoesNotExist:
+                # Ни CityData, ни CityInfoDO не найдены
+                raise Http404("Город не найден")
 
         except Http404:
             logger.bind(user=request.user.username).error(f"Город не найден")

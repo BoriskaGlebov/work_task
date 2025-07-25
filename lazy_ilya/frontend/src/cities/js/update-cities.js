@@ -245,7 +245,7 @@ export class CityModalHandler {
                             ['Номерок в таблице Глобуса', currentCity.some_number],
                             ['Данные получателя', currentCity.recipient]
                         ];
-                    card.innerHTML = `<h3 class="text-lg font-semibold mb-2 text-center">${currentCity.location || currentCity.m_b_number || 'Неизвестно'}</h3>` +
+                    card.innerHTML = `<h3 class="text-lg font-semibold mb-2 text-center">${currentCity.location || city.m_b_number || city.cipa || 'Неизвестно'}</h3>` +
                         props.filter(([_, val]) => val).map(([label, val]) => `<p><strong>${label}:</strong> ${val}</p>`).join('');
 
                     break;
@@ -270,9 +270,20 @@ export class CityModalHandler {
         if (!confirmed) {
             return; // Пользователь отменил удаление
         }
+        const id1 = currentCity.table_id ?? currentCity.pk;
+        const id2 = currentCity.dock_num ?? currentCity.globus_id;
+
+        if (!id1) {
+            showError('Отсутствует основной идентификатор (table_id или pk)');
+            return;
+        }
+        let url = `cities/delete/${id1}/`;
+        if (id2 !== undefined && id2 !== null && id2 !== '') {
+            url += `${id2}/`;
+        }
 
         try {
-            const response = await fetch(`cities/${currentCity.table_id}/${currentCity.dock_num}/`, {
+            const response = await fetch(url, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -292,7 +303,11 @@ export class CityModalHandler {
 
             // Удаляем из локальных данных
             const index = this.citiesData.findIndex(city =>
-                city.table_id === currentCity.table_id && city.dock_num === currentCity.dock_num
+                (city.table_id && city.dock_num &&
+                    city.table_id === currentCity.table_id &&
+                    city.dock_num === currentCity.dock_num) ||
+
+                (city.pk && city.pk === currentCity.pk)
             );
 
             if (index !== -1) {
@@ -307,15 +322,19 @@ export class CityModalHandler {
             for (const card of cards) {
                 const cityData = JSON.parse(card.dataset.city || '{}');
                 if (
-                    cityData.table_id === currentCity.table_id &&
-                    cityData.dock_num === currentCity.dock_num
+                    (cityData.table_id !== undefined &&
+                        cityData.dock_num !== undefined &&
+                        cityData.table_id === currentCity.table_id &&
+                        cityData.dock_num === currentCity.dock_num)
+                    ||
+                    (cityData.table_id === undefined && Number(cityData.pk) === Number(currentCity.pk))
                 ) {
                     card.remove();
                     break;
                 }
             }
 
-            this.showSuccessMessage(`Город "${currentCity.name_organ}" успешно удалён`);
+            this.showSuccessMessage(`Город "${currentCity.name_organ || currentCity.m_b_number || 'Выбранный город'}" успешно удалён`);
             this.hideModal();
         } catch (error) {
             console.error('Ошибка DELETE-запроса:', error);
@@ -369,7 +388,7 @@ export class CityModalHandler {
             serverInfo.classList.remove('hidden', 'animate-popup-reverse');
             serverInfo.classList.add('flex', 'animate-popup');
             serverInfo.querySelector('h3').textContent = 'Подтверждение удаления';
-            serverInfo.querySelector('p').textContent = `Вы уверены, что хотите удалить "${cityToDelete.name_organ}"?`;
+            serverInfo.querySelector('p').textContent = `Вы уверены, что хотите удалить "${cityToDelete.name_organ || cityToDelete.m_b_number || 'Выбранный город'}"?`;
             serverInfo.scrollIntoView({behavior: 'smooth', block: 'start'});
 
             const divBtn = document.getElementById('btn-div');

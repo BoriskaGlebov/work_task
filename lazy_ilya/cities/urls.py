@@ -14,6 +14,11 @@ urlpatterns = [
     path("cities/<int:table_id>/", Cities.as_view(), name="edit_city_no_doc_num"),
     path("cities/<int:table_id>/<int:dock_num>/", Cities.as_view(), name="edit_city"),
     path(
+        "cities/delete/<int:table_id>/",
+        Cities.as_view(),
+        name="delete_city_no_doc_num",
+    ),
+    path(
         "cities/delete/<int:table_id>/<int:dock_num>/",
         Cities.as_view(),
         name="delete_city",
