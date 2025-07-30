@@ -253,10 +253,12 @@ export class CityFormHandler {
 export class DOFormHandler {
     /**
      * @param {string} formId - ID формы, которую нужно обрабатывать
+     * @param {{ Inputmask: any }} deps - Внешние зависимости (например, Inputmask)
      */
-    constructor(formId) {
+    constructor(formId, { Inputmask }) {
         /** @type {HTMLFormElement} */
         this.form = document.getElementById(formId);
+        this.Inputmask = Inputmask;
 
         this.closeModalBtn = document.getElementById('close-modal2');
         /** @type {HTMLButtonElement} */
@@ -279,7 +281,7 @@ export class DOFormHandler {
             notes: this.form.querySelector("#modal-notes"),
             globus_id: globus.getSelectedPk()
         };
-
+        Inputmask("+7 (999) 999-99-99").mask(document.getElementById('modal-phone_number'));
         this.initCancelButton();
         this.initSaveButton();
     }
@@ -348,7 +350,6 @@ export class DOFormHandler {
             }
         });
     }
-
 
 
     /**

@@ -5,10 +5,16 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
     root: './',
     plugins: [tailwindcss()],
+    optimizeDeps: {
+        include: ['inputmask'], // 👈 нужно для dev-режима
+    },
     build: {
         emptyOutDir: true,
         outDir: '../collected_static',
         target: 'modules',
+        commonjsOptions: {
+            include: [/node_modules/, /inputmask/], // 👈 нужно для сборки
+        },
         rollupOptions: {
             input: {
                 'myauth/js/base': resolve(__dirname, 'src/myauth/js/base.js'),
@@ -40,6 +46,8 @@ export default defineConfig({
                     if (id.includes('src/stickers/js/utils.js')) {
                         return 'stickers/js/utils';
                     }
+
+                    if (id.includes('inputmask')) return 'cities/js/inputmask';
                 },
                 entryFileNames: '[name].js',
                 chunkFileNames: '[name].js',
