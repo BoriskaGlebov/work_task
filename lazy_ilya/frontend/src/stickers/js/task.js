@@ -94,6 +94,28 @@ export class KanbanTasks {
         this.taskFilterInstance = taskFilterInstance;
     }
 
+    ensureScrollFilled() {
+        let iterations = 0;
+        const MAX_ITERATIONS = 10;
+
+        const tryRender = () => {
+            const hasScrollbar = document.documentElement.scrollHeight > window.innerHeight;
+
+            if (hasScrollbar || this.loadedCount >= this.allTaskIds.length || iterations >= MAX_ITERATIONS) {
+                return;
+            }
+
+            const prevCount = this.loadedCount;
+            this.renderNextTasks();
+            iterations++;
+
+            // Даем браузеру "вдохнуть" перед следующей проверкой
+            requestAnimationFrame(tryRender);
+        };
+
+        tryRender();
+    }
+
 
     /**
      * Загружает задачи из массива, полученного с бэкенда, сохраняет их в локальном хранилище
@@ -140,7 +162,10 @@ export class KanbanTasks {
         this.PAGE_SIZE = 3;
         this.loadedCount = 0;
 
+
         this.renderNextTasks(); // первая порция
+        this.ensureScrollFilled();
+
         if (this.taskBoard && !this._scrollBound) {
             window.addEventListener('scroll', () => this.onScroll());
             this._scrollBound = true; // защита от повторного бинда
