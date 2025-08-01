@@ -178,7 +178,45 @@ export class KanbanTasks {
         }
     }
 
+    getPriorityOrder(priority) {
+        switch ((priority || '').toLowerCase()) {
+            case 'high':
+                return 0;
+            case 'medium':
+                return 1;
+            case 'low':
+                return 2;
+            default:
+                return 3;
+        }
+    }
+
+    getTaskSortKey(task) {
+        return [
+            task.deleted ? 1 : 0,
+            task.done ? 1 : 0,
+            this.getPriorityOrder(task.priority),
+            task.deadline ? new Date(task.deadline).getTime() : Infinity
+        ];
+    }
+
+    sortTaskIdsByBackendLogic() {
+        this.allTaskIds.sort((a, b) => {
+            const taskA = this.tasks[a];
+            const taskB = this.tasks[b];
+            const keyA = this.getTaskSortKey(taskA);
+            const keyB = this.getTaskSortKey(taskB);
+
+            for (let i = 0; i < keyA.length; i++) {
+                if (keyA[i] !== keyB[i]) return keyA[i] - keyB[i];
+            }
+            return 0;
+        });
+    }
+
+
     resetAndRender() {
+        this.sortTaskIdsByBackendLogic();
         this.loadedCount = 0;
         this.taskBoard.innerHTML = '';  // Очищаем контейнер от всех карточек
         this.renderNextTasks();         // Запускаем ленивую отрисовку с нуля, с фильтрами
@@ -310,8 +348,11 @@ export class KanbanTasks {
     closeModal() {
         this.taskModal.classList.add('hidden');
         let tagsVal = this.tagsSelect.getValue().map(tag => tag.value);
-        this.taskFilterInstance.applyFilters();
-        this.taskFilterInstance.populateTagOptions(tagsVal)
+        // Даем время DOMу обновиться (например, после renderTaskCard)
+        setTimeout(() => {
+            this.taskFilterInstance.applyFilters();
+            this.taskFilterInstance.populateTagOptions(tagsVal);
+        }, 100);
     }
 
 
@@ -637,14 +678,19 @@ export class KanbanTasks {
 
             if (isUpdate) {
                 this.tasks[this.currentEditId] = result;
+                this.sortTaskIdsByBackendLogic();      // Переупорядочить
                 this.renderTaskCard(this.currentEditId, result, true);
                 // this.showSuccessMessage(`Задача успешно обновлена ${result.id}`);
             } else {
                 const id = result.id;
                 this.tasks[id] = result;
-                this.renderTaskCard(id, result);
+                // Добавляем ID в начало или в конец массива, в зависимости от логики
+                this.allTaskIds.unshift(id);
+                this.sortTaskIdsByBackendLogic();      // Сортируем по бэку
+                // this.renderTaskCard(id, result);
                 this.showSuccessMessage(`Задача успешно создана ${result.id}`);
             }
+            this.resetAndRender();
 
             this.closeModal();
 
@@ -1176,7 +1222,18 @@ export class TaskFilter {
         const cardPriority = (taskObj.priority || '').toLowerCase();
         const cardDone = (taskObj.done ? 'true' : 'false').toLowerCase();
         const cardDeleted = (taskObj.deleted ? 'true' : 'false').toLowerCase();
-        const cardTags = (taskObj.tags || '').toLowerCase().split(',').map(t => t.trim()).filter(Boolean);
+        let cardTags = [];
+
+        if (Array.isArray(taskObj.tags)) {
+            // Массив объектов или строк
+            cardTags = taskObj.tags.map(tag =>
+                typeof tag === 'string' ? tag.toLowerCase().trim() : (tag.name || '').toLowerCase().trim()
+            ).filter(Boolean);
+        } else if (typeof taskObj.tags === 'string') {
+            // Строка тегов через запятую
+            cardTags = taskObj.tags.toLowerCase().split(',').map(t => t.trim()).filter(Boolean);
+        }
+
 
         const matchAssignee = !assigneeVal || cardAssignee === assigneeVal;
         const matchPriority = !priorityVal || cardPriority === priorityVal;
