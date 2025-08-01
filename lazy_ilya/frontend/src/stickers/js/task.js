@@ -1,5 +1,8 @@
 import Choices from 'choices.js';
 import {showError} from "./utils.js";
+import flatpickr from "flatpickr";
+import "flatpickr/dist/flatpickr.min.css";
+import {Russian} from "flatpickr/dist/l10n/ru.js";
 
 /**
  * Class representing a Kanban board for task management
@@ -81,6 +84,27 @@ export class KanbanTasks {
             }
         });
         this.loadTasksFromBackend(tasks_data || []);
+        this.deadlinePicker = flatpickr("#deadline-input", {
+            locale: Russian,
+            dateFormat: "Y-m-d",
+            minDate: "2024-01-01",
+            maxDate: "2029-12-31",
+            allowInput: true,
+            onReady: function (selectedDates, dateStr, instance) {
+                const btn = document.createElement('button');
+                btn.textContent = "Сегодня";
+                btn.type = "button";
+                btn.classList.add('flatpickr-today-btn');
+                btn.style.marginLeft = '10px';
+                btn.addEventListener('click', () => {
+                    const today = new Date();
+                    instance.setDate(today, true);
+                    instance.close();
+                });
+
+                instance.calendarContainer.appendChild(btn);
+            }
+        });
 
     }
 
@@ -282,22 +306,11 @@ export class KanbanTasks {
             this.taskForm.done.checked = task.done;
 
             const deadlineInput = document.getElementById('deadline-input');
-            if (deadlineInput) {
-                deadlineInput.addEventListener('click', function () {
-                    this.showPicker?.();
-                });
-
-                deadlineInput.addEventListener('focus', function () {
-                    this.showPicker?.();
-                });
-                // Фоллбэк для Safari и др.
-                document.getElementById('deadline-input').addEventListener('focus', function () {
-                    this.showPicker?.();
-                });
+            if (task.deadline) {
+                this.deadlinePicker.setDate(task.deadline, false); // false чтобы не вызывал событие onchange
             } else {
-                console.warn('Элемент #deadline-input не найден');
+                this.deadlinePicker.clear();
             }
-
 
             // Обновление тегов с использованием Choices.js / Tom Select
             if (this.tagsSelect) {
