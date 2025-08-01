@@ -3,7 +3,8 @@ from django.contrib import admin
 # Register your models here.
 # admin.py
 from django.contrib import admin
-from django.db.models import Prefetch
+from django.db import models
+from django.db.models import Prefetch, Case, When, Value, IntegerField, Count
 from django.utils.html import format_html
 
 from .models import StickyNote, Tag, Task, StickyNoteVisibility
@@ -114,6 +115,43 @@ class StickyNoteAdmin(admin.ModelAdmin):
         )
 
 
+class TaskInline(admin.TabularInline):
+    model = Task.tags.through  # Через промежуточную таблицу
+    extra = 0
+    verbose_name = "Задача"
+    verbose_name_plural = "Связанные задачи"
+    readonly_fields = ("task_title", "assignee", "priority", "done")
+
+    def task_title(self, obj):
+        return obj.task.title
+
+    task_title.short_description = "Заголовок"
+
+    def assignee(self, obj):
+        return obj.task.assignee
+
+    assignee.short_description = "Исполнитель"
+
+    def priority(self, obj):
+        return obj.task.get_priority_display()
+
+    priority.short_description = "Приоритет"
+
+    def done(self, obj):
+        return "✅" if obj.task.done else "❌"
+
+    done.short_description = "Выполнено"
+
+    def has_add_permission(self, request, obj):
+        return False  # запрет на добавление через Inline
+
+    def has_change_permission(self, request, obj):
+        return False  # запрет на изменение
+
+    def has_delete_permission(self, request, obj):
+        return False  # запрет на удаление
+
+
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     """
@@ -121,10 +159,20 @@ class TagAdmin(admin.ModelAdmin):
     """
 
     # Отображаемое поле в списке тегов.
-    list_display = ("name",)
+    list_display = ("name", "task_count")
 
     # Поля, по которым будет осуществляться поиск.
     search_fields = ("name",)
+    inlines = (TaskInline,)
+
+    def get_queryset(self, request):
+        # аннотируем количество связанных задач
+        qs = super().get_queryset(request)
+        return qs.annotate(_task_count=Count("tasks"))
+
+    @admin.display(description="Количество задач")
+    def task_count(self, obj):
+        return obj._task_count
 
 
 @admin.register(Task)
@@ -170,7 +218,28 @@ class TaskAdmin(admin.ModelAdmin):
     date_hierarchy = "deadline"
 
     # Сортировка по дате дедлайна (по убыванию).
-    ordering = ("-deadline",)
+    ordering = []
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+
+        # Annotate псевдополе: приоритет high=3, medium=2, low=1
+        qs = qs.annotate(
+            priority_order=Case(
+                When(priority="high", then=Value(3)),
+                When(priority="medium", then=Value(2)),
+                When(priority="low", then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField()
+            )
+        )
+
+        # Сортировка:
+        # - сначала невыполненные (done=False)
+        # - потом не удалённые (deleted=False)
+        # - по приоритету: high > medium > low
+        # - по дедлайну (ближе — выше)
+        return qs.order_by("done", "deleted", "-priority_order", "deadline")
 
     def display_tags(self, obj: Task) -> str:
         """
