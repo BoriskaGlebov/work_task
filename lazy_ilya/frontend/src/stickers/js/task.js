@@ -517,7 +517,7 @@ export class KanbanTasks {
         // Отображение приоритета задачи с цветом и иконкой
         if (taskData.priority) {
             const priorityMap = {
-                low: '🟢 Низкий',
+                low: '\u{1F7E9} Низкий',
                 medium: '🟡 Средний',
                 high: '🔴 Высокий',
             };
