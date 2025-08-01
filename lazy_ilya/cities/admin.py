@@ -1,8 +1,84 @@
 from typing import Tuple, List
-
-from django.contrib import admin
+import openpyxl
+from django.contrib import admin, messages
+from django.http import HttpResponse
+from openpyxl.utils import get_column_letter
 
 from cities.models import CityData, TableNames, CounterCities, CityInfoDO
+
+
+@admin.action(description="Экспортировать связанные CityData в Excel")
+def export_citydata_to_excel(modeladmin, request, queryset):
+    """"Экспорт раздела таблицы с городами"""
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "CityData Export"
+
+    # Заголовки столбцов
+    headers = [
+        "Table Name", "ID", "Dock Num", "Location", "Name Organ",
+        "Pseudonim", "Letters", "Writing", "IP Address", "Some Number", "Work Time"
+    ]
+    ws.append(headers)
+
+    for table_obj in queryset:
+        citydatas = CityData.objects.filter(table_id=table_obj)
+        for obj in citydatas:
+            row = [
+                table_obj.table_name,
+                obj.id,
+                obj.dock_num,
+                obj.location or "",
+                obj.name_organ or "",
+                obj.pseudonim or "",
+                "Да" if obj.letters else "Нет",
+                "Да" if obj.writing else "Нет",
+                obj.ip_address or "",
+                obj.some_number or "",
+                obj.work_time or "",
+            ]
+            ws.append(row)
+
+    # Подогнать ширину столбцов по содержимому
+    for col_num, column_title in enumerate(headers, 1):
+        column_letter = get_column_letter(col_num)
+        max_length = max(
+            len(str(cell.value)) for cell in ws[column_letter]
+        )
+        adjusted_width = (max_length + 2)
+        ws.column_dimensions[column_letter].width = adjusted_width
+
+    # Создаем HTTP ответ с Excel файлом
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = "attachment; filename=citydata_export.xlsx"
+
+    wb.save(response)
+    return response
+
+
+@admin.action(description="Очистить данные CityData, кроме dock_num")
+def clear_citydata_fields(modeladmin, request, queryset):
+    updated_count = 0
+
+    for obj in queryset:
+        obj.location = None
+        obj.name_organ = None
+        obj.pseudonim = None
+        obj.letters = False
+        obj.writing = False
+        obj.ip_address = None
+        obj.some_number = None
+        obj.work_time = None
+        obj.save()
+        updated_count += 1
+
+    modeladmin.message_user(
+        request,
+        f"Очищено записей: {updated_count}",
+        level=messages.SUCCESS
+    )
 
 
 class CityDataInline(admin.TabularInline):
@@ -18,7 +94,9 @@ class CityDataInline(admin.TabularInline):
 
     model = CityData
     extra: int = 0
+    can_delete = False
     readonly_fields: Tuple[str] = (
+        "dock_num",
         "location",
         "name_organ",
         "pseudonim",
@@ -48,12 +126,28 @@ class TableNamesAdmin(admin.ModelAdmin):
     list_display_links: Tuple[str] = "id", "table_name"
     search_fields: Tuple[str] = ("table_name",)
     list_filter: Tuple[str] = ("processed_at",)
+    actions = [export_citydata_to_excel]
 
     def related_data_count(self, obj: TableNames) -> int:
         """Возвращает количество связанных записей в CityData."""
         return CityData.objects.filter(table_id=obj).count()
 
     related_data_count.short_description = "Количество записей"
+
+
+class CityInfoDOInline(admin.TabularInline):
+    model = CityInfoDO
+    extra = 0
+    fields = ("korr", "m_b_number", "cipa", "recipient", "phone_number")
+    readonly_fields = ("korr", "m_b_number", "cipa", "recipient", "phone_number")
+    can_delete = False
+
+
+class CounterCitiesInline(admin.StackedInline):
+    model = CounterCities
+    extra = 0
+    readonly_fields = ("count_responses",)
+    can_delete = False
 
 
 @admin.register(CityData)
@@ -78,6 +172,8 @@ class CityDataAdmin(admin.ModelAdmin):
     search_fields: Tuple[str] = ("location", "name_organ", "pseudonim")
     list_display_links: Tuple[str] = "id", "location"
     list_filter: Tuple[str] = ("processed_at", "table_id")
+    actions = [clear_citydata_fields, ]
+    inlines = [CityInfoDOInline,CounterCitiesInline]
 
 
 @admin.register(CounterCities)
@@ -107,7 +203,7 @@ class CounterCitiesAdmin(admin.ModelAdmin):
 @admin.register(CityInfoDO)
 class CityInfoDOAdmin(admin.ModelAdmin):
     list_display = ("id", "korr", "m_b_number", "cipa", "get_globus_pseudonim")
-    list_display_links = ("id", "korr", "m_b_number", "cipa","get_globus_pseudonim")
+    list_display_links = ("id", "korr", "m_b_number", "cipa", "get_globus_pseudonim")
 
     readonly_fields = ("globus_pseudonim_display",)
 
