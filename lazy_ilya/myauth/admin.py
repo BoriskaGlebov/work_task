@@ -1,7 +1,21 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
+from django.utils.timezone import now
+
 from .models import CustomUser
 from django.utils.translation import gettext_lazy as _
+
+
+@admin.action(description="Сделать выбранных пользователей неактивными")
+def deactivate_users(modeladCUmin, request, queryset):
+    updated = queryset.update(is_active=False)
+    messages.success(request, f"Деактивировано пользователей: {updated}")
+
+
+@admin.action(description="Сделать выбранных пользователей активными")
+def activate_users(modeladCUmin, request, queryset):
+    updated = queryset.update(is_active=True)
+    messages.success(request, f"Активировал пользователей: {updated}")
 
 
 @admin.register(CustomUser)
@@ -56,7 +70,7 @@ class CustomUserAdmin(UserAdmin):
         ),  # Добавление поля phone_number при создании пользователя
     )
 
-    list_display = ("username", "email", "phone_number", "is_staff", "is_active")
+    list_display = ("username", "phone_number", "is_staff", "is_active", "last_login","days_since_last_login")
     """
     Поля, которые будут отображаться в списке пользователей в админке.
 
@@ -67,7 +81,7 @@ class CustomUserAdmin(UserAdmin):
     - `is_active`: Флаг, указывающий, активен ли пользователь.
     """
 
-    search_fields = ("username", "email", "phone_number")
+    search_fields = ("username", "phone_number")
     """
     Поля, по которым будет осуществляться поиск в списке пользователей в админке.
 
@@ -75,3 +89,13 @@ class CustomUserAdmin(UserAdmin):
     - `email`: Адрес электронной почты пользователя.
     - `phone_number`: Номер телефона пользователя.
     """
+    actions = [deactivate_users, activate_users]
+
+    def days_since_last_login(self, obj):
+        if not obj.last_login:
+            return "Никогда"
+        delta = now() - obj.last_login
+        return f"{delta.days} дн."
+
+    days_since_last_login.short_description = "Дней с последнего входа"
+    days_since_last_login.admin_order_field = "last_login"
