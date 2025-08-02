@@ -136,29 +136,14 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Ошибка при отправке формы:', error);
         }
     });
-    eyeIcon.addEventListener('mousedown', () => {
-        passwordInput.type = 'text'; // показать пароль
-    });
+    eyeIcon.addEventListener('click', () => {
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+        } else {
+            passwordInput.type = 'password';
+        }
 
-    eyeIcon.addEventListener('mouseup', () => {
-        passwordInput.type = 'password'; // скрыть пароль
+        // опционально — смена внешнего вида иконки
+        eyeIcon.classList.toggle('active'); // можно менять иконку глазика
     });
-
-    eyeIcon.addEventListener('mouseleave', () => {
-        passwordInput.type = 'password'; // скрыть пароль, если мышь ушла с иконки
-    });
-    // === Добавляем для мобильных ===
-
-    eyeIcon.addEventListener('touchstart', () => {
-        passwordInput.type = 'text'; // показать пароль при касании
-    });
-
-    eyeIcon.addEventListener('touchend', () => {
-        passwordInput.type = 'password'; // скрыть пароль при отпускании
-    });
-
-    eyeIcon.addEventListener('touchcancel', () => {
-        passwordInput.type = 'password'; // скрыть, если касание было прервано (например, палец уехал)
-    });
-
 });
