@@ -147,6 +147,18 @@ document.addEventListener('DOMContentLoaded', () => {
     eyeIcon.addEventListener('mouseleave', () => {
         passwordInput.type = 'password'; // скрыть пароль, если мышь ушла с иконки
     });
+    // === Добавляем для мобильных ===
 
+    eyeIcon.addEventListener('touchstart', () => {
+        passwordInput.type = 'text'; // показать пароль при касании
+    });
+
+    eyeIcon.addEventListener('touchend', () => {
+        passwordInput.type = 'password'; // скрыть пароль при отпускании
+    });
+
+    eyeIcon.addEventListener('touchcancel', () => {
+        passwordInput.type = 'password'; // скрыть, если касание было прервано (например, палец уехал)
+    });
 
 });
