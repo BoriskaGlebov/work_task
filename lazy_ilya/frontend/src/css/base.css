@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "../../node_modules/flowbite/src/themes/default.css";
 @import 'choices.js/public/assets/styles/choices.min.css';
+@import "flatpickr/dist/flatpickr.min.css";
 
 
 @plugin "flowbite/plugin";

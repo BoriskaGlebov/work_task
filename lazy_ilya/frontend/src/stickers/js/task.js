@@ -1,7 +1,6 @@
 import Choices from 'choices.js';
 import {showError} from "./utils.js";
 import flatpickr from "flatpickr";
-import "flatpickr/dist/flatpickr.min.css";
 import {Russian} from "flatpickr/dist/l10n/ru.js";
 
 /**

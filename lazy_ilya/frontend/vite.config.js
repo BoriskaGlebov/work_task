@@ -6,7 +6,7 @@ export default defineConfig({
     root: './',
     plugins: [tailwindcss()],
     optimizeDeps: {
-        include: ['inputmask'], // 👈 нужно для dev-режима
+        include: ['inputmask', "flatpickr", "flatpickr/dist/l10n/ru.js"], // 👈 нужно для dev-режима
     },
     build: {
         emptyOutDir: true,
