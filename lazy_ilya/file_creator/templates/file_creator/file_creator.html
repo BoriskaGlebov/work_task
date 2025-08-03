@@ -119,7 +119,7 @@
                 <label id="start-number-label" for="start-number" class="correct_label">Начальный
                     номер</label>
                 <input type="text" name="start_number" id="start-number" inputmode="numeric"
-                       pattern="^[1-9][0-9]{0,3}$" class="correct_input"  maxlength="4" placeholder="Номер больше нуля">
+                       pattern="^[1-9][0-9]{0,3}$" class="correct_input" maxlength="4" placeholder="Номер больше нуля">
                 <p id="start-number-error" class="hidden error_message">Введите число больше
                     нуля.</p>
             </div>
@@ -146,6 +146,13 @@
                        class="correct_icon rounded-full text-xl" checked>
                 <label for="same_number" class="correct_label">Основной и
                     подписной номер одинаковы</label>
+            </div>
+            <!-- Поле для ввода номера, изначально скрыто -->
+            <div id="numberInputContainer" style="display: none; ">
+                <label id="custom-number-label" for="custom_number" class="correct_label">Введите номер</label>
+                <input id="custom_number" name="custom_number" type="text"
+                       placeholder="Введи с какого подписного начинать" maxlength="25" class="correct_input">
+                <p id="custom-number-error" class="hidden error_message">введи подписной номер</p>
             </div>
 
             <div>

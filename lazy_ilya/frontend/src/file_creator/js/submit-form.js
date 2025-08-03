@@ -33,6 +33,7 @@ export default async function submitFormAsync(form, formDiv, clearFileList) {
     try {
         // Сбор данных из формы
         const formData = new FormData(form);
+        console.log(formData)
 
         // Показать спиннер загрузки
         spinner.classList.remove('hidden');

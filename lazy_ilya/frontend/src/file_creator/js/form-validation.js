@@ -19,10 +19,13 @@ export default function setupFormValidation() {
     const startNumberInput = document.getElementById('start-number');
     const deviceTypeLabel = document.getElementById('device-type-label');
     const deviceTypeInput = document.getElementById('device-type');
+    const subscribeNumberinput = document.getElementById('custom_number');
+    const subscribeNumberlabel = document.getElementById('custom-number-label');
 
     const filesError = document.getElementById('files-error');
     const startNumberError = document.getElementById('start-number-error');
     const deviceTypeError = document.getElementById('device-type-error');
+    const subscribeNumberError = document.getElementById('custom-number-error');
     const spinner = document.getElementById('upload-spinner');
 
     /**
@@ -103,6 +106,17 @@ export default function setupFormValidation() {
         }
         return true;
     };
+    /**
+     * Проверка: выбран ли подписной
+     * @returns {boolean}
+     */
+    const validateSubscribeNumber = () => {
+        if (subscribeNumberinput && subscribeNumberinput.value === '') {
+            showError(subscribeNumberinput, subscribeNumberlabel, subscribeNumberError, 'Введи подписной номер');
+            return false;
+        }
+        return true;
+    };
 
 
     // Обработчик отправки формы
@@ -113,7 +127,8 @@ export default function setupFormValidation() {
         const isValid =
             validateFiles() &
             validateStartNumber() &
-            validateDeviceType();
+            validateDeviceType() &
+            validateSubscribeNumber()
 
         if (isValid) {
             submitFormAsync(form, formDiv, clearFileList); // Асинхронная отправка формы

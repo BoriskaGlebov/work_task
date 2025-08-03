@@ -17,6 +17,16 @@ export default function setupFileUpload() {
     const fileList = document.getElementById('file-list');
     const serverInfo = document.getElementById('server-info');
     const divBtn = document.getElementById('btn-div');
+    const checkbox = document.getElementById('same_number');
+    const inputContainer = document.getElementById('numberInputContainer');
+
+    checkbox.addEventListener('change', () => {
+        if (checkbox.checked) {
+            inputContainer.style.display = 'none'; // скрыть поле
+        } else {
+            inputContainer.style.display = 'block'; // показать поле
+        }
+    });
 
     /** @type {File[]} */
     let selectedFiles = [];
