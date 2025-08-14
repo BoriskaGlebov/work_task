@@ -50,11 +50,17 @@
 
         <!-- Header -->
         <div class="sticky top-10 z-10 flex justify-between items-center mb-4">
-            <div class="flex gap-2">
+            <div class="relative flex gap-2">
                 <button id="btn-notes" class="btn-submit">Стикеры
                 </button>
                 <button id="btn-tasks" class="btn-submit">Задачи
                 </button>
+                <div id="counter-tasks"
+                     class=" hidden absolute  items-center justify-center w-6 h-6 text-xs font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2 dark:border-gray-900"></div>
+                <!-- Попап -->
+                <div id="tasks-popup"
+                     class="hidden absolute top-8 right-0 z-50 w-64 p-2 text-sm bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-gray-800 dark:text-white">
+                </div>
             </div>
         </div>
 

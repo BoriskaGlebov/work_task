@@ -111,10 +111,17 @@ export default function setupFormValidation() {
      * @returns {boolean}
      */
     const validateSubscribeNumber = () => {
-        if (subscribeNumberinput && subscribeNumberinput.value === '') {
+        // Если поле скрыто — пропускаем валидацию
+        if (subscribeNumberinput && subscribeNumberinput.offsetParent === null) {
+            return true;
+        }
+
+        // Поле видно — валидируем как обычно
+        if (subscribeNumberinput.value === '') {
             showError(subscribeNumberinput, subscribeNumberlabel, subscribeNumberError, 'Введи подписной номер');
             return false;
         }
+
         return true;
     };
 

@@ -72,6 +72,8 @@ export class KanbanTasks {
                 value: tag.name,
                 label: tag.name
             })),
+
+
         });
 
         // Клик по карточке открывает модалку для редактирования
@@ -115,6 +117,10 @@ export class KanbanTasks {
      */
     setTaskFilterInstance(taskFilterInstance) {
         this.taskFilterInstance = taskFilterInstance;
+    }
+
+    setTaskCounterInstance(taskCounterINstance) {
+        this.taskCounterInstance = taskCounterINstance;
     }
 
     ensureScrollFilled() {
@@ -281,7 +287,6 @@ export class KanbanTasks {
      * @param {string|null} [taskId=null] - Идентификатор задачи для редактирования. Если не указан или не существует, открывается форма для новой задачи.
      */
     openModal(taskId = null) {
-        console.log('openModal вызвана с taskId =', taskId);
         this.currentEditId = taskId;
         const saveBtn = this.taskForm.querySelector('button[type="submit"]');
         const input = this.taskModal.querySelector('input.choices__input.choices__input--cloned');
@@ -389,7 +394,16 @@ export class KanbanTasks {
         setTimeout(() => {
             this.taskFilterInstance.applyFilters();
             this.taskFilterInstance.populateTagOptions(tagsVal);
+            // ✅ Обновляем данные задач в TaskCounter
+            console.log(this.taskCounterInstance.tasks)
+            this.taskCounterInstance.tasks = Object.values(this.tasks);
+            console.log(this.taskCounterInstance.tasks)
+
+            // ✅ Пересчитываем срочные задачи и обновляем счетчик
+            this.taskCounterInstance.findUrgentTasks();
+            this.taskCounterInstance.updateCounter();
         }, 100);
+
     }
 
 
@@ -1315,6 +1329,102 @@ export class TaskFilter {
         });
     }
 }
+
+
+export class TaskCounter {
+    constructor(counterSelector, popupSelector, tasksData) {
+        this.counterEl = document.querySelector(counterSelector);
+        this.popupEl = document.querySelector(popupSelector);
+        this.tasks = tasksData ? Object.values(tasksData) : [];
+        this.now = new Date();
+        this.urgentTasks = [];
+
+        this.init();
+    }
+
+    init() {
+        this.findUrgentTasks();
+        this.updateCounter();
+        this.bindEvents();
+    }
+
+    findUrgentTasks() {
+        this.urgentTasks = this.tasks.filter(task => {
+            if (!task.deadline) return false;
+            const deadline = new Date(task.deadline);
+            const diffHours = (deadline - this.now) / (1000 * 60 * 60);
+            return diffHours < 24; // меньше суток или просрочено
+        });
+    }
+
+    updateCounter() {
+        if (this.urgentTasks.length > 0) {
+            this.counterEl.textContent = this.urgentTasks.length;
+            this.counterEl.classList.remove('hidden');
+            this.counterEl.classList.add('inline-flex');
+            this.renderPopup();
+        } else{
+            this.counterEl.classList.add('hidden');
+            this.counterEl.classList.remove('inline-flex');
+        }
+    }
+
+    renderPopup() {
+        this.popupEl.innerHTML = this.urgentTasks
+            .map(t => {
+                const deadline = new Date(t.deadline);
+                const isOverdue = deadline < this.now;
+                const colorClass = isOverdue ? 'text-red-500' : 'text-yellow-500';
+                return `
+                    <div class="mb-2">
+                        <div class="font-semibold">${t.title}</div>
+                        <div class="text-xs ${colorClass}">${t.deadline}</div>
+                    </div>
+                `;
+            })
+            .join('');
+    }
+
+    bindEvents() {
+        this.counterEl.addEventListener('mouseenter', () => {
+            if (this.urgentTasks.length > 0) {
+                this.popupEl.classList.remove('hidden');
+
+                // Координаты
+                const rect = this.counterEl.getBoundingClientRect();
+                const popupWidth = this.popupEl.offsetWidth;
+                const popupHeight = this.popupEl.offsetHeight;
+
+                let left = rect.right - popupWidth; // справа выравниваем
+                let top = rect.bottom + 8; // чуть ниже кнопки
+
+                // Если выходит за левую границу
+                if (left < 0) left = 8;
+
+                // Если выходит за правую
+                if (left + popupWidth > window.innerWidth) {
+                    left = window.innerWidth - popupWidth - 8;
+                }
+
+                // Если выходит вниз — показываем сверху
+                if (top + popupHeight > window.innerHeight) {
+                    top = rect.top - popupHeight - 8;
+                }
+
+                this.popupEl.style.left = `${left}px`;
+                this.popupEl.style.top = `${top}px`;
+                this.popupEl.style.position = 'fixed';
+            }
+        });
+
+        this.counterEl.addEventListener('mouseleave', () => {
+            this.popupEl.classList.add('hidden');
+        });
+    }
+
+}
+
+
 
 
 

@@ -2,9 +2,9 @@
 import '../../css/base.css';
 
 // Импорт утилит и компонентов Kanban-доски
-import { toggleAccentClasses } from "../../cities/js/toggleAccent.js";
-import { KanbanStickyNotes } from "./notes.js";
-import { KanbanTasks, TaskFilter } from "./task.js";
+import {toggleAccentClasses} from "../../cities/js/toggleAccent.js";
+import {KanbanStickyNotes} from "./notes.js";
+import {KanbanTasks, TaskCounter, TaskFilter} from "./task.js";
 
 // Обработчик событий, срабатывающий после полной загрузки DOM
 document.addEventListener('DOMContentLoaded', () => {
@@ -48,7 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
         tasksContainerId: 'task-board', // ID контейнера, в котором находятся задачи
     });
 
+    const taskCounter = new TaskCounter('#counter-tasks', '#tasks-popup', kanbanTask.tasks || []);
     // Устанавливаем связь между фильтром и Kanban-доской задач
     kanbanTask.setTaskFilterInstance(taskFilter);
     taskFilter.setKanbanTasksInstance(kanbanTask);
+    kanbanTask.setTaskCounterInstance(taskCounter);
 });
