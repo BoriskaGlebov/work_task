@@ -395,9 +395,7 @@ export class KanbanTasks {
             this.taskFilterInstance.applyFilters();
             this.taskFilterInstance.populateTagOptions(tagsVal);
             // ✅ Обновляем данные задач в TaskCounter
-            console.log(this.taskCounterInstance.tasks)
             this.taskCounterInstance.tasks = Object.values(this.tasks);
-            console.log(this.taskCounterInstance.tasks)
 
             // ✅ Пересчитываем срочные задачи и обновляем счетчик
             this.taskCounterInstance.findUrgentTasks();
