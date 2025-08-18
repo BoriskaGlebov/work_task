@@ -62,7 +62,7 @@ class StickyNoteView(LoginRequiredMixin, View):
             # Обычный пользователь видит только не удалённые задачи
             tasks_queryset = Task.objects.filter(deleted=False)
         user = request.user
-        if user.is_superuser or user.groups.filter(name="manager"):
+        if user.is_superuser or user.groups.filter(name="managers"):
             tasks = (
                 tasks_queryset.annotate(
                     priority_order=Case(
