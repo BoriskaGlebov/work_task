@@ -61,31 +61,58 @@ class StickyNoteView(LoginRequiredMixin, View):
         else:
             # Обычный пользователь видит только не удалённые задачи
             tasks_queryset = Task.objects.filter(deleted=False)
-
-        tasks = (
-            tasks_queryset.annotate(
-                priority_order=Case(
-                    When(priority="high", then=Value(0)),
-                    When(priority="medium", then=Value(1)),
-                    When(priority="low", then=Value(2)),
-                    default=Value(3),
-                    output_field=IntegerField(),
-                ),
-                done_order=Case(
-                    When(done=True, then=Value(1)),
-                    default=Value(0),
-                    output_field=IntegerField(),
-                ),
-                deleted_order=Case(
-                    When(deleted=True, then=Value(1)),
-                    default=Value(0),
-                    output_field=IntegerField(),
-                ),
+        user = request.user
+        if user.is_superuser or user.groups.filter(name="manager"):
+            tasks = (
+                tasks_queryset.annotate(
+                    priority_order=Case(
+                        When(priority="high", then=Value(0)),
+                        When(priority="medium", then=Value(1)),
+                        When(priority="low", then=Value(2)),
+                        default=Value(3),
+                        output_field=IntegerField(),
+                    ),
+                    done_order=Case(
+                        When(done=True, then=Value(1)),
+                        default=Value(0),
+                        output_field=IntegerField(),
+                    ),
+                    deleted_order=Case(
+                        When(deleted=True, then=Value(1)),
+                        default=Value(0),
+                        output_field=IntegerField(),
+                    ),
+                )
+                .select_related("assignee")
+                .prefetch_related("tags")
+                .order_by("deleted_order", "done_order", "priority_order", "deadline")
             )
-            .select_related("assignee")
-            .prefetch_related("tags")
-            .order_by("deleted_order", "done_order", "priority_order", "deadline")
-        )
+        else:
+            tasks = (
+                tasks_queryset.filter(
+                    (Q(assignee__isnull=True) | Q(assignee=user)) | Q(author=user)).annotate(
+                    priority_order=Case(
+                        When(priority="high", then=Value(0)),
+                        When(priority="medium", then=Value(1)),
+                        When(priority="low", then=Value(2)),
+                        default=Value(3),
+                        output_field=IntegerField(),
+                    ),
+                    done_order=Case(
+                        When(done=True, then=Value(1)),
+                        default=Value(0),
+                        output_field=IntegerField(),
+                    ),
+                    deleted_order=Case(
+                        When(deleted=True, then=Value(1)),
+                        default=Value(0),
+                        output_field=IntegerField(),
+                    ),
+                )
+                .select_related("assignee")
+                .prefetch_related("tags")
+                .order_by("deleted_order", "done_order", "priority_order", "deadline")
+            )
 
         tasks_list = [task.to_dict() for task in tasks]
 

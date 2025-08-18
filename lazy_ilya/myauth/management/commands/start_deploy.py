@@ -124,6 +124,48 @@ class GroupManager:
                     "view_citydata",
                 ],
             },
+            {
+                "name": "vadim_group",
+                "permissions": [
+                    "add_stickynote",
+                    "change_stickynote",
+                    "delete_stickynote",
+                    "view_stickynote",
+                    "add_tag",
+                    "change_tag",
+                    "delete_tag",
+                    "view_tag",
+                    "add_task",
+                    "change_task",
+                    "delete_task",
+                    "view_task",
+                    "add_stickynotevisibility",
+                    "change_stickynotevisibility",
+                    "delete_stickynotevisibility",
+                    "view_stickynotevisibility",
+                ]
+            },
+            {
+                "name": "managers",
+                "permissions": [
+                    "add_stickynote",
+                    "change_stickynote",
+                    "delete_stickynote",
+                    "view_stickynote",
+                    "add_tag",
+                    "change_tag",
+                    "delete_tag",
+                    "view_tag",
+                    "add_task",
+                    "change_task",
+                    "delete_task",
+                    "view_task",
+                    "add_stickynotevisibility",
+                    "change_stickynotevisibility",
+                    "delete_stickynotevisibility",
+                    "view_stickynotevisibility",
+                ]
+            }
         ]
 
         self.user_group_assignments: List[Dict[str, Optional[str]]] = [

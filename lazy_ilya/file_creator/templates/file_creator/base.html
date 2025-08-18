@@ -42,35 +42,37 @@
             <div class="hidden lg:flex items-center gap-0.5 scale-80 xl:scale-100 xl:gap-2 transition-all duration-500">
                 <a id="a-main" href="{% url 'stickers:stickers' %}"
                    class="a-style" tabindex="-1">Главная</a>
-                <!-- ДОКИ с выпадающим меню -->
-                <div class="relative group">
-                    <a href="{% url 'file_creator:file-creator-start' %}"
-                       class="a-style flex items-center justify-center gap-1 cursor-pointer"
-                       tabindex="-1" id="a-file-creator">
-                        ДОКИ
-                        <svg class="w-5 h-5 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
-                             stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M6 9l6 6 6-6"></path>
-                        </svg>
-                    </a>
-
-                    <div class="absolute left-0 mt-1 w-100 bg-surface-dark/50 dark:bg-surface/50 border border-gray-300 rounded-xl shadow-lg opacity-0 group-hover:opacity-100 invisible group-hover:visible transition duration-300 z-10">
-                        <a href=""
-                           class="a-style-sub flex items-center gap-1 cursor-pointer">Входящие сообщения на
-                            обработку</a>
+                {% if not user|in_group:"vadim_group" %}
+                    <!-- ДОКИ с выпадающим меню -->
+                    <div class="relative group">
                         <a href="{% url 'file_creator:file-creator-start' %}"
-                           class="a-style-sub flex items-center gap-1 cursor-pointer">Исходящие сообщения на
-                            обработку</a>
-                    </div>
-                </div>
+                           class="a-style flex items-center justify-center gap-1 cursor-pointer"
+                           tabindex="-1" id="a-file-creator">
+                            ДОКИ
+                            <svg class="w-5 h-5 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 9l6 6 6-6"></path>
+                            </svg>
+                        </a>
 
-                <a id="a-cities" href="{% url 'cities:base_template' %}"
-                   class="a-style" tabindex="-1">Города</a>
-                <a id="a-statistics" href="{% url 'statistics_app:statistics_app' %}"
-                   class="a-style" tabindex="-1">Статистика</a>
-                {% if user.is_superuser or user|in_group:"admins" %}
-                <a href="{% url 'cities:admin_city' %}"
-                   id="a-admin" class="a-style" tabindex="-1">Админ</a>
+                        <div class="absolute left-0 mt-1 w-100 bg-surface-dark/50 dark:bg-surface/50 border border-gray-300 rounded-xl shadow-lg opacity-0 group-hover:opacity-100 invisible group-hover:visible transition duration-300 z-10">
+                            <a href=""
+                               class="a-style-sub flex items-center gap-1 cursor-pointer">Входящие сообщения на
+                                обработку</a>
+                            <a href="{% url 'file_creator:file-creator-start' %}"
+                               class="a-style-sub flex items-center gap-1 cursor-pointer">Исходящие сообщения на
+                                обработку</a>
+                        </div>
+                    </div>
+
+                    <a id="a-cities" href="{% url 'cities:base_template' %}"
+                       class="a-style" tabindex="-1">Города</a>
+                    <a id="a-statistics" href="{% url 'statistics_app:statistics_app' %}"
+                       class="a-style" tabindex="-1">Статистика</a>
+                    {% if user.is_superuser or user|in_group:"admins" %}
+                    <a href="{% url 'cities:admin_city' %}"
+                       id="a-admin" class="a-style" tabindex="-1">Админ</a>
+                    {% endif %}
                 {% endif %}
                 <!-- Форма для выхода -->
                 <form action="{% url 'myauth:logout' %}" method="POST" class="inline">
@@ -115,29 +117,31 @@
              class="flex-col space-y-2 lg:hidden max-h-0 overflow-hidden transition-all duration-400">
             <a id="a-main-mob" href="{% url 'stickers:stickers' %}"
                class="burger-button" tabindex="-1">Главная</a>
-            <details class="group">
-                <summary id="a-file-creator-mob" class="burger-button-sub flex items-center cursor-pointer">
-                    ДОКИ
-                    <svg class="w-4 h-4 ml-2" fill="none"
-                         stroke="currentColor" stroke-width="2"
-                         viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M6 9l6 6 6-6"></path>
-                    </svg>
-                </summary>
-                <div class="ml-4 mt-2 flex flex-col space-y-2">
-                    <a href="" class="burger-button">Входящие сообщения</a>
-                    <a href="{% url 'file_creator:file-creator-start' %}" class="burger-button">Исходящие сообщения</a>
-                </div>
-            </details>
+            {% if not user|in_group:"vadim_group" %}
+                <details class="group">
+                    <summary id="a-file-creator-mob" class="burger-button-sub flex items-center cursor-pointer">
+                        ДОКИ
+                        <svg class="w-4 h-4 ml-2" fill="none"
+                             stroke="currentColor" stroke-width="2"
+                             viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 9l6 6 6-6"></path>
+                        </svg>
+                    </summary>
+                    <div class="ml-4 mt-2 flex flex-col space-y-2">
+                        <a href="" class="burger-button">Входящие сообщения</a>
+                        <a href="{% url 'file_creator:file-creator-start' %}" class="burger-button">Исходящие сообщения</a>
+                    </div>
+                </details>
 
 
-            <a id="a-cities-mob" href="{% url 'cities:base_template' %}"
-               class="burger-button" tabindex="-1">Города</a>
-            <a id="a-statistics-mob" href="{% url 'statistics_app:statistics_app' %}"
-               class="burger-button" tabindex="-1">Статистика</a>
-            {% if user.is_superuser or user|in_group:"admins" %}
-            <a id="a-admin-mob" href="{% url 'cities:admin_city' %}"
-               class="burger-button" tabindex="-1">Админ</a>
+                <a id="a-cities-mob" href="{% url 'cities:base_template' %}"
+                   class="burger-button" tabindex="-1">Города</a>
+                <a id="a-statistics-mob" href="{% url 'statistics_app:statistics_app' %}"
+                   class="burger-button" tabindex="-1">Статистика</a>
+                {% if user.is_superuser or user|in_group:"admins" %}
+                <a id="a-admin-mob" href="{% url 'cities:admin_city' %}"
+                   class="burger-button" tabindex="-1">Админ</a>
+                {% endif %}
             {% endif %}
             <!-- Форма для выхода -->
             <form action="{% url 'myauth:logout' %}" method="POST" class="block">
