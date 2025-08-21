@@ -114,6 +114,10 @@ class GroupManager:
                     "change_countercities",
                     "delete_countercities",
                     "view_countercities",
+                    "add_cityinfodo",
+                    "change_cityinfodo",
+                    "delete_cityinfodo",
+                    "view_cityinfodo",
                 ],
             },
             {
