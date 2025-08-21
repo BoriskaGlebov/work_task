@@ -211,6 +211,79 @@
             </div>
         </div>
     </div>
+    <div id="city-modal3"
+         class="hidden fixed inset-0 z-50 flex items-center justify-center">
+        <!-- Размытие фона -->
+        <div class="absolute inset-0 bg-background/80 dark:bg-background-dark/80 backdrop-blur-sm"></div>
+        <!-- Форма (не размытая) -->
+        <div class="relative bg-background dark:bg-background-dark rounded-xl max-w-2xl min-w-xs w-full z-10">
+
+
+            <form class="relative form-style !max-w-2xl z-10">
+                <h3>Создание записи Справочника дежурного</h3>
+                {% csrf_token %}
+                <div>
+                    <label for="modal-korr" class="block mb-2 correct_label">№ корреспондента</label>
+                    <input id="modal-korr" type="text" maxlength="55" placeholder="№ корреспондента"
+                           class="correct_input"/>
+                </div>
+                <div>
+                    <label for="modal-m_b_number" class="block mb-2 correct_label">№ Части</label>
+                    <input id="modal-m_b_number" type="text" maxlength="55" placeholder="№ части"
+                           class="correct_input"/>
+                </div>
+                <div>
+                    <label for="modal-cipa" class="block mb-2 correct_label">Номер CIPA</label>
+                    <input id="modal-cipa" type="text" maxlength="55" placeholder="Номер CIPA" class="correct_input"/>
+                </div>
+                <div>
+                    <label for="modal-globus" class="block mb-2 correct_label">Номерок в таблице Глобуса</label>
+
+                    <div class="relative w-full">
+                        <input id="globus-hint"
+                               type="text"
+                               disabled
+                               tabindex="-1"
+                               class="absolute inset-0 w-full px-3 text-gray-500 pointer-events-none bg-transparent border border-transparent"/>
+
+                        <input id="modal-globus2"
+                               type="text"
+                               maxlength="55"
+                               placeholder="Номерок в таблице Глобуса"
+                               class="correct_input relative z-10 w-full px-3 !bg-transparent"
+                        />
+                    </div>
+                </div>
+
+
+                <div>
+                    <label for="modal-recipient" class="block mb-2 correct_label">Получатель</label>
+                    <input id="modal-recipient" type="text" maxlength="55" placeholder="Получатель"
+                           class="correct_input"/>
+                </div>
+                <div>
+                    <label for="modal-phone_number" class="block mb-2 correct_label">Телефон</label>
+                    <input id="modal-phone_number" type="text" maxlength="155" placeholder="Телефон"
+                           class="correct_input"/>
+                </div>
+                <div>
+                    <label for="modal-ip_phone" class="block mb-2 correct_label">IP телефон</label>
+                    <input id="modal-ip_phone" type="text" maxlength="55" placeholder="IP телефон"
+                           class="correct_input"/>
+                </div>
+                <div>
+                    <label for="modal-notes" class="block mb-2 correct_label">Заметки</label>
+                    <input id="modal-notes" type="text" maxlength="55" placeholder="Заметки"
+                           class="correct_input"/>
+                </div>
+
+            </form>
+            <div class="flex justify-end gap-3 mt-4">
+                <button id="save-city" class="btn-submit">Сохранить</button>
+                <button id="close-modal" class="btn-cancel ">Отмена</button>
+            </div>
+        </div>
+    </div>
 
 
 

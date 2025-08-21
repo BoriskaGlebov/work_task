@@ -44,6 +44,11 @@ export class CityAutocomplete {
         this.selectedIndex = -1;
     }
 
+    /** 👇 Сеттер для внешнего modalHandler */
+    setModalHandler(modalHandler) {
+        this.modalHandler = modalHandler;
+    }
+
     /**
      * Лениво подгружает карточки
      * @param {number} batchSize - Количество карточек за раз
@@ -211,7 +216,21 @@ export class CityAutocomplete {
         if (this.counter) this.counter.textContent = `Найдено совпадений: ${matches.length + infoMatches.length}`;
 
         if (!matches.length && !infoMatches.length) {
-            this.suggestions.style.display = 'none';
+            // this.suggestions.style.display = 'none';
+            this.suggestions.innerHTML = '';
+
+            const li = document.createElement('li');
+            li.classList.add('px-3', 'py-1', 'text-gray-500', 'italic', 'cursor-pointer');
+            li.textContent = 'Совпадений нет. Нажмите Enter, чтобы создать новую запись.';
+
+            li.addEventListener('click', () => {
+                this.modalHandler.createNewCity(this.input.value.trim());
+            });
+
+            this.suggestions.appendChild(li);
+            this.suggestions.style.display = 'block';
+
+
             return;
         } else if (matches.length) {
             matches.slice(0, 20).forEach(city => {
@@ -294,6 +313,13 @@ export class CityAutocomplete {
                         this.renderCardsWithDelay(matches);
                     } else if (infoMatches.length) {
                         this.renderCardsWithDelay(infoMatches);
+                    } else {
+                        // 👇 новый кейс: совпадений нет → открываем модалку
+                        if (this.modalHandler) {
+                            this.modalHandler.createNewCity(this.input.value.trim());
+                        } else {
+                            console.warn("CityAutocomplete: modalHandler не установлен.");
+                        }
                     }
 
                     this.suggestions.style.display = 'none';

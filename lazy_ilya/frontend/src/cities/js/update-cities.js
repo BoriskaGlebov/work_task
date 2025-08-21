@@ -7,8 +7,9 @@ export class CityModalHandler {
     /**
      * @param {string} modalId - ID модального окна.
      * @param {Array<Object>} citiesData - Массив объектов с данными о городах.
+     * @param observeCards - флаг обновления карточек или создания
      */
-    constructor(modalId, citiesData = [],) {
+    constructor(modalId, citiesData = [], observeCards = true) {
         /** @type {HTMLElement|null} */
         this.modal = document.getElementById(modalId);
         /** @type {HTMLFormElement|null} */
@@ -25,7 +26,7 @@ export class CityModalHandler {
         this.citiesData = citiesData;
 
         this.bindEvents();
-        this.observeCards();
+        if (observeCards) this.observeCards();
     }
 
     /**
@@ -35,9 +36,14 @@ export class CityModalHandler {
         this.closeBtn?.addEventListener('click', () => this.hideModal());
 
         this.saveBtn?.addEventListener('click', async () => {
-            if (!this.currentCity) return;
-            const updatedData = this.getFormData();
-            await this.updateCity(this.currentCity, updatedData);
+            const formData = this.getFormData();
+            if (this.currentCity) {
+                // редактирование существующего города
+                await this.updateCity(this.currentCity, formData);
+            } else {
+                // создание нового города
+                await this.createCity(formData);
+            }
             this.hideModal();
         });
 
@@ -85,32 +91,42 @@ export class CityModalHandler {
      * Открывает модальное окно с данными выбранного города.
      * @param {Object} city - Объект с данными города.
      */
-    showModal(city) {
+    showModal(city = null) {
         this.currentCity = city;
-        if (this.modal && "pseudonim" in this.currentCity) {
-            this.modal.querySelector('#modal-location').value = city.location || '';
-            this.modal.querySelector('#modal-name_organ').value = city.name_organ || '';
-            this.modal.querySelector('#modal-pseudonim').value = city.pseudonim || '';
-            this.modal.querySelector('#modal-work_time').value = city.work_time || '';
-            this.modal.querySelector('#modal-table_name').value = city.table_name || '';
-            this.modal.querySelector('#modal-number').value = city.dock_num || '';
-            this.modal.querySelector('#modal-some_number').value = city.some_number || '';
-            this.modal.querySelector('#modal-ip_address').value = city.ip_address || '';
-            this.modal.classList.remove('hidden');
-            this.form?.classList.add('animate-popup');
+        if (city) {
+            if (this.modal && "pseudonim" in this.currentCity) {
+                this.modal.querySelector('#modal-location').value = city.location || '';
+                this.modal.querySelector('#modal-name_organ').value = city.name_organ || '';
+                this.modal.querySelector('#modal-pseudonim').value = city.pseudonim || '';
+                this.modal.querySelector('#modal-work_time').value = city.work_time || '';
+                this.modal.querySelector('#modal-table_name').value = city.table_name || '';
+                this.modal.querySelector('#modal-number').value = city.dock_num || '';
+                this.modal.querySelector('#modal-some_number').value = city.some_number || '';
+                this.modal.querySelector('#modal-ip_address').value = city.ip_address || '';
+                this.modal.classList.remove('hidden');
+                this.form?.classList.add('animate-popup');
 
-        } else if (this.modal && "korr" in this.currentCity) {
-            this.modal.querySelector('#modal-korr').value = city.korr || '';
-            this.modal.querySelector('#modal-m_b_number').value = city.m_b_number || '';
-            this.modal.querySelector('#modal-cipa').value = city.cipa || '';
-            this.modal.querySelector('#modal-globus').value = city.globus || '';
-            this.modal.querySelector('#modal-recipient').value = city.recipient || '';
-            this.modal.querySelector('#modal-phone_number').value = city.phone_number || '';
-            this.modal.querySelector('#modal-ip_phone').value = city.ip_phone || '';
-            this.modal.querySelector('#modal-notes').value = city.notes || '';
-            this.modal.classList.remove('hidden');
-            this.form?.classList.add('animate-popup');
+            } else if (this.modal && "korr" in this.currentCity) {
+                this.modal.querySelector('#modal-korr').value = city.korr || '';
+                this.modal.querySelector('#modal-m_b_number').value = city.m_b_number || '';
+                this.modal.querySelector('#modal-cipa').value = city.cipa || '';
+                const globusField = this.modal.querySelector('#modal-globus') || this.modal.querySelector('#modal-globus2');
+                if (globusField) {
+                    globusField.value = city.globus || '';
+                }
+                this.modal.querySelector('#modal-recipient').value = city.recipient || '';
+                this.modal.querySelector('#modal-phone_number').value = city.phone_number || '';
+                this.modal.querySelector('#modal-ip_phone').value = city.ip_phone || '';
+                this.modal.querySelector('#modal-notes').value = city.notes || '';
+                this.modal.classList.remove('hidden');
+                this.form?.classList.add('animate-popup');
+            }
+
         }
+        // Показываем модалку
+        this.modal.classList.remove('hidden');
+        this.form?.classList.add('animate-popup');
+
     }
 
     /**
@@ -140,16 +156,22 @@ export class CityModalHandler {
         } else if (this.modal.querySelector('#modal-korr')) {
             globusAutocomplete.updateHint();
             this.globusID = globusAutocomplete.getSelectedPk();
-            this.currentCity.globus_id = this.globusID
+            // Если this.currentCity есть — обновляем globus_id, если нет — создаём новый
+            if (this.currentCity) {
+                this.currentCity.globus_id = this.globusID;
+            }
+            const globusField = this.modal.querySelector('#modal-globus') || this.modal.querySelector('#modal-globus2');
+            const globusValue = globusField ? globusField.value.trim() : '';
+
             return {
                 korr: this.modal.querySelector('#modal-korr').value.trim(),
                 m_b_number: this.modal.querySelector('#modal-m_b_number').value.trim(),
                 cipa: this.modal.querySelector('#modal-cipa').value.trim(),
-                globus: this.modal.querySelector('#modal-globus').value.trim(),
+                globus: globusValue,
                 recipient: this.modal.querySelector('#modal-recipient').value.trim(),
                 phone_number: this.modal.querySelector('#modal-phone_number').value.trim(),
                 ip_phone: this.modal.querySelector('#modal-ip_phone').value.trim(),
-                notes:this.modal.querySelector("#modal-notes").value.trim(),
+                notes: this.modal.querySelector("#modal-notes").value.trim(),
                 globus_id: this.currentCity?.globus_id || null
             };
         }
@@ -342,6 +364,69 @@ export class CityModalHandler {
         }
     }
 
+    async createCity(data) {
+        try {
+            const response = await fetch('admin/city-info/', { // URL для создания нового города
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.csrfToken,
+                },
+                body: JSON.stringify(data),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => null);
+                let errorMsg = '';
+                if (errorData?.errors) {
+                    for (const field in errorData.errors) {
+                        errorMsg += `${field}: ${errorData.errors[field].join(', ')}\n`;
+                    }
+                }
+                showError(errorMsg || 'Ошибка при создании города');
+                return;
+            }
+
+            const newCity = await response.json();
+            this.citiesData.push(newCity);
+
+            // Добавляем карточку в DOM
+            const container = document.getElementById('city-cards');
+            const card = document.createElement('div');
+            card.classList.add('card-style');
+            card.dataset.city = JSON.stringify(newCity);
+
+            const props = 'pseudonim' in newCity
+                ? [
+                    ['Организация', newCity.name_organ],
+                    ['Псевдоним', newCity.pseudonim],
+                    ['Время работы', newCity.work_time],
+                    ['Название раздела', newCity.table_name],
+                    ['Номер в таблице', newCity.some_number],
+                    ['IP address', newCity.ip_address],
+                ]
+                : [
+                    ['№ Корреспондента', newCity.korr],
+                    ['Номер части', newCity.m_b_number],
+                    ['Номер CIPA', newCity.cipa],
+                    ['Название раздела', newCity.globus],
+                    ['Номерок в таблице Глобуса', newCity.some_number],
+                    ['Данные получателя', newCity.recipient],
+                ];
+
+            card.innerHTML = `<h3 class="text-lg font-semibold mb-2 text-center">${newCity.location || newCity.m_b_number || newCity.cipa || 'Неизвестно'}</h3>` +
+                props.filter(([_, val]) => val).map(([label, val]) => `<p><strong>${label}:</strong> ${val}</p>`).join('');
+
+            container.appendChild(card);
+
+            this.showSuccessMessage(`Город "${newCity.name_organ || newCity.korr}" успешно создан`);
+            this.hideModal();
+        } catch (error) {
+            console.error('Ошибка POST-запроса:', error);
+            showError(error);
+        }
+    }
+
 
     /**
      * Показывает сообщение об успехе с анимацией.
@@ -444,6 +529,22 @@ export class CityModalHandler {
                 cleanup().then(() => resolve(false));
             });
         });
+    }
+
+
+    /**
+     * Открывает модальное окно для создания новой записи (modal2).
+     * @param {string} initialValue - значение, которое подставим в форму (например, в поле "Получатель").
+     */
+    createNewCity(initialValue = '') {
+        if (!this.modal) return;
+
+        // Чистим форму
+        this.form?.reset();
+
+        this.currentCity = null; // 👈 Нет текущего города — значит создаём новый
+        this.modal.classList.remove('hidden');
+        this.form?.classList.add('animate-popup');
     }
 
 
