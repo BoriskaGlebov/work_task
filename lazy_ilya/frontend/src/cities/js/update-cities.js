@@ -374,9 +374,13 @@ export class CityModalHandler {
                 },
                 body: JSON.stringify(data),
             });
-
+            if (response.redirected) {
+                window.location.href = response.url;
+                return;
+            }
             if (!response.ok) {
                 const errorData = await response.json().catch(() => null);
+
                 let errorMsg = '';
                 if (errorData?.errors) {
                     for (const field in errorData.errors) {
@@ -387,8 +391,11 @@ export class CityModalHandler {
                 return;
             }
 
-            const newCity = await response.json();
-            this.citiesData.push(newCity);
+            const newCityPk = await response.json();
+            const newCity = data
+            newCity['pk'] = newCityPk.id;
+            this.citiesData.push(data);
+
 
             // Добавляем карточку в DOM
             const container = document.getElementById('city-cards');
@@ -538,7 +545,6 @@ export class CityModalHandler {
      */
     createNewCity(initialValue = '') {
         if (!this.modal) return;
-
         // Чистим форму
         this.form?.reset();
 
