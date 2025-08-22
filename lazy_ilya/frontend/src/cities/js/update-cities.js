@@ -8,12 +8,14 @@ export class CityModalHandler {
      * @param {string} modalId - ID модального окна.
      * @param {Array<Object>} citiesData - Массив объектов с данными о городах.
      * @param observeCards - флаг обновления карточек или создания
+     * @param Inputmask - для корректного отображения новеров телефонов
      */
-    constructor(modalId, citiesData = [], observeCards = true) {
+    constructor(modalId, citiesData = [], observeCards = true, {Inputmask}) {
         /** @type {HTMLElement|null} */
         this.modal = document.getElementById(modalId);
         /** @type {HTMLFormElement|null} */
         this.form = this.modal?.querySelector('form');
+        this.Inputmask = Inputmask;
         this.saveBtn = this.modal?.querySelector('#save-city');
         this.deleteBtn = this.modal?.querySelector('#delete-city');
         this.closeBtn = this.modal?.querySelector('#close-modal');
@@ -27,6 +29,11 @@ export class CityModalHandler {
 
         this.bindEvents();
         if (observeCards) this.observeCards();
+        const phone1 = document.getElementById('modal-phone_number');
+        const phone2 = document.getElementById('modal-phone_number2');
+
+        if (phone1) Inputmask("+7 (999) 999-99-99").mask(phone1);
+        if (phone2) Inputmask("+7 (999) 999-99-99").mask(phone2);
     }
 
     /**
@@ -163,13 +170,16 @@ export class CityModalHandler {
             const globusField = this.modal.querySelector('#modal-globus') || this.modal.querySelector('#modal-globus2');
             const globusValue = globusField ? globusField.value.trim() : '';
 
+            const phoneInput = this.modal.querySelector('#modal-phone_number') || this.modal.querySelector('#modal-phone_number2');
+            const phoneNumber = phoneInput ? phoneInput.value.trim() : '';
+
             return {
                 korr: this.modal.querySelector('#modal-korr').value.trim(),
                 m_b_number: this.modal.querySelector('#modal-m_b_number').value.trim(),
                 cipa: this.modal.querySelector('#modal-cipa').value.trim(),
                 globus: globusValue,
                 recipient: this.modal.querySelector('#modal-recipient').value.trim(),
-                phone_number: this.modal.querySelector('#modal-phone_number').value.trim(),
+                phone_number: phoneNumber,
                 ip_phone: this.modal.querySelector('#modal-ip_phone').value.trim(),
                 notes: this.modal.querySelector("#modal-notes").value.trim(),
                 globus_id: this.currentCity?.globus_id || null
