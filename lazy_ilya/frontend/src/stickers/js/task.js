@@ -975,7 +975,7 @@ export class TaskFilter {
         this.populateTagOptions();
         this.attachEvents();
         this.initTagDropdown();
-        this.restoreFiltersFromStorage(); // <--- ДОБАВЛЕНО
+        this.restoreFiltersFromStorage(currentUserId); // <--- ДОБАВЛЕНО
 
     }
 
@@ -1105,7 +1105,9 @@ export class TaskFilter {
     /**
      * Сохранение данных для фильтрации в локальное хранилище
      */
-    saveFiltersToStorage() {
+    saveFiltersToStorage(userId) {
+        if (!userId) return; // обязательно нужен идентификатор пользователя
+
         const filtersState = {
             assignee: this.filters.assignee?.value || '',
             priority: this.filters.priority?.value || '',
@@ -1113,11 +1115,16 @@ export class TaskFilter {
             status: this.filters.status?.value || '',
             tags: this.getSelectedTags()
         };
-        localStorage.setItem('taskFilters', JSON.stringify(filtersState));
+
+        const key = `taskFilters_${userId}`;
+        localStorage.setItem(key, JSON.stringify(filtersState));
     }
 
-    restoreFiltersFromStorage() {
-        const saved = localStorage.getItem('taskFilters');
+    restoreFiltersFromStorage(userId) {
+        if (!userId) return;
+
+        const key = `taskFilters_${userId}`;
+        const saved = localStorage.getItem(key);
         if (!saved) return;
 
         try {
@@ -1129,6 +1136,7 @@ export class TaskFilter {
             if (this.filters.status) this.filters.status.value = status;
 
             this.populateTagOptions(tags || []);
+
             setTimeout(() => {
                 this.tagCheckboxes?.forEach(cb => {
                     cb.checked = tags.includes(cb.value.toLowerCase());
@@ -1149,7 +1157,7 @@ export class TaskFilter {
         const priorityVal = this.filters.priority?.value.trim().toLowerCase() || '';
         const dateVal = this.filters.date?.value || '';
         const statusVal = this.filters.status?.value || '';
-        this.saveFiltersToStorage();  // <--- ДОБАВЬ ЭТО
+        this.saveFiltersToStorage(currentUserId);  // <--- ДОБАВЬ ЭТО
         if (this.kanbanTasksInstance) {
             this.kanbanTasksInstance.resetAndRender();
         }
@@ -1361,7 +1369,7 @@ export class TaskCounter {
             this.counterEl.classList.remove('hidden');
             this.counterEl.classList.add('inline-flex');
             this.renderPopup();
-        } else{
+        } else {
             this.counterEl.classList.add('hidden');
             this.counterEl.classList.remove('inline-flex');
         }

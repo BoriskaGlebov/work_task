@@ -127,6 +127,7 @@ class StickyNoteView(LoginRequiredMixin, View):
                 "username_list": json.dumps(users, ensure_ascii=False),
                 "tasks_list": json.dumps(tasks_list, ensure_ascii=False),
                 "tags_list": json.dumps(tags_list, ensure_ascii=False),
+                "user_id":request.user.id,
             },
         )
 
