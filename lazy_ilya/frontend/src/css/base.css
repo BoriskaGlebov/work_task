@@ -500,7 +500,7 @@ p {
 
 
 .delete-btn {
-    @apply absolute top-1.5 right-1.5 bg-transparent border-0 text-gray-600 text-xl cursor-pointer select-none p-0 leading-none z-10;
+    @apply absolute top-1.5 right-1.5 bg-transparent border-0 text-gray-600 text-xl cursor-pointer select-none p-0 leading-none z-1;
 }
 
 
