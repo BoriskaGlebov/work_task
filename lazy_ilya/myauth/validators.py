@@ -11,9 +11,6 @@ class CustomPasswordValidator(CommonPasswordValidator):
     """
     Кастомный валидатор паролей, который проверяет минимальную длину пароля.
 
-    Attributes:
-        None
-
     Methods:
         validate(password, user=None): Проверяет пароль на соответствие правилам.
         get_help_text(): Возвращает текст с рекомендациями по созданию пароля.
