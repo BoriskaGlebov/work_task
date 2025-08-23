@@ -7,13 +7,13 @@ from .models import CustomUser
 
 
 @admin.action(description="Сделать выбранных пользователей неактивными")
-def deactivate_users(modeladCUmin, request, queryset):
+def deactivate_users(_modeladmin, request, queryset):
     updated = queryset.update(is_active=False)
     messages.success(request, f"Деактивировано пользователей: {updated}")
 
 
 @admin.action(description="Сделать выбранных пользователей активными")
-def activate_users(modeladCUmin, request, queryset):
+def activate_users(_modeladmin, request, queryset):
     updated = queryset.update(is_active=True)
     messages.success(request, f"Активировал пользователей: {updated}")
 

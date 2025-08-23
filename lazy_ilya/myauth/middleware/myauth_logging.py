@@ -85,8 +85,9 @@ class UserActionLoggingMiddleware:
 
         return response
 
+    @staticmethod
     def custom_message(
-        self, response: HttpResponse, user, method: str, path: str, ip: str
+        response: HttpResponse, user, method: str, path: str, ip: str
     ) -> None:
         """
         Логирует сообщение об ошибках или успешных запросах с деталями ответа.
@@ -107,7 +108,7 @@ class UserActionLoggingMiddleware:
             if "application/json" in content_type:
                 try:
                     body = json.loads(response.content.decode())
-                except Exception:
+                except (UnicodeDecodeError, json.JSONDecodeError):
                     body = response.content.decode(errors="ignore")
             elif "text" in content_type:
                 body = response.content.decode(errors="ignore")
