@@ -1,16 +1,14 @@
-from pprint import pprint
+from typing import cast
 
 from django.contrib.auth import login
 from django.contrib.auth.models import Group
 from django.contrib.auth.views import LoginView
-from django.http import HttpRequest, HttpResponse, JsonResponse
-from django.shortcuts import render
+from django.http import HttpResponse, JsonResponse
 from django.urls import reverse_lazy
-from django.views import View
-from django.views.generic import CreateView, TemplateView, FormView
-
+from django.views.generic import CreateView, FormView
 from myauth.forms import CustomUserCreationForm, PasswordResetForm
 from myauth.models import CustomUser
+
 from lazy_ilya.utils.settings_for_app import logger
 
 

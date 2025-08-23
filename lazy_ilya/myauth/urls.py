@@ -1,8 +1,6 @@
-from channels.auth import login
 from django.contrib.auth.views import LogoutView
 from django.urls import path
-
-from myauth.views import RegisterView, LoginAjaxView, CustomPasswordResetView
+from myauth.views import CustomPasswordResetView, LoginAjaxView, RegisterView
 
 app_name = "myauth"
 urlpatterns = [

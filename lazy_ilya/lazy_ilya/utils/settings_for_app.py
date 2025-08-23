@@ -6,6 +6,7 @@ from typing import Optional
 
 from dotenv import load_dotenv
 from loguru import logger
+
 from lazy_ilya.settings import BASE_DIR
 
 load_dotenv()

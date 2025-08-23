@@ -2,21 +2,18 @@ import json
 import os
 from typing import List
 
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views import View
-
 from file_creator.models import Counter
 from file_creator.utils.custom_converter.converter_to_docx import Converter
 from file_creator.utils.parser_word.my_parser import (
-    Parser,
-    replace_unsupported_characters,
-)
+    Parser, replace_unsupported_characters)
 from file_creator.utils.storage import OverwritingFileSystemStorage
-from lazy_ilya.utils.settings_for_app import logger, ProjectSettings
+
+from lazy_ilya.utils.settings_for_app import ProjectSettings, logger
 
 
 class UploadView(LoginRequiredMixin, View):

@@ -1,11 +1,9 @@
 import json
 import tempfile
-from unittest.mock import MagicMock, patch, mock_open
+from unittest.mock import MagicMock, mock_open, patch
 
 from django.test import TestCase
 from django.urls import reverse
-
-from file_creator.models import Counter
 from myauth.models import CustomUser  # замените на свой путь, если отличается
 
 

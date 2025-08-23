@@ -1,7 +1,7 @@
 from django.test import TestCase
-
 from myauth.forms import CustomUserCreationForm, PasswordResetForm
 from myauth.models import CustomUser
+
 from lazy_ilya.utils.settings_for_app import settings
 
 

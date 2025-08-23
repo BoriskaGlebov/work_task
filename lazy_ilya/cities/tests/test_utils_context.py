@@ -1,16 +1,11 @@
 import json
-from unittest import TestCase
-from unittest.mock import Mock
 
-from django.contrib.auth.models import User, Group
-from django.test import RequestFactory, TestCase as DjangoTestCase
-from django.utils.timezone import now
-
-from cities.models import TableNames, CityData
+from cities.models import CityData, TableNames
 from cities.utils.common_func.get_city_context import (
-    get_all_cities,
-    get_context_admin_cities,
-)
+    get_all_cities, get_context_admin_cities)
+from django.contrib.auth.models import Group
+from django.test import RequestFactory
+from django.test import TestCase as DjangoTestCase
 from myauth.models import CustomUser
 
 

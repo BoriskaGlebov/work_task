@@ -1,7 +1,6 @@
-import os
-from django.conf import settings
-from django.http import HttpRequest
 from typing import Dict
+
+from django.http import HttpRequest
 
 
 def vite_mode(request: HttpRequest) -> Dict[str, bool]:

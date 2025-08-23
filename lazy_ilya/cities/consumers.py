@@ -1,15 +1,9 @@
-import asyncio
 import json
-import os
-import queue
-import threading
-import time
-from typing import Any, Callable, Dict, Optional
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 from lazy_ilya.utils.settings_for_app import logger
-from .utils.parser_word.globus_parser import GlobusParser
+
 
 
 class UploadProgressConsumer(AsyncWebsocketConsumer):
@@ -24,7 +18,7 @@ class UploadProgressConsumer(AsyncWebsocketConsumer):
     """
 
     group_name: str
-    download_name:str
+    download_name: str
 
     async def connect(self) -> None:
         """
@@ -42,10 +36,10 @@ class UploadProgressConsumer(AsyncWebsocketConsumer):
             logger.info("Анонимный пользователь подключен к WebSocket")
 
         self.group_name = "progress_updates"
-        self.download_name="download_progress"
+        self.download_name = "download_progress"
 
         await self.channel_layer.group_add(self.group_name, self.channel_name)
-        await self.channel_layer.group_add(self.download_name,self.channel_name)
+        await self.channel_layer.group_add(self.download_name, self.channel_name)
         await self.accept()
 
         logger.bind(user=user.username).info(

@@ -1,5 +1,4 @@
 from django.urls import path
-
 from file_creator.views import UploadView
 
 app_name = "file_creator"

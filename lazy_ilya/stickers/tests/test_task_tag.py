@@ -1,10 +1,11 @@
+from datetime import date, timedelta
+
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.utils.timezone import now
-from django.contrib.auth import get_user_model
+from stickers.models import Tag, Task  # замените на свой путь, если другой
 
 from lazy_ilya.utils.settings_for_app import settings
-from stickers.models import Task, Tag  # замените на свой путь, если другой
-from datetime import date, timedelta
 
 User = get_user_model()
 

@@ -1,8 +1,6 @@
-import os
 
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
-
 
 # Create your models here.
 
@@ -127,7 +125,7 @@ class CityData(models.Model):
     def to_dict(self) -> dict:
         """Преобразует объект в словарь."""
         return {
-            "pk":self.pk,
+            "pk": self.pk,
             "table_id": self.table_id.id,
             "table_name": self.table_id.table_name,
             "dock_num": self.dock_num,
@@ -153,10 +151,10 @@ class CityData(models.Model):
         if is_new:
             # Получаем максимальный dock_num для текущей table_id
             last_dock_num = (
-                    CityData.objects.filter(table_id=self.table_id).aggregate(
-                        models.Max("dock_num")
-                    )["dock_num__max"]
-                    or 0
+                CityData.objects.filter(table_id=self.table_id).aggregate(
+                    models.Max("dock_num")
+                )["dock_num__max"]
+                or 0
             )
 
             # Если dock_num явно указан и он больше
@@ -213,7 +211,8 @@ class CityInfoDO(models.Model):
         blank=True,
     )
     globus: models.ForeignKey = models.ForeignKey(
-        CityData, on_delete=models.CASCADE,
+        CityData,
+        on_delete=models.CASCADE,
         verbose_name="Номерок в таблице Глобуса",
         null=True,
         blank=True,
@@ -256,7 +255,7 @@ class CityInfoDO(models.Model):
             "korr": f"korr{self.korr}" if self.korr else "",
             "m_b_number": self.m_b_number,
             "cipa": self.cipa,
-            "globus_id":self.globus.id if self.globus else "",
+            "globus_id": self.globus.id if self.globus else "",
             "globus": self.globus.pseudonim if self.globus else "",
             "recipient": self.recipient,
             "phone_number": str(self.phone_number) if self.phone_number else "",

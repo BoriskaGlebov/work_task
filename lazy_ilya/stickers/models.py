@@ -1,5 +1,5 @@
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.db import models
 
 User = get_user_model()
 
@@ -91,18 +91,18 @@ class StickyNoteVisibility(models.Model):
         StickyNote,
         on_delete=models.CASCADE,
         related_name="visibilities",
-        verbose_name="Стикер"
+        verbose_name="Стикер",
     )
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name="sticky_note_visibilities",
-        verbose_name="Пользователь"
+        verbose_name="Пользователь",
     )
     is_visible = models.BooleanField(
         default=True,
         verbose_name="Видимость",
-        help_text="True — стикер виден пользователю, False — скрыт (удален для себя)"
+        help_text="True — стикер виден пользователю, False — скрыт (удален для себя)",
     )
 
     class Meta:

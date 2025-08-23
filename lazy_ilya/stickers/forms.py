@@ -1,7 +1,8 @@
 # forms.py
-from typing import Type, List
+from typing import List, Type
 
 from django import forms
+
 from .models import StickyNote, Tag, Task
 
 

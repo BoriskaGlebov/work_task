@@ -1,5 +1,4 @@
 from django.urls import path
-
 from stickers.views import StickyNoteView, TaskView
 
 app_name = "stickers"

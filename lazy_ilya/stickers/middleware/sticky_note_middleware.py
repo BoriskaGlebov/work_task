@@ -1,6 +1,8 @@
 import json
 from typing import Callable
+
 from django.http import HttpResponse
+
 from lazy_ilya.utils.settings_for_app import logger
 
 

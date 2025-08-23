@@ -1,7 +1,6 @@
 from typing import Tuple
 
 from django.contrib import admin
-
 from file_creator.models import Counter
 
 

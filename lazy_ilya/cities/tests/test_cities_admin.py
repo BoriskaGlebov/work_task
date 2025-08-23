@@ -1,10 +1,9 @@
-from django.test import TestCase, Client
-from django.contrib.auth.models import User, Group
-from django.urls import reverse
-from unittest.mock import patch, MagicMock
-from io import BytesIO
-from django.core.files.uploadedfile import SimpleUploadedFile
+from unittest.mock import MagicMock, patch
 
+from django.contrib.auth.models import Group
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import Client, TestCase
+from django.urls import reverse
 from myauth.models import CustomUser
 
 

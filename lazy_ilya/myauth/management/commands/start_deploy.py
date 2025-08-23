@@ -1,10 +1,11 @@
 import os
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
-from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
+from django.core.management.base import BaseCommand
 from dotenv import load_dotenv
+
 from lazy_ilya.utils.settings_for_app import logger
 
 load_dotenv()
@@ -147,7 +148,7 @@ class GroupManager:
                     "change_stickynotevisibility",
                     "delete_stickynotevisibility",
                     "view_stickynotevisibility",
-                ]
+                ],
             },
             {
                 "name": "managers",
@@ -168,8 +169,8 @@ class GroupManager:
                     "change_stickynotevisibility",
                     "delete_stickynotevisibility",
                     "view_stickynotevisibility",
-                ]
-            }
+                ],
+            },
         ]
 
         self.user_group_assignments: List[Dict[str, Optional[str]]] = [

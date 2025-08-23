@@ -1,9 +1,9 @@
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.utils.timezone import now
+from django.utils.translation import gettext_lazy as _
 
 from .models import CustomUser
-from django.utils.translation import gettext_lazy as _
 
 
 @admin.action(description="Сделать выбранных пользователей неактивными")
@@ -70,7 +70,14 @@ class CustomUserAdmin(UserAdmin):
         ),  # Добавление поля phone_number при создании пользователя
     )
 
-    list_display = ("username", "phone_number", "is_staff", "is_active", "last_login","days_since_last_login")
+    list_display = (
+        "username",
+        "phone_number",
+        "is_staff",
+        "is_active",
+        "last_login",
+        "days_since_last_login",
+    )
     """
     Поля, которые будут отображаться в списке пользователей в админке.
 

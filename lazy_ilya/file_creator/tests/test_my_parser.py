@@ -2,8 +2,8 @@ import os
 import shutil
 import tempfile
 import unittest
-from docx import Document as DocxDocument
 
+from docx import Document as DocxDocument
 from file_creator.utils.parser_word.my_parser import Parser
 
 

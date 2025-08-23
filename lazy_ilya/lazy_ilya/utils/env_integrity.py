@@ -1,8 +1,8 @@
-from pathlib import Path
 import hashlib
+from pathlib import Path
+
 from django.core.exceptions import ImproperlyConfigured
 from loguru import logger
-
 
 ENV_PATH = Path(__file__).resolve().parent.parent.parent.parent / ".env"
 HASH_PATH = Path(__file__).resolve().parent.parent.parent / ".env.sha256"

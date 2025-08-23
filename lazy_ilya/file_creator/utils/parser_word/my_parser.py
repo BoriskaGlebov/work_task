@@ -1,11 +1,11 @@
 import datetime
 import os
-from pprint import pprint
 from typing import List
 
 import django
 from docx import Document
-from lazy_ilya.utils.settings_for_app import logger, ProjectSettings
+
+from lazy_ilya.utils.settings_for_app import ProjectSettings, logger
 
 # Укажите путь к настройкам вашего проекта
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lazy_ilya.settings")

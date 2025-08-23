@@ -1,5 +1,4 @@
 from django.test import TestCase
-
 from stickers.forms import StickyNoteForm
 
 

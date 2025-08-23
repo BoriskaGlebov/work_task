@@ -2,9 +2,9 @@
 Модуль содержит кастомный валидатор паролей для Django.
 """
 
+from django.contrib.auth.password_validation import CommonPasswordValidator
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from django.contrib.auth.password_validation import CommonPasswordValidator
 
 
 class CustomPasswordValidator(CommonPasswordValidator):

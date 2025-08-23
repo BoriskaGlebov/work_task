@@ -1,12 +1,6 @@
+from cities.views import (Cities, CitiesAdmin, CityDownload, CityInfoView,
+                          download_file, increment_city_counters)
 from django.urls import path
-
-from cities.views import (
-    base_view,
-    Cities,
-    CitiesAdmin,
-    CityInfoView,
-    increment_city_counters, CityDownload, download_file,
-)
 
 app_name = "cities"
 urlpatterns = [
@@ -27,5 +21,5 @@ urlpatterns = [
     path("admin/city-info/", CityInfoView.as_view(), name="city_info"),
     path("api/city-counter/", increment_city_counters, name="city-counter"),
     path("admin/city-download/", CityDownload.as_view(), name="city-download"),
-    path('admin/media/<str:filename>/', download_file, name='download_file'),
+    path("admin/media/<str:filename>/", download_file, name="download_file"),
 ]

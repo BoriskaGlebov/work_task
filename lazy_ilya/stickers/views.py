@@ -1,19 +1,21 @@
 import json
 from datetime import datetime
-from pprint import pprint
-from typing import Union, Optional
+from typing import Optional, Union
 
-from django.http import JsonResponse, HttpRequest, HttpResponse, HttpResponseBadRequest
-from django.shortcuts import render
-from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import (Case, Exists, IntegerField, OuterRef, Q, Value,
+                              When)
+from django.http import (HttpRequest, HttpResponse, HttpResponseBadRequest,
+                         JsonResponse)
+from django.shortcuts import render
 from django.urls import reverse_lazy
-from django.db.models import Q, Case, When, Value, IntegerField, OuterRef, Exists
-
+from django.views import View
 from myauth.models import CustomUser
-from .models import StickyNote, Task, Tag, StickyNoteVisibility
-from .forms import StickyNoteForm
+
 from lazy_ilya.utils.settings_for_app import logger
+
+from .forms import StickyNoteForm
+from .models import StickyNote, StickyNoteVisibility, Tag, Task
 
 
 class StickyNoteView(LoginRequiredMixin, View):
@@ -30,21 +32,25 @@ class StickyNoteView(LoginRequiredMixin, View):
         Отображает HTML-страницу со списком заметок и пользователей.
         """
         visibility_qs = StickyNoteVisibility.objects.filter(
-            sticky_note=OuterRef('pk'),
+            sticky_note=OuterRef("pk"),
             user=request.user,
         )
-        notes = StickyNote.objects.annotate(
-            visibility_record=Exists(visibility_qs.filter(is_visible=False))
-        ).filter(
-            Q(owner=request.user) |
-            Q(author_name__in=[
-                "Всем!",
-                f"{request.user.first_name} {request.user.last_name}",
-                request.user.first_name,
-                request.user.username,
-            ])
-        ).exclude(
-            Q(author_name="Всем!") & Q(visibility_record=True)
+        notes = (
+            StickyNote.objects.annotate(
+                visibility_record=Exists(visibility_qs.filter(is_visible=False))
+            )
+            .filter(
+                Q(owner=request.user)
+                | Q(
+                    author_name__in=[
+                        "Всем!",
+                        f"{request.user.first_name} {request.user.last_name}",
+                        request.user.first_name,
+                        request.user.username,
+                    ]
+                )
+            )
+            .exclude(Q(author_name="Всем!") & Q(visibility_record=True))
         )
         users = list(
             CustomUser.objects.filter(is_active=True).values(
@@ -90,7 +96,9 @@ class StickyNoteView(LoginRequiredMixin, View):
         else:
             tasks = (
                 tasks_queryset.filter(
-                    (Q(assignee__isnull=True) | Q(assignee=user)) | Q(author=user)).annotate(
+                    (Q(assignee__isnull=True) | Q(assignee=user)) | Q(author=user)
+                )
+                .annotate(
                     priority_order=Case(
                         When(priority="high", then=Value(0)),
                         When(priority="medium", then=Value(1)),
@@ -127,7 +135,7 @@ class StickyNoteView(LoginRequiredMixin, View):
                 "username_list": json.dumps(users, ensure_ascii=False),
                 "tasks_list": json.dumps(tasks_list, ensure_ascii=False),
                 "tags_list": json.dumps(tags_list, ensure_ascii=False),
-                "user_id":request.user.id,
+                "user_id": request.user.id,
             },
         )
 
@@ -215,7 +223,8 @@ class StickyNoteView(LoginRequiredMixin, View):
             elif is_assigned_to_all and not is_owner:
                 # Заметка назначена "Всем!", но пользователь не владелец — скрываем
                 # Обновляем или создаём запись видимости с is_visible=False
-                from django.db.models import Q
+                pass
+
                 visibility_obj, created = StickyNoteVisibility.objects.update_or_create(
                     sticky_note=note,
                     user=user,
@@ -233,7 +242,10 @@ class StickyNoteView(LoginRequiredMixin, View):
                     f"Попытка удалить заметку #{note_id} без прав"
                 )
                 return JsonResponse(
-                    {"success": False, "errors": {"permission": ["Нет прав на удаление"]}},
+                    {
+                        "success": False,
+                        "errors": {"permission": ["Нет прав на удаление"]},
+                    },
                     status=403,
                 )
         except StickyNote.DoesNotExist:
@@ -376,7 +388,9 @@ class TaskView(LoginRequiredMixin, View):
         )
         return JsonResponse(task.to_dict(), status=201)
 
-    def patch(self, request: HttpRequest, task_id: int) -> HttpResponseBadRequest | JsonResponse:
+    def patch(
+        self, request: HttpRequest, task_id: int
+    ) -> HttpResponseBadRequest | JsonResponse:
         """
         Частичное обновление задачи по ID.
 

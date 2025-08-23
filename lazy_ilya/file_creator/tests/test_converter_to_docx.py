@@ -1,9 +1,9 @@
 import os
 import tempfile
 import unittest
-from spire.doc import Document, FileFormat
 
 from file_creator.utils.custom_converter.converter_to_docx import Converter
+from spire.doc import Document, FileFormat
 
 
 class TestConverter(unittest.TestCase):

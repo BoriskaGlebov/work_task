@@ -6,12 +6,11 @@ import django
 # Настройка Django
 django.setup()
 import json
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
+from cities.models import CityData, CityInfoDO, TableNames
 from django.db.models import Q
 from django.http import HttpRequest
-
-from cities.models import CityData, TableNames, CityInfoDO
 
 
 def get_all_cities(request: HttpRequest):
@@ -24,7 +23,7 @@ def get_all_cities(request: HttpRequest):
     all_rows = CityData.objects.select_related("table_id").exclude(
         Q(location__isnull=True) | Q(location__exact="")
     )
-    all_info_do = CityInfoDO.objects.select_related('globus').all()
+    all_info_do = CityInfoDO.objects.select_related("globus").all()
 
     # Преобразуем данные в словарь для каждого города
     cities: List[Dict[str, Any]] = [row.to_dict() for row in all_rows]
@@ -46,10 +45,12 @@ def get_context_admin_cities():
         "id",
         "table_name",
     )
-    all_info_do = CityInfoDO.objects.select_related('globus').all()
-    all_rows = CityData.objects.select_related("table_id").exclude(
-        Q(location__isnull=True) | Q(location__exact="")
-    ).values("pk","pseudonim")
+    all_info_do = CityInfoDO.objects.select_related("globus").all()
+    all_rows = (
+        CityData.objects.select_related("table_id")
+        .exclude(Q(location__isnull=True) | Q(location__exact=""))
+        .values("pk", "pseudonim")
+    )
     cities: List[Dict[str, Any]] = [row for row in all_rows]
     cities_json: str = json.dumps(cities, ensure_ascii=False)
     cities_do: List[Dict[str, Any]] = [el.to_dict() for el in all_info_do]

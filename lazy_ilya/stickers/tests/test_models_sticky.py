@@ -1,8 +1,8 @@
-from django.test import TestCase
 from django.contrib.auth import get_user_model
+from django.test import TestCase
+from stickers.models import StickyNote
 
 from lazy_ilya.utils.settings_for_app import settings
-from stickers.models import StickyNote
 
 User = get_user_model()
 

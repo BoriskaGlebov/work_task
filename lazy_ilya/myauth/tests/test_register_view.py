@@ -3,7 +3,6 @@ import json
 from django.contrib.auth.models import Group
 from django.test import TestCase
 from django.urls import reverse
-
 from myauth.models import CustomUser
 
 

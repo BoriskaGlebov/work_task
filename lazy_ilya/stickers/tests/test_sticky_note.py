@@ -1,11 +1,11 @@
-from django.test import TestCase, Client
-from django.urls import reverse
+import json
+
 from django.contrib.auth import get_user_model
+from django.test import Client, TestCase
+from django.urls import reverse
+from stickers.models import StickyNote
 
 from lazy_ilya.utils.settings_for_app import settings
-from stickers.models import StickyNote
-from stickers.forms import StickyNoteForm
-import json
 
 User = get_user_model()
 

@@ -1,6 +1,7 @@
-from django.test import SimpleTestCase
 from django.core.exceptions import ValidationError
-from myauth.validators import CustomPasswordValidator  # поправь импорт под себя
+from django.test import SimpleTestCase
+from myauth.validators import \
+    CustomPasswordValidator  # поправь импорт под себя
 
 
 class CustomPasswordValidatorTest(SimpleTestCase):

@@ -1,30 +1,26 @@
 import json
 import threading
 import traceback
-from typing import List, Dict, Any
+from typing import Any, Dict
 
+from cities.forms import CityDataForm, CityInfoDoForm
+from cities.models import CityData, CityInfoDO, CounterCities
+from cities.utils.common_func.get_city_context import (
+    get_all_cities, get_context_admin_cities)
+from cities.utils.parser_word.globus_parser import GlobusParser
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.views import redirect_to_login
-from django.db.models import Q
-from django.http import HttpRequest, HttpResponse, JsonResponse, Http404, FileResponse, HttpResponseNotFound, \
-    HttpResponseForbidden
-from django.shortcuts import render, get_object_or_404, redirect
+from django.http import (FileResponse, Http404, HttpRequest, HttpResponse,
+                         HttpResponseForbidden, HttpResponseNotFound,
+                         JsonResponse)
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-
-from cities.forms import CityDataForm, CityInfoDoForm
-from cities.models import CityData, CounterCities, CityInfoDO
-from cities.utils.common_func.get_city_context import (
-    get_all_cities,
-    get_context_admin_cities,
-)
-from cities.utils.parser_word.globus_parser import GlobusParser
 from file_creator.utils.storage import OverwritingFileSystemStorage
-from lazy_ilya.settings import MEDIA_ROOT
-from lazy_ilya.utils.settings_for_app import logger, ProjectSettings
 
+from lazy_ilya.settings import MEDIA_ROOT
+from lazy_ilya.utils.settings_for_app import ProjectSettings, logger
 
 # Create your views here.
 
@@ -50,7 +46,10 @@ class Cities(View):
                 if request.content_type == "text/html":
                     return redirect_to_login(request.get_full_path(), self.login_url)
                 # Для JS/AJAX — 403 Forbidden
-                return JsonResponse({"status": "error", "message": "Authentication required"}, status=403)
+                return JsonResponse(
+                    {"status": "error", "message": "Authentication required"},
+                    status=403,
+                )
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request: HttpRequest) -> HttpResponse:
@@ -70,7 +69,9 @@ class Cities(View):
             context={**context},
         )
 
-    def put(self, request: HttpRequest, table_id: int, dock_num: int | None = None) -> JsonResponse:
+    def put(
+        self, request: HttpRequest, table_id: int, dock_num: int | None = None
+    ) -> JsonResponse:
         """
         Обновляет информацию о городе.
 
@@ -115,7 +116,6 @@ class Cities(View):
                     )
                     return JsonResponse({"errors": form_do.errors}, status=400)
 
-
         except Http404:
             logger.bind(user=request.user.username).error(f"Город не найден")
             return JsonResponse(
@@ -135,7 +135,7 @@ class Cities(View):
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
     def delete(
-            self, request: HttpRequest, table_id: int, dock_num: int | None = None
+        self, request: HttpRequest, table_id: int, dock_num: int | None = None
     ) -> JsonResponse:
         """
         Удаляет город.
@@ -216,8 +216,8 @@ class CitiesAdmin(LoginRequiredMixin, UserPassesTestMixin, View):
     def test_func(self):
         # Проверяем, что пользователь в группе admin
         return (
-                self.request.user.groups.filter(name="admins").exists()
-                or self.request.user.is_superuser
+            self.request.user.groups.filter(name="admins").exists()
+            or self.request.user.is_superuser
         )
 
     def handle_no_permission(self):
@@ -306,8 +306,8 @@ class CityInfoView(LoginRequiredMixin, UserPassesTestMixin, View):
     def test_func(self):
         # Проверяем, что пользователь в группе admin
         return (
-                self.request.user.groups.filter(name__in=["admins","ilia-group"]).exists()
-                or self.request.user.is_superuser
+            self.request.user.groups.filter(name__in=["admins", "ilia-group"]).exists()
+            or self.request.user.is_superuser
         )
 
     def handle_no_permission(self):
@@ -498,8 +498,8 @@ class CityDownload(LoginRequiredMixin, UserPassesTestMixin, View):
             bool: True, если пользователь администратор или суперпользователь, иначе False.
         """
         return (
-                self.request.user.groups.filter(name="admins").exists()
-                or self.request.user.is_superuser
+            self.request.user.groups.filter(name="admins").exists()
+            or self.request.user.is_superuser
         )
 
     def handle_no_permission(self) -> HttpResponse:
@@ -514,6 +514,7 @@ class CityDownload(LoginRequiredMixin, UserPassesTestMixin, View):
             return redirect(self.login_url)
 
         from django.http import HttpResponseForbidden
+
         return HttpResponseForbidden(
             "Доступ запрещён, только админ может сюда заходить"
         )
@@ -532,14 +533,14 @@ class CityDownload(LoginRequiredMixin, UserPassesTestMixin, View):
             "Запуск создания файла в отдельном потоке"
         )
         threading.Thread(target=GlobusParser.create_globus).start()
-        logger.bind(user=request.user.username).info(
-            "Файл начал создание успешно"
-        )
+        logger.bind(user=request.user.username).info("Файл начал создание успешно")
         return JsonResponse({"status": "success"}, status=200)
 
 
 @login_required
-def download_file(request: HttpRequest, filename: str) -> HttpResponseForbidden | FileResponse | HttpResponseNotFound:
+def download_file(
+    request: HttpRequest, filename: str
+) -> HttpResponseForbidden | FileResponse | HttpResponseNotFound:
     """
     Позволяет администратору или суперпользователю скачать файл по имени.
 
@@ -553,13 +554,13 @@ def download_file(request: HttpRequest, filename: str) -> HttpResponseForbidden 
             - 404 Not Found, если файл не найден.
     """
     user = request.user
-    if not (user.is_superuser or user.groups.filter(name='admins').exists()):
+    if not (user.is_superuser or user.groups.filter(name="admins").exists()):
         return HttpResponseForbidden("Доступ запрещён")
 
     file_path = MEDIA_ROOT / filename
     if file_path.exists() and file_path.is_file():
-        response = FileResponse(open(file_path, 'rb'))
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response = FileResponse(open(file_path, "rb"))
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
         return response
     else:
         return HttpResponseNotFound("Файл не найден")

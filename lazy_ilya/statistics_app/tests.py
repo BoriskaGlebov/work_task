@@ -1,10 +1,9 @@
+from cities.models import CityData, CounterCities, TableNames
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
-from django.contrib.auth import get_user_model
 from django.utils.timezone import now, timedelta
-
 from file_creator.models import Counter
-from cities.models import CounterCities, TableNames, CityData
 
 User = get_user_model()
 

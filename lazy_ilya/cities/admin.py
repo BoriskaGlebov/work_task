@@ -1,23 +1,32 @@
-from typing import Tuple, List
+from typing import List, Tuple
+
 import openpyxl
+from cities.models import CityData, CityInfoDO, CounterCities, TableNames
 from django.contrib import admin, messages
 from django.http import HttpResponse
 from openpyxl.utils import get_column_letter
 
-from cities.models import CityData, TableNames, CounterCities, CityInfoDO
-
 
 @admin.action(description="Экспортировать связанные CityData в Excel")
 def export_citydata_to_excel(modeladmin, request, queryset):
-    """"Экспорт раздела таблицы с городами"""
+    """ "Экспорт раздела таблицы с городами"""
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "CityData Export"
 
     # Заголовки столбцов
     headers = [
-        "Table Name", "ID", "Dock Num", "Location", "Name Organ",
-        "Pseudonim", "Letters", "Writing", "IP Address", "Some Number", "Work Time"
+        "Table Name",
+        "ID",
+        "Dock Num",
+        "Location",
+        "Name Organ",
+        "Pseudonim",
+        "Letters",
+        "Writing",
+        "IP Address",
+        "Some Number",
+        "Work Time",
     ]
     ws.append(headers)
 
@@ -42,10 +51,8 @@ def export_citydata_to_excel(modeladmin, request, queryset):
     # Подогнать ширину столбцов по содержимому
     for col_num, column_title in enumerate(headers, 1):
         column_letter = get_column_letter(col_num)
-        max_length = max(
-            len(str(cell.value)) for cell in ws[column_letter]
-        )
-        adjusted_width = (max_length + 2)
+        max_length = max(len(str(cell.value)) for cell in ws[column_letter])
+        adjusted_width = max_length + 2
         ws.column_dimensions[column_letter].width = adjusted_width
 
     # Создаем HTTP ответ с Excel файлом
@@ -75,9 +82,7 @@ def clear_citydata_fields(modeladmin, request, queryset):
         updated_count += 1
 
     modeladmin.message_user(
-        request,
-        f"Очищено записей: {updated_count}",
-        level=messages.SUCCESS
+        request, f"Очищено записей: {updated_count}", level=messages.SUCCESS
     )
 
 
@@ -172,8 +177,10 @@ class CityDataAdmin(admin.ModelAdmin):
     search_fields: Tuple[str] = ("location", "name_organ", "pseudonim")
     list_display_links: Tuple[str] = "id", "location"
     list_filter: Tuple[str] = ("processed_at", "table_id")
-    actions = [clear_citydata_fields, ]
-    inlines = [CityInfoDOInline,CounterCitiesInline]
+    actions = [
+        clear_citydata_fields,
+    ]
+    inlines = [CityInfoDOInline, CounterCitiesInline]
 
 
 @admin.register(CounterCities)

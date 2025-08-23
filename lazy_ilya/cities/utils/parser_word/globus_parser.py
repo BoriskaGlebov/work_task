@@ -1,10 +1,6 @@
-import asyncio
 import os
-import time
-from pathlib import Path
 
-from django.urls import reverse
-from docx.table import _Cell, Table
+from docx.table import Table, _Cell
 
 from lazy_ilya.settings import MEDIA_ROOT
 
@@ -17,25 +13,19 @@ django.setup()
 # import asyncio
 
 import re
-from pprint import pprint
-from queue import Queue
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from django.db.models import Q, QuerySet
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+from cities.models import CityData, TableNames
+from django.db.models import Q
+from docx import Document
 from docx.enum.section import WD_ORIENT
 from docx.enum.style import WD_STYLE_TYPE
 from docx.enum.table import WD_ALIGN_VERTICAL
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
 from docx.oxml.ns import qn
 from docx.shared import Inches, Pt, RGBColor
-from docx.text.font import Font
-
-from cities.models import TableNames, CityData
-
-from typing import Any, Callable, Dict, List, Optional, Tuple
-
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
-from docx import Document
 
 from lazy_ilya.utils.settings_for_app import ProjectSettings, logger
 
@@ -140,7 +130,7 @@ class GlobusParser:
 
     @classmethod
     def _process_paragraphs(
-            cls, paragraphs: List[Any]
+        cls, paragraphs: List[Any]
     ) -> Tuple[List["TableNames"], List["TableNames"], List["TableNames"]]:
         """
         Обрабатывает список параграфов, выделяя из них разделы и соответствующие таблицы.
@@ -192,10 +182,10 @@ class GlobusParser:
 
     @classmethod
     def _sync_tables(
-            cls,
-            processed_tables: List["TableNames"],
-            tables_to_add: List["TableNames"],
-            tables_to_update: List["TableNames"],
+        cls,
+        processed_tables: List["TableNames"],
+        tables_to_add: List["TableNames"],
+        tables_to_update: List["TableNames"],
     ) -> None:
         """
         Синхронизирует таблицы с базой данных: добавляет новые, обновляет изменённые и удаляет устаревшие.
@@ -233,7 +223,7 @@ class GlobusParser:
 
     @classmethod
     def _process_tables_with_rows(
-            cls, tables: List[Any], tables_id: List["TableNames"]
+        cls, tables: List[Any], tables_id: List["TableNames"]
     ) -> None:
         """
         Обрабатывает строки таблиц из документа, синхронизирует данные с базой.
@@ -268,9 +258,11 @@ class GlobusParser:
             progress = int((num / len(tables)) * 100)
             logger.info(f"Отправка прогресса: {progress}%")
             async_to_sync(channel_layer.group_send)(
-                "progress_updates", {"type": "send_progress", "progress":
-                    {"percent": progress,
-                     "source": "upload"}}
+                "progress_updates",
+                {
+                    "type": "send_progress",
+                    "progress": {"percent": progress, "source": "upload"},
+                },
             )
             for row_num, row in enumerate(doc_table.rows[3:]):
                 # cells = [cell.text.strip().replace("\n", "<br>") for cell in row.cells]
@@ -313,10 +305,10 @@ class GlobusParser:
 
     @classmethod
     def _sync_city_data(
-            cls,
-            cities_to_add: List["CityData"],
-            cities_to_update: List["CityData"],
-            processed_cities: List["CityData"],
+        cls,
+        cities_to_add: List["CityData"],
+        cities_to_update: List["CityData"],
+        processed_cities: List["CityData"],
     ) -> None:
         """
         Синхронизирует записи городов с базой: добавляет новые, обновляет существующие и удаляет устаревшие.
@@ -388,8 +380,11 @@ class GlobusParser:
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             "progress_updates",
-            {"type": "send_progress", "progress": {"percent": 100,
-                                                   "source": "upload"}, "cities": updated_cities},
+            {
+                "type": "send_progress",
+                "progress": {"percent": 100, "source": "upload"},
+                "cities": updated_cities,
+            },
         )
         logger.info(f"Отправка прогресса: 100%")
 
@@ -563,11 +558,11 @@ class GlobusParser:
 
     @classmethod
     def _send_progress_update(
-            cls,
-            send_progress: Optional[Callable[[int, str], None]],
-            current: int,
-            total: int,
-            filename:str|None
+        cls,
+        send_progress: Optional[Callable[[int, str], None]],
+        current: int,
+        total: int,
+        filename: str | None,
     ) -> None:
         """
         Вычисляет процент прогресса и вызывает функцию отправки прогресса, если она передана.
@@ -582,10 +577,12 @@ class GlobusParser:
         progress = int((current / total) * 100)
         logger.info(f"Прогресс создания документа: {progress}%")
         if send_progress:
-            send_progress(progress, group_name,filename)
+            send_progress(progress, group_name, filename)
 
     @classmethod
-    def send_progress_ws(cls, progress_percent: int, group_name: str, filename: str | None) -> None:
+    def send_progress_ws(
+        cls, progress_percent: int, group_name: str, filename: str | None
+    ) -> None:
         """
         Отправляет сообщение с прогрессом в указанную группу WebSocket.
 
@@ -599,21 +596,18 @@ class GlobusParser:
             "type": "send_progress",  # вызовет метод send_progress в consumer
             "progress": {
                 "percent": progress_percent,
-                "source": "download"  # или "upload"
-            }
+                "source": "download",  # или "upload"
+            },
         }
         if progress_percent >= 100:
             message["progress"]["download_url"] = f"media/{filename}/"
-        async_to_sync(channel_layer.group_send)(
-            group_name, message
-
-        )
+        async_to_sync(channel_layer.group_send)(group_name, message)
 
     @classmethod
     def create_globus(
-            cls,
-            filename: str = "globus_new.docx",
-            send_progress: Optional[Callable[[int, str], None]] = None,
+        cls,
+        filename: str = "globus_new.docx",
+        send_progress: Optional[Callable[[int, str], None]] = None,
     ) -> None:
         """
         Создает Word документ и отправляет прогресс в WebSocket группу.
@@ -658,15 +652,14 @@ class GlobusParser:
             cls._fill_table_headers(table)
             cls._fill_table_data(table, table_data)
             document.add_page_break()
-            if num==len(tables_name)-1:
+            if num == len(tables_name) - 1:
                 if not MEDIA_ROOT.exists():
                     MEDIA_ROOT.mkdir()
                 document.save(MEDIA_ROOT / filename)
             # Отправляем прогресс после обработки каждой таблицы
-            cls._send_progress_update(send_progress, num + 1, len(tables_name),filename)
-
-
-
+            cls._send_progress_update(
+                send_progress, num + 1, len(tables_name), filename
+            )
 
 
 if __name__ == "__main__":

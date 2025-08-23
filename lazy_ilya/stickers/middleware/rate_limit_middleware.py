@@ -1,4 +1,5 @@
 import time
+
 from django.core.cache import cache
 from django.http import JsonResponse
 from django.urls import reverse
@@ -15,7 +16,10 @@ class SimpleRateLimitMiddleware:
         self.get_response = get_response
         self.max_requests = 5  # максимум запросов
         self.window_seconds = 60  # окно в 60 секунд
-        self.limited_path = [reverse("stickers:tasks"),reverse("stickers:stickers")]  # путь ручки, которую ограничиваем
+        self.limited_path = [
+            reverse("stickers:tasks"),
+            reverse("stickers:stickers"),
+        ]  # путь ручки, которую ограничиваем
 
     def __call__(self, request):
         if request.method == "POST" and request.path in self.limited_path:

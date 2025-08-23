@@ -1,14 +1,11 @@
-from django.contrib import admin
-
 # Register your models here.
 # admin.py
 from django.contrib import admin
-from django.db import models
-from django.db.models import Prefetch, Case, When, Value, IntegerField, Count
+from django.db.models import Case, Count, IntegerField, Prefetch, Value, When
 from django.utils.html import format_html
 
-from .models import StickyNote, Tag, Task, StickyNoteVisibility
 from .forms import StickyNoteForm
+from .models import StickyNote, StickyNoteVisibility, Tag, Task
 
 
 @admin.register(StickyNote)
@@ -53,7 +50,9 @@ class StickyNoteAdmin(admin.ModelAdmin):
         """
         Показывает пользователей, для которых заметка скрыта (удалена).
         """
-        deleted_visibilities = obj.visibilities.filter(is_visible=False).select_related("user")
+        deleted_visibilities = obj.visibilities.filter(is_visible=False).select_related(
+            "user"
+        )
 
         if not deleted_visibilities.exists():
             return "Удалений нет"
@@ -72,7 +71,10 @@ class StickyNoteAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {"fields": ("owner", "text", "color", "author_name")}),
         ("Позиционирование", {"fields": ("width", "height", "order")}),
-        ("Информация о видимости", {"fields": ("deleted_for_users_display",)}),  # новое поле
+        (
+            "Информация о видимости",
+            {"fields": ("deleted_for_users_display",)},
+        ),  # новое поле
         ("Системные поля", {"fields": ("created_at", "updated_at")}),
     )
 
@@ -85,7 +87,7 @@ class StickyNoteAdmin(admin.ModelAdmin):
     short_text.short_description = "Текст"
 
     def visible_to_admin(self, obj: StickyNote) -> str:
-        user = getattr(self.request, 'user', None)
+        user = getattr(self.request, "user", None)
         if not user or user.is_anonymous:
             return "Неизвестно"
 
@@ -109,8 +111,10 @@ class StickyNoteAdmin(admin.ModelAdmin):
             ),
             Prefetch(
                 "visibilities",
-                queryset=StickyNoteVisibility.objects.filter(user=request.user),  # <-- для visible_to_admin
-                to_attr="visibilities_for_admin"
+                queryset=StickyNoteVisibility.objects.filter(
+                    user=request.user
+                ),  # <-- для visible_to_admin
+                to_attr="visibilities_for_admin",
             ),
         )
 
@@ -230,7 +234,7 @@ class TaskAdmin(admin.ModelAdmin):
                 When(priority="medium", then=Value(2)),
                 When(priority="low", then=Value(1)),
                 default=Value(0),
-                output_field=IntegerField()
+                output_field=IntegerField(),
             )
         )
 
@@ -266,7 +270,8 @@ class TaskAdmin(admin.ModelAdmin):
 
 @admin.register(StickyNoteVisibility)
 class StickyNoteVisibilityAdmin(admin.ModelAdmin):
-    list_display = ("sticky_note",
-                    "user",
-                    "is_visible",
-                    )
+    list_display = (
+        "sticky_note",
+        "user",
+        "is_visible",
+    )

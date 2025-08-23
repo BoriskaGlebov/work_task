@@ -2,11 +2,11 @@ from typing import Any, Dict
 
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from django.forms import ModelForm, Form
 from phonenumber_field.formfields import PhoneNumberField
 
-from .models import CustomUser
 from lazy_ilya.utils.settings_for_app import settings
+
+from .models import CustomUser
 
 
 class CustomUserCreationForm(UserCreationForm):

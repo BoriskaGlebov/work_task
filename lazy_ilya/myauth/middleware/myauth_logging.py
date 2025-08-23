@@ -1,8 +1,9 @@
 import json
-from django.http import HttpResponse
-from django.contrib.auth.views import LoginView
-from lazy_ilya.utils.settings_for_app import logger
 from typing import Callable
+
+from django.http import HttpResponse
+
+from lazy_ilya.utils.settings_for_app import logger
 
 
 class UserActionLoggingMiddleware:

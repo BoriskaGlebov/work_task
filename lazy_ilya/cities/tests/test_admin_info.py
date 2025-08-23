@@ -1,11 +1,9 @@
-from django.test import TestCase, Client
-from django.urls import reverse
-from django.contrib.auth.models import User, Group
-from unittest.mock import patch
-
 import json
 
 from cities.models import CityData, TableNames
+from django.contrib.auth.models import Group
+from django.test import Client, TestCase
+from django.urls import reverse
 from myauth.models import CustomUser
 
 
