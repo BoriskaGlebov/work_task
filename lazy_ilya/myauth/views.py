@@ -1,5 +1,3 @@
-from typing import cast
-
 from django.contrib.auth import login
 from django.contrib.auth.models import Group
 from django.contrib.auth.views import LoginView
@@ -38,6 +36,7 @@ class LoginAjaxView(LoginView):
             HttpResponse | JsonResponse: Ответ с ошибками или обычный ответ.
         """
         if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            # noinspection PyUnresolvedReferences
             errors = form.errors.get_json_data()
             return JsonResponse({"success": False, "errors": errors}, status=400)
         return super().form_invalid(form)
@@ -79,7 +78,7 @@ class RegisterView(CreateView):
     template_name = "myauth/registration.html"
     success_url = reverse_lazy("file_creator:file-creator-start")
 
-    def form_valid(self, form) -> JsonResponse:
+    def form_valid(self, form) -> JsonResponse|HttpResponse:
         """
         Обработка валидной формы регистрации.
 
@@ -103,7 +102,7 @@ class RegisterView(CreateView):
             )
         return response
 
-    def form_invalid(self, form) -> JsonResponse:
+    def form_invalid(self, form) -> JsonResponse|HttpResponse:
         """
         Обработка невалидной формы.
 
