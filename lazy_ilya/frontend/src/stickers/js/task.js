@@ -776,9 +776,19 @@ export class KanbanTasks {
                     card.remove();
                 }
                 if (this.tasks[id]) {
-                    delete this.tasks[id];
+                    this.tasks[id].deleted=true;
                 }
                 this.showSuccessMessage('Задача успешно удалена');
+                setTimeout(() => {
+                    this.taskFilterInstance.applyFilters();
+                    // this.taskFilterInstance.populateTagOptions(tagsVal);
+                    // ✅ Обновляем данные задач в TaskCounter
+                    this.taskCounterInstance.tasks = Object.values(this.tasks);
+
+                    // ✅ Пересчитываем срочные задачи и обновляем счетчик
+                    this.taskCounterInstance.findUrgentTasks();
+                    this.taskCounterInstance.updateCounter();
+                }, 100);
 
             } else {
                 const errorText = await response.text();
@@ -1357,6 +1367,7 @@ export class TaskCounter {
     findUrgentTasks() {
         this.urgentTasks = this.tasks.filter(task => {
             if (!task.deadline) return false;
+            if (task.deleted || task.done) return false; // фильтр на удалённые/выполненные
             const deadline = new Date(task.deadline);
             const diffHours = (deadline - this.now) / (1000 * 60 * 60);
             return diffHours < 24; // меньше суток или просрочено

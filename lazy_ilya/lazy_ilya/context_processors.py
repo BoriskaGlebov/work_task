@@ -2,6 +2,8 @@ from typing import Dict
 
 from django.http import HttpRequest
 
+from lazy_ilya import settings
+
 
 def vite_mode(request: HttpRequest) -> Dict[str, bool]:
     """
