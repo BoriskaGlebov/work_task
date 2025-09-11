@@ -1351,7 +1351,7 @@ export class TaskFilter {
             cb.addEventListener('change', () => {
                 this.filters.tags = this.tagCheckboxes
                     .filter(ch => ch.checked)
-                    .map(ch => ch.value.toLowerCase());
+                    .map(ch => ch.value);// сохраняем оригинальный регистр
                 this.applyFilters();
             });
         });
@@ -1397,7 +1397,7 @@ export class TaskFilter {
         if (Array.isArray(task.tags)) taskTags = task.tags.map(t => (typeof t === 'string' ? t : t.name)?.toLowerCase());
         else if (typeof task.tags === 'string') taskTags = task.tags.split(',').map(t => t.trim().toLowerCase());
 
-        if (tags.length && !tags.every(t => taskTags.includes(t))) return false;
+        if (tags.length && !tags.every(t => taskTags.includes(t.toLowerCase()))) return false;
 
         const done = !!task.done;
         const deleted = !!task.deleted;
@@ -1443,7 +1443,7 @@ export class TaskFilter {
 
             setTimeout(() => {
                 this.tagCheckboxes?.forEach(cb => {
-                    cb.checked = parsed.tags?.includes(cb.value.toLowerCase());
+                    cb.checked = parsed.tags?.includes(cb.value);
                 });
                 this.applyFilters();
             }, 0);
