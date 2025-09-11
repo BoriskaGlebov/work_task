@@ -18,6 +18,7 @@ export class KanbanTasks {
      */
     constructor({addButtonId, boardId, modalId}) {
         this.tasks = {};  // храним задачи в объекте {id: taskData}
+        this.filteredTaskCache = []
         this.addTaskBtn = document.getElementById(addButtonId);
         this.taskBoard = document.getElementById(boardId);
         this.taskModal = document.getElementById(modalId);
@@ -27,6 +28,8 @@ export class KanbanTasks {
         this.csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
         this.currentEditId = null; // id задачи в редактировании, null если новая
+        this.PAGE_SIZE = 20; // Количество задач для ленивой загрузки за раз
+        this.loadedCount = 0;
 
         // Открыть модалку при добавлении
         this.addTaskBtn.addEventListener('click', () => this.openModal());
@@ -45,12 +48,6 @@ export class KanbanTasks {
         if (!select) {
             throw new Error('Select с name="tags" не найден в форме');
         }
-        // this.taskModal.addEventListener('click', (e) => {
-        //     if (!this.taskForm.contains(e.target)) {
-        //         this.taskModal.classList.add('hidden');
-        //     }
-        // });
-
         this.tagsSelect = new Choices(select, {
             removeItemButton: true,
             duplicateItemsAllowed: false,
@@ -123,6 +120,40 @@ export class KanbanTasks {
         this.taskCounterInstance = taskCounterINstance;
     }
 
+    getFilteredAndSortedTasks() {
+        let arr = Object.entries(this.tasks); // [id, task]
+
+        // фильтрация
+        if (this.taskFilterInstance) {
+            arr = arr.filter(([id, task]) => this.taskFilterInstance.isTaskPassingFilters(task));
+        }
+
+        // сортировка
+        arr.sort(([, a], [, b]) => {
+            const keyA = this.getTaskSortKey(a);
+            const keyB = this.getTaskSortKey(b);
+            for (let i = 0; i < keyA.length; i++) {
+                if (keyA[i] !== keyB[i]) return keyA[i] - keyB[i];
+            }
+            return 0;
+        });
+
+        return arr; // вернём массив [id, task]
+    }
+
+    // Ленивый рендер
+    renderNextTasks() {
+        if (!this.filteredTaskCache) return;
+
+        let rendered = 0;
+        while (this.loadedCount < this.filteredTaskCache.length && rendered < this.PAGE_SIZE) {
+            const [id, task] = this.filteredTaskCache[this.loadedCount];
+            this.loadedCount++;
+            this.renderTaskCard(id, task);
+            rendered++;
+        }
+    }
+
     ensureScrollFilled() {
         let iterations = 0;
         const MAX_ITERATIONS = 10;
@@ -163,56 +194,31 @@ export class KanbanTasks {
      *   @property {string} author - Автор задачи.
      */
     loadTasksFromBackend(tasksArray) {
-        this.allTaskIds = []; // список id в порядке получения
-
         tasksArray.forEach(task => {
             const id = task.id;
-
-            // Сохраняем задачу в локальном объекте tasks
             this.tasks[id] = {
                 title: task.title,
                 desc: task.desc,
                 deadline: task.deadline,
                 priority: task.priority,
                 assignee: task.assignee,
-                tags: task.tags.map(tag => tag.name).join(','),  // Преобразуем массив тегов в строку через запятую
+                tags: task.tags.map(tag => tag.name).join(','),
                 done: task.done,
-                createdAt: task.created_at,  // Можно преобразовать в Date: new Date(task.created_at)
-                author: task.author,         // Добавлен автор задачи
-                deleted: task.deleted || false,        // Добавляем поле deleted, по умолчанию false
-                deleted_by: task.deleted_by || null,   // Кто удалил, если есть
+                createdAt: task.created_at,
+                author: task.author,
+                deleted: task.deleted || false,
+                deleted_by: task.deleted_by || null,
             };
-            // Отрисовываем карточку задачи в интерфейсе
-            // this.renderTaskCard(id, this.tasks[id]);
-            this.allTaskIds.push(id);
-
         });
 
-        this.PAGE_SIZE = 3;
-        this.loadedCount = 0;
 
-
-        this.renderNextTasks(); // первая порция
+        this.filteredTaskCache = this.getFilteredAndSortedTasks();
+        this.renderNextTasks();
         this.ensureScrollFilled();
 
         if (this.taskBoard && !this._scrollBound) {
             window.addEventListener('scroll', () => this.onScroll());
-            this._scrollBound = true; // защита от повторного бинда
-        }
-    }
-
-
-    renderNextTasks() {
-        let rendered = 0;
-        while (this.loadedCount < this.allTaskIds.length && rendered < this.PAGE_SIZE) {
-            const id = this.allTaskIds[this.loadedCount];
-            const task = this.tasks[id];
-            this.loadedCount++;
-
-            if (!this.taskFilterInstance || this.taskFilterInstance.isTaskPassingFilters(task)) {
-                this.renderTaskCard(id, task);
-                rendered++;
-            }
+            this._scrollBound = true;
         }
     }
 
@@ -222,13 +228,8 @@ export class KanbanTasks {
         const windowHeight = window.innerHeight;
         const fullHeight = document.documentElement.scrollHeight;
 
-        const nearBottom = scrollTop + windowHeight >= fullHeight - 100;  // 100px до низа
-
-
-        if (nearBottom && this.loadedCount < this.allTaskIds.length) {
-            console.log("Loading more tasks...");
+        if (scrollTop + windowHeight >= fullHeight - 100 && this.loadedCount < this.filteredTaskCache.length) {
             this.renderNextTasks();
-
         }
     }
 
@@ -245,35 +246,36 @@ export class KanbanTasks {
         }
     }
 
+    setSortOrder(order) {
+        // order = 'asc' | 'desc'
+        this.dateOrder = order;
+    }
+
     getTaskSortKey(task) {
-        return [
-            task.deleted ? 1 : 0,
-            task.done ? 1 : 0,
-            this.getPriorityOrder(task.priority),
-            task.deadline ? new Date(task.deadline).getTime() : Infinity
-        ];
+    let hasDeadline = !!task.deadline;
+    let deadlineTime = hasDeadline ? new Date(task.deadline).getTime() : 0;
+
+    // если убывание, инвертируем только реальные даты
+    if (hasDeadline && this.dateOrder === 'desc') {
+        deadlineTime = -deadlineTime;
     }
 
-    sortTaskIdsByBackendLogic() {
-        this.allTaskIds.sort((a, b) => {
-            const taskA = this.tasks[a];
-            const taskB = this.tasks[b];
-            const keyA = this.getTaskSortKey(taskA);
-            const keyB = this.getTaskSortKey(taskB);
-
-            for (let i = 0; i < keyA.length; i++) {
-                if (keyA[i] !== keyB[i]) return keyA[i] - keyB[i];
-            }
-            return 0;
-        });
-    }
+    return [
+        task.deleted ? 1 : 0,
+        task.done ? 1 : 0,
+        hasDeadline ? 0 : 1,      // задачи без дедлайна идут после
+        deadlineTime,
+        this.getPriorityOrder(task.priority),
+    ];
+}
 
 
+    // 🔹 Сброс и повторная отрисовка после изменения данных
     resetAndRender() {
-        this.sortTaskIdsByBackendLogic();
+        this.taskBoard.innerHTML = '';
         this.loadedCount = 0;
-        this.taskBoard.innerHTML = '';  // Очищаем контейнер от всех карточек
-        this.renderNextTasks();         // Запускаем ленивую отрисовку с нуля, с фильтрами
+        this.filteredTaskCache = this.getFilteredAndSortedTasks();
+        this.renderNextTasks();
     }
 
     /**
@@ -727,15 +729,13 @@ export class KanbanTasks {
 
             if (isUpdate) {
                 this.tasks[this.currentEditId] = result;
-                this.sortTaskIdsByBackendLogic();      // Переупорядочить
-                this.renderTaskCard(this.currentEditId, result, true);
+                // this.renderTaskCard(this.currentEditId, result, true);
                 // this.showSuccessMessage(`Задача успешно обновлена ${result.id}`);
             } else {
                 const id = result.id;
                 this.tasks[id] = result;
                 // Добавляем ID в начало или в конец массива, в зависимости от логики
-                this.allTaskIds.unshift(id);
-                this.sortTaskIdsByBackendLogic();      // Сортируем по бэку
+
                 // this.renderTaskCard(id, result);
                 this.showSuccessMessage(`Задача успешно создана ${result.id}`);
             }
@@ -776,7 +776,7 @@ export class KanbanTasks {
                     card.remove();
                 }
                 if (this.tasks[id]) {
-                    this.tasks[id].deleted=true;
+                    this.tasks[id].deleted = true;
                 }
                 this.showSuccessMessage('Задача успешно удалена');
                 setTimeout(() => {
@@ -955,201 +955,515 @@ export class KanbanTasks {
  * Класс TaskFilter реализует фильтрацию карточек задач по множеству критериев:
  * назначенный пользователь, приоритет, срок выполнения, статус выполнения и теги.
  */
-export class TaskFilter {
-    /**
-     * @param {Object} config - Конфигурация фильтрации.
-     * @param {string} config.tasksContainerId - ID контейнера с карточками задач.
-     */
-    constructor({tasksContainerId}) {
-        /** @type {HTMLElement} */
-        this.container = document.getElementById(tasksContainerId);
-        /** @type {HTMLElement[]} */
-        this.cards = Array.from(this.container.querySelectorAll('.task-card'));
+// export class TaskFilter {
+//     /**
+//      * @param {Object} config - Конфигурация фильтрации.
+//      * @param {string} config.tasksContainerId - ID контейнера с карточками задач.
+//      */
+//     constructor({tasksContainerId}) {
+//         /** @type {HTMLElement} */
+//         this.container = document.getElementById(tasksContainerId);
+//         /** @type {HTMLElement[]} */
+//         this.cards = Array.from(this.container.querySelectorAll('.task-card'));
+//
+//         /** @type {Object<string, HTMLSelectElement>} */
+//         this.filters = {
+//             assignee: document.getElementById('filter-assignee'),
+//             priority: document.getElementById('filter-priority'),
+//             date: document.getElementById('filter-deadline'),
+//             status: document.getElementById('filter-status'), // '' | 'true' | 'false'
+//
+//         };
+//         console.log(this.filters)
+//
+//         /** @type {HTMLElement} */
+//         this.tagContainer = document.querySelector('#dropdownMenu .p-2');
+//         /** @type {HTMLElement} */
+//         this.dropdownToggle = document.getElementById('dropdownToggle');
+//         /** @type {HTMLElement} */
+//         this.dropdownMenu = document.getElementById('dropdownMenu');
+//
+//         this.populateAssigneeOptions();
+//         this.populateTagOptions();
+//         this.attachEvents();
+//         this.initTagDropdown();
+//         this.restoreFiltersFromStorage(currentUserId); // <--- ДОБАВЛЕНО
+//
+//     }
+//
+//     setKanbanTasksInstance(KanbanTasksInstance) {
+//         this.kanbanTasksInstance = KanbanTasksInstance;
+//     }
+//
+//     /**
+//      * Заполняет селектор с пользователями, основываясь на данных из `window.username_data`.
+//      */
+//     populateAssigneeOptions() {
+//         const assigneeSelect = this.filters.assignee;
+//         if (!assigneeSelect || !window.username_data) return;
+//
+//         while (assigneeSelect.options.length > 1) {
+//             assigneeSelect.remove(1);
+//         }
+//
+//         window.username_data.forEach(user => {
+//             const option = document.createElement('option');
+//             option.value = user.username;
+//
+//             const nameParts = [];
+//             if (user.first_name?.trim()) nameParts.push(user.first_name.trim());
+//             if (user.last_name?.trim()) nameParts.push(user.last_name.trim());
+//
+//             option.textContent = nameParts.length > 0
+//                 ? nameParts.join(' ')
+//                 : user.username;
+//
+//             assigneeSelect.appendChild(option);
+//         });
+//     }
+//
+//     /**
+//      * Заполняет выпадающий список тегов из `window.tags_list`.
+//      */
+//     populateTagOptions(tagsVal = []) {
+//         if (!this.tagContainer || !window.tags_list) return;
+//         // Получить имена существующих тегов
+//         const existingTagNames = window.tags_list.map(tag => tag.name);
+//
+//         // Добавить новые теги в window.tags_list, если их ещё нет
+//         tagsVal.forEach(tagName => {
+//             if (!existingTagNames.includes(tagName)) {
+//                 const maxId = window.tags_list.reduce((max, tag) => Math.max(max, tag.id), 0);
+//                 const newTag = {
+//                     id: maxId + 1, // временный ID
+//                     name: tagName
+//                 };
+//                 window.tags_list.push(newTag);
+//             }
+//         });
+//
+//         // Повторно собрать имена всех тегов
+//         const allTags = window.tags_list.map(tag => tag.name);
+//
+//         // Очистить контейнер перед созданием новых чекбоксов
+//         this.tagContainer.innerHTML = '';
+//
+//         allTags.forEach(tag => {
+//             const label = document.createElement('label');
+//             label.className = 'correct_label flex items-center space-x-2 mb-3';
+//
+//             const checkbox = document.createElement('input');
+//
+//             checkbox.type = 'checkbox';
+//             checkbox.value = tag;
+//             checkbox.className = 'tag-checkbox correct_icon rounded-full text-xl';
+//
+//             // Отметить чекбокс, если он есть в tagsVal
+//             if (tagsVal.includes(tag)) {
+//                 checkbox.checked = false;
+//             }
+//
+//             const span = document.createElement('span');
+//             span.textContent = tag;
+//
+//             label.appendChild(checkbox);
+//             label.appendChild(span);
+//             this.tagContainer.appendChild(label);
+//         });
+//
+//         this.tagCheckboxes = Array.from(this.tagContainer.querySelectorAll('.tag-checkbox'));
+//         this.tagCheckboxes.forEach(cb =>
+//             cb.addEventListener('change', () => this.applyFilters())
+//         );
+//     }
+//
+//
+//     /**
+//      * Назначает обработчики событий на элементы фильтров и чекбоксы тегов.
+//      */
+//     attachEvents() {
+//         Object.values(this.filters).forEach(filter =>
+//             filter?.addEventListener('change', () => this.applyFilters())
+//         );
+//
+//         this.tagCheckboxes?.forEach(cb =>
+//             cb.addEventListener('change', () => {
+//                 this.filters.tags = this.getSelectedTags(); // обновляем фильтры
+//                 this.applyFilters();
+//             })
+//         );
+//
+//         const clearBtn = document.getElementById('clear-filters');
+//         if (clearBtn) {
+//             clearBtn.addEventListener('click', () => {
+//                 Object.values(this.filters).forEach(filter => {
+//                     if (filter) filter.value = '';
+//                 });
+//
+//                 this.tagCheckboxes.forEach(cb => cb.checked = false);
+//                 localStorage.removeItem('taskFilters');  // <--- ДОБАВЬ ЭТО
+//                 this.applyFilters();
+//             });
+//         }
+//     }
+//
+//     /**
+//      * Получает список выбранных тегов в нижнем регистре.
+//      * @returns {string[]}
+//      */
+//     getSelectedTags() {
+//         return this.tagCheckboxes
+//             .filter(cb => cb.checked)
+//             .map(cb => cb.value.toLowerCase());
+//     }
+//
+//     /**
+//      * Сохранение данных для фильтрации в локальное хранилище
+//      */
+//     saveFiltersToStorage(userId) {
+//         if (!userId) return; // обязательно нужен идентификатор пользователя
+//
+//         const filtersState = {
+//             assignee: this.filters.assignee?.value || '',
+//             priority: this.filters.priority?.value || '',
+//             date: this.filters.date?.value || '',
+//             status: this.filters.status?.value || '',
+//             tags: this.getSelectedTags()
+//         };
+//
+//         const key = `taskFilters_${userId}`;
+//         localStorage.setItem(key, JSON.stringify(filtersState));
+//     }
+//
+//     restoreFiltersFromStorage(userId) {
+//         if (!userId) return;
+//
+//         const key = `taskFilters_${userId}`;
+//         const saved = localStorage.getItem(key);
+//         if (!saved) return;
+//
+//         try {
+//             const {assignee, priority, date, status, tags} = JSON.parse(saved);
+//
+//             if (this.filters.assignee) this.filters.assignee.value = assignee;
+//             if (this.filters.priority) this.filters.priority.value = priority;
+//             if (this.filters.date) this.filters.date.value = date;
+//             if (this.filters.status) this.filters.status.value = status;
+//
+//             this.populateTagOptions(tags || []);
+//
+//             setTimeout(() => {
+//                 this.tagCheckboxes?.forEach(cb => {
+//                     cb.checked = tags.includes(cb.value.toLowerCase());
+//                 });
+//                 this.applyFilters();
+//             }, 0);
+//         } catch (e) {
+//             console.error('Ошибка восстановления фильтров:', e);
+//         }
+//     }
+//
+//
+//     isTaskPassingFilters(task) {
+//         const {assignee, priority, status, tags} = this.filters;
+//
+//         const matchAssignee = !assignee || (task.assignee?.toLowerCase() === assignee);
+//         const matchPriority = !priority || (task.priority?.toLowerCase() === priority);
+//
+//         let taskTags = [];
+//         if (Array.isArray(task.tags)) {
+//             taskTags = task.tags.map(tag => (typeof tag === 'string' ? tag : tag.name)?.toLowerCase()).filter(Boolean);
+//         } else if (typeof task.tags === 'string') {
+//             taskTags = task.tags.split(',').map(t => t.trim().toLowerCase());
+//         }
+//
+//         const matchTags = !tags.length || tags.every(t => taskTags.includes(t));
+//
+//         let matchStatus = false;
+//         const taskDone = !!task.done;
+//         const taskDeleted = !!task.deleted;
+//
+//         if (status === 'deleted') {
+//             matchStatus = taskDeleted;
+//         } else if (!assignee && !priority && !tags.length && !status) {
+//             matchStatus = true;
+//         } else {
+//             if (taskDeleted) return false;
+//             if (!status) matchStatus = true;
+//             else if (status === 'true') matchStatus = taskDone;
+//             else if (status === 'false') matchStatus = !taskDone;
+//         }
+//
+//         return matchAssignee && matchPriority && matchTags && matchStatus;
+//     }
+//
+//     applyFilters() {
+//         if (!this.kanbanTasksInstance) return;
+//
+//         // Получаем отфильтрованные задачи
+//         const filteredTasks = Object.values(this.kanbanTasksInstance.tasks || {})
+//             .filter(task => this.isTaskPassingFilters(task));
+//
+//         // Сортировка по дате или приоритету
+//         const dateOrder = this.filters.date; // 'asc' | 'desc'
+//         filteredTasks.sort((a, b) => {
+//             if (dateOrder === 'asc' || dateOrder === 'desc') {
+//                 const dateA = new Date(a.deadline);
+//                 const dateB = new Date(b.deadline);
+//                 if (isNaN(dateA)) return 1;
+//                 if (isNaN(dateB)) return -1;
+//                 return dateOrder === 'asc' ? dateA - dateB : dateB - dateA;
+//             } else {
+//                 const priorityOrder = {high: 1, medium: 2, low: 3};
+//                 const prioA = priorityOrder[a.priority?.toLowerCase()] || 99;
+//                 const prioB = priorityOrder[b.priority?.toLowerCase()] || 99;
+//                 if (prioA !== prioB) return prioA - prioB;
+//
+//                 const dateA = new Date(a.deadline);
+//                 const dateB = new Date(b.deadline);
+//                 if (isNaN(dateA)) return 1;
+//                 if (isNaN(dateB)) return -1;
+//                 return dateA - dateB;
+//             }
+//             this.saveFiltersToStorage(currentUserId); // <--- ДОБАВЛЕНО
+//         });
+//
+//         // Выполненные задачи вниз
+//         filteredTasks.sort((a, b) => (a.done && !b.done ? 1 : !a.done && b.done ? -1 : 0));
+//
+//         // Удаленные вниз, если нет других фильтров
+//         const otherFiltersActive = !!(this.filters.assignee || this.filters.priority || this.filters.tags.length || this.filters.status);
+//         if (!otherFiltersActive) {
+//             filteredTasks.sort((a, b) => (a.deleted && !b.deleted ? 1 : !a.deleted && b.deleted ? -1 : 0));
+//         }
+//
+//         // Рендерим через KanbanTasksInstance
+//         this.kanbanTasksInstance.resetAndRender(filteredTasks);
+//     }
+//
+//
+//     /**
+//      * Инициализирует поведение выпадающего меню тегов.
+//      */
+//     initTagDropdown() {
+//         if (!this.dropdownToggle || !this.dropdownMenu) return;
+//
+//         this.dropdownToggle.addEventListener('click', (e) => {
+//             e.stopPropagation();
+//             this.dropdownMenu.classList.toggle('hidden');
+//         });
+//
+//         document.addEventListener('click', (e) => {
+//             if (!this.dropdownMenu.contains(e.target) && !this.dropdownToggle.contains(e.target)) {
+//                 this.dropdownMenu.classList.add('hidden');
+//             }
+//         });
+//     }
+// }
 
-        /** @type {Object<string, HTMLSelectElement>} */
+
+export class TaskFilter {
+    constructor({tasksContainerId}) {
+        this.container = document.getElementById(tasksContainerId);
+
+        /** Хранение текущих значений фильтров */
         this.filters = {
-            assignee: document.getElementById('filter-assignee'),
-            priority: document.getElementById('filter-priority'),
-            date: document.getElementById('filter-deadline'),
-            status: document.getElementById('filter-status'), // '' | 'true' | 'false'
+            assignee: '',
+            priority: '',
+            date: '',       // 'asc' | 'desc'
+            status: '',     // '' | 'true' | 'false' | 'deleted'
+            tags: []        // массив выбранных тегов в нижнем регистре
         };
 
-        /** @type {HTMLElement} */
+        // DOM элементы
+        this.assigneeSelect = document.getElementById('filter-assignee');
+        this.prioritySelect = document.getElementById('filter-priority');
+        this.dateSelect = document.getElementById('filter-deadline');
+        this.statusSelect = document.getElementById('filter-status');
+
         this.tagContainer = document.querySelector('#dropdownMenu .p-2');
-        /** @type {HTMLElement} */
         this.dropdownToggle = document.getElementById('dropdownToggle');
-        /** @type {HTMLElement} */
         this.dropdownMenu = document.getElementById('dropdownMenu');
 
         this.populateAssigneeOptions();
         this.populateTagOptions();
         this.attachEvents();
         this.initTagDropdown();
-        this.restoreFiltersFromStorage(currentUserId); // <--- ДОБАВЛЕНО
-
+        this.restoreFiltersFromStorage(currentUserId);
     }
 
     setKanbanTasksInstance(KanbanTasksInstance) {
         this.kanbanTasksInstance = KanbanTasksInstance;
     }
 
-    /**
-     * Заполняет селектор с пользователями, основываясь на данных из `window.username_data`.
-     */
     populateAssigneeOptions() {
-        const assigneeSelect = this.filters.assignee;
-        if (!assigneeSelect || !window.username_data) return;
+        if (!this.assigneeSelect || !window.username_data) return;
 
-        while (assigneeSelect.options.length > 1) {
-            assigneeSelect.remove(1);
+        while (this.assigneeSelect.options.length > 1) {
+            this.assigneeSelect.remove(1);
         }
 
         window.username_data.forEach(user => {
             const option = document.createElement('option');
             option.value = user.username;
-
             const nameParts = [];
             if (user.first_name?.trim()) nameParts.push(user.first_name.trim());
             if (user.last_name?.trim()) nameParts.push(user.last_name.trim());
-
-            option.textContent = nameParts.length > 0
-                ? nameParts.join(' ')
-                : user.username;
-
-            assigneeSelect.appendChild(option);
+            option.textContent = nameParts.length ? nameParts.join(' ') : user.username;
+            this.assigneeSelect.appendChild(option);
         });
     }
 
-    /**
-     * Заполняет выпадающий список тегов из `window.tags_list`.
-     */
     populateTagOptions(tagsVal = []) {
         if (!this.tagContainer || !window.tags_list) return;
-        // Получить имена существующих тегов
+
         const existingTagNames = window.tags_list.map(tag => tag.name);
 
-        // Добавить новые теги в window.tags_list, если их ещё нет
         tagsVal.forEach(tagName => {
             if (!existingTagNames.includes(tagName)) {
                 const maxId = window.tags_list.reduce((max, tag) => Math.max(max, tag.id), 0);
-                const newTag = {
-                    id: maxId + 1, // временный ID
-                    name: tagName
-                };
-                window.tags_list.push(newTag);
+                window.tags_list.push({id: maxId + 1, name: tagName});
             }
         });
 
-        // Повторно собрать имена всех тегов
         const allTags = window.tags_list.map(tag => tag.name);
 
-        // Очистить контейнер перед созданием новых чекбоксов
         this.tagContainer.innerHTML = '';
-
         allTags.forEach(tag => {
             const label = document.createElement('label');
             label.className = 'correct_label flex items-center space-x-2 mb-3';
 
             const checkbox = document.createElement('input');
-
             checkbox.type = 'checkbox';
             checkbox.value = tag;
             checkbox.className = 'tag-checkbox correct_icon rounded-full text-xl';
 
-            // Отметить чекбокс, если он есть в tagsVal
-            if (tagsVal.includes(tag)) {
-                checkbox.checked = false;
-            }
-
-            const span = document.createElement('span');
-            span.textContent = tag;
-
             label.appendChild(checkbox);
-            label.appendChild(span);
+            label.appendChild(document.createElement('span')).textContent = tag;
+
             this.tagContainer.appendChild(label);
         });
 
         this.tagCheckboxes = Array.from(this.tagContainer.querySelectorAll('.tag-checkbox'));
-        this.tagCheckboxes.forEach(cb =>
-            cb.addEventListener('change', () => this.applyFilters())
-        );
     }
 
-
-    /**
-     * Назначает обработчики событий на элементы фильтров и чекбоксы тегов.
-     */
     attachEvents() {
-        Object.values(this.filters).forEach(filter =>
-            filter?.addEventListener('change', () => this.applyFilters())
-        );
+        // при изменении select обновляем значения фильтров
+        [this.assigneeSelect, this.prioritySelect, this.dateSelect, this.statusSelect].forEach(select => {
+            if (select) {
+                select.addEventListener('change', () => {
+                    this.filters.assignee = this.assigneeSelect?.value || '';
+                    this.filters.priority = this.prioritySelect?.value || '';
+                    this.filters.date = this.dateSelect?.value || '';
+                    this.filters.status = this.statusSelect?.value || '';
+                    this.applyFilters();
+                });
+            }
+        });
 
-        this.tagCheckboxes?.forEach(cb =>
-            cb.addEventListener('change', () => this.applyFilters())
-        );
+        // теги
+        this.tagCheckboxes?.forEach(cb => {
+            cb.addEventListener('change', () => {
+                this.filters.tags = this.tagCheckboxes
+                    .filter(ch => ch.checked)
+                    .map(ch => ch.value.toLowerCase());
+                this.applyFilters();
+            });
+        });
 
+        // очистка
         const clearBtn = document.getElementById('clear-filters');
         if (clearBtn) {
             clearBtn.addEventListener('click', () => {
-                Object.values(this.filters).forEach(filter => {
-                    if (filter) filter.value = '';
-                });
-
-                this.tagCheckboxes.forEach(cb => cb.checked = false);
-                localStorage.removeItem('taskFilters');  // <--- ДОБАВЬ ЭТО
+                this.filters = {assignee: '', priority: '', date: '', status: '', tags: []};
+                if (this.assigneeSelect) this.assigneeSelect.value = '';
+                if (this.prioritySelect) this.prioritySelect.value = '';
+                if (this.dateSelect) this.dateSelect.value = '';
+                if (this.statusSelect) this.statusSelect.value = '';
+                this.tagCheckboxes?.forEach(cb => cb.checked = false);
+                localStorage.removeItem(`taskFilters_${currentUserId}`);
                 this.applyFilters();
             });
         }
     }
 
-    /**
-     * Получает список выбранных тегов в нижнем регистре.
-     * @returns {string[]}
-     */
-    getSelectedTags() {
-        return this.tagCheckboxes
-            .filter(cb => cb.checked)
-            .map(cb => cb.value.toLowerCase());
+    isTaskPassingFilters(task) {
+        const {assignee, priority, status, tags} = this.filters;
+
+        if (assignee && task.assignee?.toLowerCase() !== assignee.toLowerCase()) return false;
+        if (priority && task.priority?.toLowerCase() !== priority.toLowerCase()) return false;
+
+        let taskTags = [];
+        if (Array.isArray(task.tags)) taskTags = task.tags.map(t => (typeof t === 'string' ? t : t.name)?.toLowerCase());
+        else if (typeof task.tags === 'string') taskTags = task.tags.split(',').map(t => t.trim().toLowerCase());
+
+        if (tags.length && !tags.every(t => taskTags.includes(t))) return false;
+
+        const done = !!task.done;
+        const deleted = !!task.deleted;
+
+        if (status === 'deleted') return deleted; // показываем только удалённые, если выбран статус "deleted"
+        if (status === 'true') return done && !deleted; // показываем только выполненные, не удалённые
+        if (status === 'false') return !done && !deleted; // показываем только не выполненные, не удалённые
+// если status пустой — показываем всё, включая удалённые
+        return true;
     }
 
-    /**
-     * Сохранение данных для фильтрации в локальное хранилище
-     */
+    applyFilters() {
+        if (!this.kanbanTasksInstance) return;
+
+        let filteredTasks = Object.values(this.kanbanTasksInstance.tasks || {})
+            .filter(task => this.isTaskPassingFilters(task));
+        // const dateOrder = this.filters.date; // Важно использовать .value
+        // filteredTasks.sort((a, b) => {
+        //     if (dateOrder === 'asc' || dateOrder === 'desc') {
+        //         const dateA = new Date(a.deadline);
+        //         const dateB = new Date(b.deadline);
+        //         if (isNaN(dateA)) return 1;
+        //         if (isNaN(dateB)) return -1;
+        //         return dateOrder === 'asc' ? dateA - dateB : dateB - dateA;
+        //     } else {
+        //         const priorityOrder = {high: 1, medium: 2, low: 3};
+        //         const prioA = priorityOrder[a.priority?.toLowerCase()] || 99;
+        //         const prioB = priorityOrder[b.priority?.toLowerCase()] || 99;
+        //         if (prioA !== prioB) return prioA - prioB;
+        //
+        //         const dateA = new Date(a.deadline);
+        //         const dateB = new Date(b.deadline);
+        //         if (isNaN(dateA)) return 1;
+        //         if (isNaN(dateB)) return -1;
+        //         return dateA - dateB;
+        //     }
+        // });
+
+        this.kanbanTasksInstance.setSortOrder(this.filters.date);
+        this.kanbanTasksInstance.resetAndRender(filteredTasks);
+        this.saveFiltersToStorage(currentUserId);
+    }
+
     saveFiltersToStorage(userId) {
-        if (!userId) return; // обязательно нужен идентификатор пользователя
-
-        const filtersState = {
-            assignee: this.filters.assignee?.value || '',
-            priority: this.filters.priority?.value || '',
-            date: this.filters.date?.value || '',
-            status: this.filters.status?.value || '',
-            tags: this.getSelectedTags()
-        };
-
-        const key = `taskFilters_${userId}`;
-        localStorage.setItem(key, JSON.stringify(filtersState));
+        if (!userId) return;
+        localStorage.setItem(`taskFilters_${userId}`, JSON.stringify(this.filters));
     }
 
     restoreFiltersFromStorage(userId) {
         if (!userId) return;
-
-        const key = `taskFilters_${userId}`;
-        const saved = localStorage.getItem(key);
+        const saved = localStorage.getItem(`taskFilters_${userId}`);
         if (!saved) return;
 
         try {
-            const {assignee, priority, date, status, tags} = JSON.parse(saved);
+            const parsed = JSON.parse(saved);
+            this.filters = parsed;
 
-            if (this.filters.assignee) this.filters.assignee.value = assignee;
-            if (this.filters.priority) this.filters.priority.value = priority;
-            if (this.filters.date) this.filters.date.value = date;
-            if (this.filters.status) this.filters.status.value = status;
+            if (this.assigneeSelect) this.assigneeSelect.value = parsed.assignee || '';
+            if (this.prioritySelect) this.prioritySelect.value = parsed.priority || '';
+            if (this.dateSelect) this.dateSelect.value = parsed.date || '';
+            if (this.statusSelect) this.statusSelect.value = parsed.status || '';
 
-            this.populateTagOptions(tags || []);
-
+            this.populateTagOptions(parsed.tags || []);
             setTimeout(() => {
                 this.tagCheckboxes?.forEach(cb => {
-                    cb.checked = tags.includes(cb.value.toLowerCase());
+                    cb.checked = parsed.tags?.includes(cb.value.toLowerCase());
                 });
                 this.applyFilters();
             }, 0);
@@ -1158,187 +1472,15 @@ export class TaskFilter {
         }
     }
 
-
-    /**
-     * Применяет фильтрацию и сортировку карточек в соответствии с выбранными значениями.
-     */
-    applyFilters() {
-        const assigneeVal = this.filters.assignee?.value.trim().toLowerCase() || '';
-        const priorityVal = this.filters.priority?.value.trim().toLowerCase() || '';
-        const dateVal = this.filters.date?.value || '';
-        const statusVal = this.filters.status?.value || '';
-        this.saveFiltersToStorage(currentUserId);  // <--- ДОБАВЬ ЭТО
-        if (this.kanbanTasksInstance) {
-            this.kanbanTasksInstance.resetAndRender();
-        }
-        const selectedTags = this.getSelectedTags();
-
-        // Проверяем, есть ли активные фильтры (кроме статуса)
-        const otherFiltersActive = Boolean(
-            assigneeVal || priorityVal || dateVal || selectedTags.length > 0
-        );
-
-        this.cards = Array.from(this.container.querySelectorAll('.task-card'));
-
-        let filteredCards = this.cards.filter(card => {
-            const cardAssignee = (card.dataset.assignee || '').toLowerCase();
-            const cardPriority = (card.dataset.priority || '').toLowerCase();
-            const cardDone = (card.dataset.done || 'false').toLowerCase();
-            const cardDeleted = (card.dataset.deleted || 'false').toLowerCase();
-            const cardTags = (card.dataset.tags || '')
-                .toLowerCase()
-                .split(',')
-                .map(t => t.trim())
-                .filter(Boolean);
-
-            const matchAssignee = !assigneeVal || cardAssignee === assigneeVal;
-            const matchPriority = !priorityVal || cardPriority === priorityVal;
-            const matchTags = selectedTags.length === 0 || selectedTags.every(tag => cardTags.includes(tag));
-
-            let matchStatus = false;
-
-            if (statusVal === 'deleted') {
-                matchStatus = cardDeleted === 'true';
-            } else if (!otherFiltersActive && !statusVal) {
-                // Нет фильтров — показываем все, включая удалённые
-                matchStatus = true;
-            } else {
-                if (cardDeleted === 'true') return false;
-
-                if (!statusVal) {
-                    matchStatus = true;
-                } else if (statusVal === 'true') {
-                    matchStatus = cardDone === 'true';
-                } else if (statusVal === 'false') {
-                    matchStatus = cardDone !== 'true';
-                }
-            }
-
-            return matchAssignee && matchPriority && matchTags && matchStatus;
-        });
-
-        // Сортируем
-
-        if (dateVal === 'asc' || dateVal === 'desc') {
-            filteredCards.sort((a, b) => {
-                const dateA = new Date(a.dataset.deadline);
-                const dateB = new Date(b.dataset.deadline);
-
-                if (isNaN(dateA)) return 1;
-                if (isNaN(dateB)) return -1;
-
-                return dateVal === 'asc' ? dateA - dateB : dateB - dateA;
-            });
-        } else {
-            const priorityOrder = {high: 1, medium: 2, low: 3};
-
-            filteredCards.sort((a, b) => {
-                const prioA = priorityOrder[a.dataset.priority?.toLowerCase()] || 99;
-                const prioB = priorityOrder[b.dataset.priority?.toLowerCase()] || 99;
-
-                if (prioA !== prioB) return prioA - prioB;
-
-                const dateA = new Date(a.dataset.deadline);
-                const dateB = new Date(b.dataset.deadline);
-
-                if (isNaN(dateA)) return 1;
-                if (isNaN(dateB)) return -1;
-
-                return dateA - dateB;
-            });
-        }
-
-        // Сортируем по выполненным задачам, чтобы выполненные были ниже
-
-        filteredCards.sort((a, b) => {
-            const doneA = (a.dataset.done || 'false').toLowerCase();
-            const doneB = (b.dataset.done || 'false').toLowerCase();
-
-            if (doneA === 'true' && doneB !== 'true') return 1;
-            if (doneA !== 'true' && doneB === 'true') return -1;
-            return 0;
-        });
-
-        // **Новое:** при отсутствии фильтров - отправляем удалённые задачи в конец списка
-        if (!otherFiltersActive && !statusVal) {
-            filteredCards.sort((a, b) => {
-                const delA = (a.dataset.deleted || 'false').toLowerCase() === 'true';
-                const delB = (b.dataset.deleted || 'false').toLowerCase() === 'true';
-
-                if (delA && !delB) return 1;  // удалённые — ниже
-                if (!delA && delB) return -1; // не удалённые — выше
-                return 0;
-            });
-        }
-
-        this.cards.forEach(card => card.classList.add('hidden'));
-        filteredCards.forEach(card => card.classList.remove('hidden'));
-        filteredCards.forEach(card => this.container.appendChild(card));
-
-    }
-
-    // В твоём фильтрующем классе
-    isTaskPassingFilters(taskObj) {
-        const assigneeVal = this.filters.assignee?.value.trim().toLowerCase() || '';
-        const priorityVal = this.filters.priority?.value.trim().toLowerCase() || '';
-        const dateVal = this.filters.date?.value || '';
-        const statusVal = this.filters.status?.value || '';
-        const selectedTags = this.getSelectedTags();
-
-        const cardAssignee = (taskObj.assignee || '').toLowerCase();
-        const cardPriority = (taskObj.priority || '').toLowerCase();
-        const cardDone = (taskObj.done ? 'true' : 'false').toLowerCase();
-        const cardDeleted = (taskObj.deleted ? 'true' : 'false').toLowerCase();
-        let cardTags = [];
-
-        if (Array.isArray(taskObj.tags)) {
-            // Массив объектов или строк
-            cardTags = taskObj.tags.map(tag =>
-                typeof tag === 'string' ? tag.toLowerCase().trim() : (tag.name || '').toLowerCase().trim()
-            ).filter(Boolean);
-        } else if (typeof taskObj.tags === 'string') {
-            // Строка тегов через запятую
-            cardTags = taskObj.tags.toLowerCase().split(',').map(t => t.trim()).filter(Boolean);
-        }
-
-
-        const matchAssignee = !assigneeVal || cardAssignee === assigneeVal;
-        const matchPriority = !priorityVal || cardPriority === priorityVal;
-        const matchTags = selectedTags.length === 0 || selectedTags.every(tag => cardTags.includes(tag));
-
-        let matchStatus = false;
-
-        if (statusVal === 'deleted') {
-            matchStatus = cardDeleted === 'true';
-        } else if (!assigneeVal && !priorityVal && !dateVal && selectedTags.length === 0 && !statusVal) {
-            matchStatus = true;
-        } else {
-            if (cardDeleted === 'true') return false;
-            if (!statusVal) {
-                matchStatus = true;
-            } else if (statusVal === 'true') {
-                matchStatus = cardDone === 'true';
-            } else if (statusVal === 'false') {
-                matchStatus = cardDone !== 'true';
-            }
-        }
-
-        return matchAssignee && matchPriority && matchTags && matchStatus;
-    }
-
-
-    /**
-     * Инициализирует поведение выпадающего меню тегов.
-     */
     initTagDropdown() {
         if (!this.dropdownToggle || !this.dropdownMenu) return;
 
-        this.dropdownToggle.addEventListener('click', (e) => {
+        this.dropdownToggle.addEventListener('click', e => {
             e.stopPropagation();
             this.dropdownMenu.classList.toggle('hidden');
         });
 
-        document.addEventListener('click', (e) => {
+        document.addEventListener('click', e => {
             if (!this.dropdownMenu.contains(e.target) && !this.dropdownToggle.contains(e.target)) {
                 this.dropdownMenu.classList.add('hidden');
             }

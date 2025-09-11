@@ -91,7 +91,7 @@ class StickyNoteView(LoginRequiredMixin, View):
                 )
                 .select_related("assignee")
                 .prefetch_related("tags")
-                .order_by("deleted_order", "done_order", "priority_order", "deadline")
+                .order_by("deleted_order", "done_order",  "deadline","priority_order",)
             )
         else:
             tasks = (
@@ -119,7 +119,7 @@ class StickyNoteView(LoginRequiredMixin, View):
                 )
                 .select_related("assignee")
                 .prefetch_related("tags")
-                .order_by("deleted_order", "done_order", "priority_order", "deadline")
+                .order_by("deleted_order", "done_order",  "deadline","priority_order",)
             )
 
         tasks_list = [task.to_dict() for task in tasks]
