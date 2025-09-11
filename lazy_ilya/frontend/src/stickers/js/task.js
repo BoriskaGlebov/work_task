@@ -252,22 +252,22 @@ export class KanbanTasks {
     }
 
     getTaskSortKey(task) {
-    let hasDeadline = !!task.deadline;
-    let deadlineTime = hasDeadline ? new Date(task.deadline).getTime() : 0;
+        let hasDeadline = !!task.deadline;
+        let deadlineTime = hasDeadline ? new Date(task.deadline).getTime() : 0;
 
-    // если убывание, инвертируем только реальные даты
-    if (hasDeadline && this.dateOrder === 'desc') {
-        deadlineTime = -deadlineTime;
+        // если убывание, инвертируем только реальные даты
+        if (hasDeadline && this.dateOrder === 'desc') {
+            deadlineTime = -deadlineTime;
+        }
+
+        return [
+            task.deleted ? 1 : 0,
+            task.done ? 1 : 0,
+            hasDeadline ? 0 : 1,      // задачи без дедлайна идут после
+            deadlineTime,
+            this.getPriorityOrder(task.priority),
+        ];
     }
-
-    return [
-        task.deleted ? 1 : 0,
-        task.done ? 1 : 0,
-        hasDeadline ? 0 : 1,      // задачи без дедлайна идут после
-        deadlineTime,
-        this.getPriorityOrder(task.priority),
-    ];
-}
 
 
     // 🔹 Сброс и повторная отрисовка после изменения данных
@@ -397,7 +397,8 @@ export class KanbanTasks {
             this.taskFilterInstance.applyFilters();
             this.taskFilterInstance.populateTagOptions(tagsVal);
             // ✅ Обновляем данные задач в TaskCounter
-            this.taskCounterInstance.tasks = Object.values(this.tasks);
+            this.taskCounterInstance.tasks = Object.entries(this.tasks).map(([id, task]) => ({...task, id}));
+
 
             // ✅ Пересчитываем срочные задачи и обновляем счетчик
             this.taskCounterInstance.findUrgentTasks();
@@ -1327,8 +1328,8 @@ export class TaskFilter {
         });
 
         const allTags = window.tags_list.map(tag => tag.name);
-
         this.tagContainer.innerHTML = '';
+
         allTags.forEach(tag => {
             const label = document.createElement('label');
             label.className = 'correct_label flex items-center space-x-2 mb-3';
@@ -1344,11 +1345,20 @@ export class TaskFilter {
             this.tagContainer.appendChild(label);
         });
 
+        // обновляем this.tagCheckboxes и навешиваем обработчики
         this.tagCheckboxes = Array.from(this.tagContainer.querySelectorAll('.tag-checkbox'));
+        this.tagCheckboxes.forEach(cb => {
+            cb.addEventListener('change', () => {
+                this.filters.tags = this.tagCheckboxes
+                    .filter(ch => ch.checked)
+                    .map(ch => ch.value.toLowerCase());
+                this.applyFilters();
+            });
+        });
     }
 
+
     attachEvents() {
-        // при изменении select обновляем значения фильтров
         [this.assigneeSelect, this.prioritySelect, this.dateSelect, this.statusSelect].forEach(select => {
             if (select) {
                 select.addEventListener('change', () => {
@@ -1361,17 +1371,7 @@ export class TaskFilter {
             }
         });
 
-        // теги
-        this.tagCheckboxes?.forEach(cb => {
-            cb.addEventListener('change', () => {
-                this.filters.tags = this.tagCheckboxes
-                    .filter(ch => ch.checked)
-                    .map(ch => ch.value.toLowerCase());
-                this.applyFilters();
-            });
-        });
-
-        // очистка
+        // очистка фильтров
         const clearBtn = document.getElementById('clear-filters');
         if (clearBtn) {
             clearBtn.addEventListener('click', () => {
@@ -1402,39 +1402,18 @@ export class TaskFilter {
         const done = !!task.done;
         const deleted = !!task.deleted;
 
-        if (status === 'deleted') return deleted; // показываем только удалённые, если выбран статус "deleted"
-        if (status === 'true') return done && !deleted; // показываем только выполненные, не удалённые
-        if (status === 'false') return !done && !deleted; // показываем только не выполненные, не удалённые
-// если status пустой — показываем всё, включая удалённые
+        if (status === 'deleted') return deleted;
+        if (status === 'true') return done && !deleted;
+        if (status === 'false') return !done && !deleted;
+
         return true;
     }
 
     applyFilters() {
         if (!this.kanbanTasksInstance) return;
 
-        let filteredTasks = Object.values(this.kanbanTasksInstance.tasks || {})
+        const filteredTasks = Object.values(this.kanbanTasksInstance.tasks || {})
             .filter(task => this.isTaskPassingFilters(task));
-        // const dateOrder = this.filters.date; // Важно использовать .value
-        // filteredTasks.sort((a, b) => {
-        //     if (dateOrder === 'asc' || dateOrder === 'desc') {
-        //         const dateA = new Date(a.deadline);
-        //         const dateB = new Date(b.deadline);
-        //         if (isNaN(dateA)) return 1;
-        //         if (isNaN(dateB)) return -1;
-        //         return dateOrder === 'asc' ? dateA - dateB : dateB - dateA;
-        //     } else {
-        //         const priorityOrder = {high: 1, medium: 2, low: 3};
-        //         const prioA = priorityOrder[a.priority?.toLowerCase()] || 99;
-        //         const prioB = priorityOrder[b.priority?.toLowerCase()] || 99;
-        //         if (prioA !== prioB) return prioA - prioB;
-        //
-        //         const dateA = new Date(a.deadline);
-        //         const dateB = new Date(b.deadline);
-        //         if (isNaN(dateA)) return 1;
-        //         if (isNaN(dateB)) return -1;
-        //         return dateA - dateB;
-        //     }
-        // });
 
         this.kanbanTasksInstance.setSortOrder(this.filters.date);
         this.kanbanTasksInstance.resetAndRender(filteredTasks);
@@ -1461,6 +1440,7 @@ export class TaskFilter {
             if (this.statusSelect) this.statusSelect.value = parsed.status || '';
 
             this.populateTagOptions(parsed.tags || []);
+
             setTimeout(() => {
                 this.tagCheckboxes?.forEach(cb => {
                     cb.checked = parsed.tags?.includes(cb.value.toLowerCase());
@@ -1493,7 +1473,7 @@ export class TaskCounter {
     constructor(counterSelector, popupSelector, tasksData) {
         this.counterEl = document.querySelector(counterSelector);
         this.popupEl = document.querySelector(popupSelector);
-        this.tasks = tasksData ? Object.values(tasksData) : [];
+        this.tasks = tasksData ? Object.entries(tasksData).map(([id, task]) => ({...task, id})) : [];
         this.now = new Date();
         this.urgentTasks = [];
 
@@ -1504,6 +1484,10 @@ export class TaskCounter {
         this.findUrgentTasks();
         this.updateCounter();
         this.bindEvents();
+    }
+
+    setKanbanTasksInstance(KanbanTasksInstance) {
+        this.kanbanTasksInstance = KanbanTasksInstance;
     }
 
     findUrgentTasks() {
@@ -1535,51 +1519,79 @@ export class TaskCounter {
                 const isOverdue = deadline < this.now;
                 const colorClass = isOverdue ? 'text-red-500' : 'text-yellow-500';
                 return `
-                    <div class="mb-2">
-                        <div class="font-semibold">${t.title}</div>
-                        <div class="text-xs ${colorClass}">${t.deadline}</div>
-                    </div>
-                `;
+                <div class="urgent-task-item mb-2 cursor-pointer hover:-translate-y-1 transition-all duration-200" data-task-id="${t.id}">
+                    <div class="font-semibold">${t.title}</div>
+                    <div class="text-xs ${colorClass}">${t.deadline}</div>
+                </div>
+            `;
             })
             .join('');
+
+        // Привязываем обработчики клика
+        this.popupEl.addEventListener('click', e => {
+            const item = e.target.closest('.urgent-task-item');
+            if (!item) return;
+            const taskId = item.dataset.taskId;
+            if (!taskId) return;
+            this.openTask(taskId);
+        });
+
+    }
+
+
+    // Метод открытия задачи
+    openTask(taskId) {
+        // Здесь можно использовать любой способ открытия:
+        // - показать модалку
+        // - перейти на страницу задачи
+        // - вызвать KanbanTasksInstance для открытия карточки
+        console.log('Открываем задачу с ID:', taskId);
+
+        // пример для KanbanTasksInstance
+        if (this.kanbanTasksInstance) {
+            this.kanbanTasksInstance.openModal(taskId);
+        }
     }
 
     bindEvents() {
-        this.counterEl.addEventListener('mouseenter', () => {
-            if (this.urgentTasks.length > 0) {
-                this.popupEl.classList.remove('hidden');
+        let hideTimeout;
 
-                // Координаты
-                const rect = this.counterEl.getBoundingClientRect();
-                const popupWidth = this.popupEl.offsetWidth;
-                const popupHeight = this.popupEl.offsetHeight;
+        const showPopup = () => {
+            clearTimeout(hideTimeout);
+            if (this.urgentTasks.length === 0) return;
+            this.popupEl.classList.remove('hidden');
 
-                let left = rect.right - popupWidth; // справа выравниваем
-                let top = rect.bottom + 8; // чуть ниже кнопки
+            const rect = this.counterEl.getBoundingClientRect();
+            const popupWidth = this.popupEl.offsetWidth;
+            const popupHeight = this.popupEl.offsetHeight;
 
-                // Если выходит за левую границу
-                if (left < 0) left = 8;
+            let left = rect.right - popupWidth;
+            let top = rect.bottom + 8;
 
-                // Если выходит за правую
-                if (left + popupWidth > window.innerWidth) {
-                    left = window.innerWidth - popupWidth - 8;
+            if (left < 0) left = 8;
+            if (left + popupWidth > window.innerWidth) left = window.innerWidth - popupWidth - 8;
+            if (top + popupHeight > window.innerHeight) top = rect.top - popupHeight - 8;
+
+            this.popupEl.style.left = `${left}px`;
+            this.popupEl.style.top = `${top}px`;
+            this.popupEl.style.position = 'fixed';
+        };
+
+        const hidePopup = () => {
+            hideTimeout = setTimeout(() => {
+                if (!this.counterEl.matches(':hover') && !this.popupEl.matches(':hover')) {
+                    this.popupEl.classList.add('hidden');
                 }
+            }, 150); // небольшая задержка
+        };
 
-                // Если выходит вниз — показываем сверху
-                if (top + popupHeight > window.innerHeight) {
-                    top = rect.top - popupHeight - 8;
-                }
+        this.counterEl.addEventListener('mouseenter', showPopup);
+        this.popupEl.addEventListener('mouseenter', showPopup);
 
-                this.popupEl.style.left = `${left}px`;
-                this.popupEl.style.top = `${top}px`;
-                this.popupEl.style.position = 'fixed';
-            }
-        });
-
-        this.counterEl.addEventListener('mouseleave', () => {
-            this.popupEl.classList.add('hidden');
-        });
+        this.counterEl.addEventListener('mouseleave', hidePopup);
+        this.popupEl.addEventListener('mouseleave', hidePopup);
     }
+
 
 }
 

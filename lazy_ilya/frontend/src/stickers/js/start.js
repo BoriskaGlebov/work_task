@@ -53,4 +53,6 @@ document.addEventListener('DOMContentLoaded', () => {
     kanbanTask.setTaskFilterInstance(taskFilter);
     taskFilter.setKanbanTasksInstance(kanbanTask);
     kanbanTask.setTaskCounterInstance(taskCounter);
+    taskCounter.setKanbanTasksInstance(kanbanTask);
+
 });
