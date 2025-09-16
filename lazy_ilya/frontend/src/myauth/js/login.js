@@ -37,10 +37,11 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {HTMLElement} label - Элемент лейбла поля
      * @param {HTMLElement} input - Элемент ввода (поле)
      * @param {HTMLElement} icon - Иконка ошибки/успеха
+     * @param icon2 - Вторая иконка (если есть)
      * @param {HTMLElement} errorElement - Элемент с ошибкой
      * @param {string} message - Сообщение об ошибке
      */
-    const setFieldError = (label, input, icon, errorElement, message) => {
+    const setFieldError = (label, input, icon, icon2 = null, errorElement, message) => {
         errorElement.textContent = message;
         errorElement.classList.remove("hidden");
         label.classList.add("error_label");
@@ -49,6 +50,10 @@ document.addEventListener('DOMContentLoaded', () => {
         input.classList.remove("correct_input");
         icon.classList.add("error_icon");
         icon.classList.remove("correct_icon");
+        if (icon2) {
+            icon2.classList.add("error_icon");
+            icon2.classList.remove("correct_icon");
+        }
         // 🕒 Скрыть ошибку через 4 секунды
         setTimeout(() => {
             label.classList.remove('error_label');
@@ -57,6 +62,10 @@ document.addEventListener('DOMContentLoaded', () => {
             input.classList.add('correct_input')
             icon.classList.remove('error_icon');
             icon.classList.add('correct_icon');
+            if (icon2) {
+                icon2.classList.remove('error_icon');
+                icon2.classList.add('correct_icon');
+            }
             errorElement.textContent = '';
             errorElement.classList.add('hidden');
         }, 4000);
@@ -101,12 +110,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Обработка ошибки для поля "username"
                 if (errors.username) {
-                    setFieldError(usernameLabel, usernameInput, loginIcon, usernameError, errors.username[0].message);
+                    setFieldError(usernameLabel, usernameInput, loginIcon, null, usernameError, errors.username[0].message);
                 }
 
                 // Обработка ошибки для поля "password"
                 if (errors.password) {
-                    setFieldError(passwordLabel, passwordInput, passwordIcon, passwordError, errors.password[0].message);
+                    setFieldError(passwordLabel, passwordInput, passwordIcon, eyeIcon, passwordError, errors.password[0].message);
                 }
 
                 // Обработка общей ошибки (например, если оба поля некорректны)
@@ -116,8 +125,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     nonFieldErrors.classList.add("flex", "animate-popup");
 
                     // Подсвечиваем оба поля на общий фейл
-                    setFieldError(usernameLabel, usernameInput, loginIcon, usernameError, '');
-                    setFieldError(passwordLabel, passwordInput, passwordIcon, passwordError, '');
+                    setFieldError(usernameLabel, usernameInput, loginIcon, null, usernameError, '');
+                    setFieldError(passwordLabel, passwordInput, passwordIcon, eyeIcon, passwordError, '');
                     // 🕒 Скрыть через 3 секунды
                     setTimeout(() => {
                         nonFieldErrors.classList.remove("animate-popup");

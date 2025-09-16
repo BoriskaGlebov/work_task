@@ -680,6 +680,13 @@ export class KanbanTasks {
 
         doneEl.appendChild(document.createTextNode(taskData.done ? 'Выполнено' : 'В процессе'));
         card.appendChild(doneEl);
+
+        // Кнопка "Подробнее"
+        const moreEl = document.createElement('div');
+        moreEl.className = 'self-end mt-auto  text-xs md:text-sm xl:text-base text-accent dark:text-accent-dark font-medium mt-2 cursor-pointer hover:underline flex items-center gap-1';
+        moreEl.innerHTML = `Подробнее <span class="text-lg">»</span>`;
+        card.appendChild(moreEl);
+
     }
 
 
@@ -1519,7 +1526,7 @@ export class TaskCounter {
                 const isOverdue = deadline < this.now;
                 const colorClass = isOverdue ? 'text-red-500' : 'text-yellow-500';
                 return `
-                <div class="urgent-task-item mb-2 cursor-pointer hover:-translate-y-1 transition-all duration-200" data-task-id="${t.id}">
+                <div class="urgent-task-item task-counter-popup " data-task-id="${t.id}">
                     <div class="font-semibold">${t.title}</div>
                     <div class="text-xs ${colorClass}">${t.deadline}</div>
                 </div>
