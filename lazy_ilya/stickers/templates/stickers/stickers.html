@@ -1,4 +1,5 @@
 {% extends 'file_creator/loader.html' %}
+{% load user_filters %}
 {% load static %}
 {% block title %}
     Заметки
@@ -132,7 +133,7 @@
                 <option value="">Все</option>
                 <option value="true">Выполнено</option>
                 <option value="false">В процессе</option>
-                {% if user.is_superuser %}
+                {% if user.is_superuser or user|in_group:'managers' %}
                     <option value="deleted">Удалена</option>
                 {% endif %}
             </select>

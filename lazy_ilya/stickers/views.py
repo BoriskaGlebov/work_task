@@ -61,14 +61,14 @@ class StickyNoteView(LoginRequiredMixin, View):
         notes_data = [note.to_dict() for note in notes]
 
         # Условие для фильтрации задач по полю deleted
-        if request.user.is_superuser or request.user.is_staff:
+        if request.user.is_superuser or request.user.is_staff or request.user.groups.filter(name="managers").exists():
             # Админ видит все задачи, включая удалённые
             tasks_queryset = Task.objects.all()
         else:
             # Обычный пользователь видит только не удалённые задачи
             tasks_queryset = Task.objects.filter(deleted=False)
         user = request.user
-        if user.is_superuser or user.groups.filter(name="managers"):
+        if user.is_superuser or user.groups.filter(name="managers").exists():
             tasks = (
                 tasks_queryset.annotate(
                     priority_order=Case(
