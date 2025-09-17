@@ -350,7 +350,7 @@ export class KanbanTasks {
         const select = this.taskForm.querySelector('select[name="assignee"]');
         if (select) {
             // Очищаем текущие опции и добавляем базовую пустую
-            select.innerHTML = '<option value="">-- Выберите исполнителя --</option>';
+            select.innerHTML = '<option value="" selected>-- Выберите исполнителя --</option>';
 
             window.username_data.forEach(user => {
                 const option = document.createElement('option');
