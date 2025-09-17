@@ -52,15 +52,24 @@ class CityDataForm(ModelForm):
 
 
 class CityInfoDoForm(ModelForm):
+    """Форма для создания и редактирования объектов CityInfoDO.
+
+    Поддерживает дополнительное поле `globus_id` для привязки к объекту CityData.
+    Реализует кастомную валидацию для полей `korr` и `globus_id`,
+    а также проверку на заполненность хотя бы одного из полей формы.
+    """
+
     globus_id = forms.IntegerField(required=False)
 
     class Meta:
+        """Метаданные формы."""
+
         model = CityInfoDO
         fields = [
             "korr",
             "m_b_number",
             "cipa",
-            # 'globus',
+            # 'globus',  # поле обрабатывается вручную через globus_id
             "recipient",
             "phone_number",
             "ip_phone",
@@ -68,18 +77,43 @@ class CityInfoDoForm(ModelForm):
         ]
 
     def clean_korr(self):
+        """Валидация и нормализация поля korr.
+
+        Если значение начинается с 'korr' (без учета регистра),
+        префикс обрезается. После этого проверяется, что оставшаяся
+        часть состоит только из цифр.
+
+        Returns:
+            str | None: Числовая часть значения korr или None, если поле пустое.
+
+        Raises:
+            ValidationError: Если после удаления префикса 'korr'
+                строка содержит не только цифры.
+        """
         korr = self.cleaned_data.get("korr")
         if korr:
             if korr.lower().startswith("korr"):
-                korr = korr[4:]  # Обрезаем 'korr' (4 символа)
+                korr = korr[4:]  # убираем префикс "korr"
             korr = korr.strip()
             if not korr.isdigit():
                 raise ValidationError(
-                    'Поле "korr" должно содержать только цифры после префикса "korr"'
+                    'Поле "korr" должно содержать только цифры после префикса "korr".'
                 )
         return korr
 
     def clean_globus_id(self):
+        """Валидация и преобразование поля globus_id.
+
+        Преобразует переданный globus_id в объект CityData и сохраняет его
+        в self.cleaned_data["globus"], чтобы можно было установить связь
+        в модели.
+
+        Returns:
+            int | None: ID объекта CityData или None, если поле не заполнено.
+
+        Raises:
+            ValidationError: Если объект CityData с указанным ID не найден.
+        """
         globus_id = (
             int(self.cleaned_data.get("globus_id"))
             if self.cleaned_data.get("globus_id")
@@ -88,19 +122,44 @@ class CityInfoDoForm(ModelForm):
         if globus_id:
             try:
                 globus_obj = CityData.objects.get(pk=globus_id)
-                self.cleaned_data["globus"] = (
-                    globus_obj  # Сохраняем для сохранения модели
-                )
+                self.cleaned_data["globus"] = globus_obj
             except CityData.DoesNotExist:
-                raise ValidationError("Город с таким globus_id не найден")
+                raise ValidationError("Город с таким globus_id не найден.")
         else:
             self.cleaned_data["globus"] = None
         return globus_id
 
+    def save(self, commit=True):
+        """Сохранение экземпляра CityInfoDO с учетом связанного globus.
+
+        Args:
+            commit (bool, optional): Если True, сразу сохраняет объект в БД.
+                По умолчанию True.
+
+        Returns:
+            CityInfoDO: Экземпляр модели с установленными значениями полей.
+        """
+        instance = super().save(commit=False)
+        if "globus" in self.cleaned_data:
+            instance.globus = self.cleaned_data["globus"]
+        if commit:
+            instance.save()
+        return instance
+
     def clean(self):
+        """Глобальная валидация формы.
+
+        Проверяет, что заполнено хотя бы одно из ключевых полей формы.
+        Если все поля пустые, выбрасывается ошибка.
+
+        Returns:
+            dict: Очищенные данные формы.
+
+        Raises:
+            ValidationError: Если все поля пустые.
+        """
         cleaned_data = super().clean()
 
-        # Список проверяемых полей
         required_any_fields = [
             "korr",
             "m_b_number",
@@ -109,10 +168,8 @@ class CityInfoDoForm(ModelForm):
             "phone_number",
             "ip_phone",
             "notes",
-            "globus_id",
         ]
 
-        # Проверка: есть ли хотя бы одно непустое поле
         if not any(cleaned_data.get(field) for field in required_any_fields):
             raise ValidationError("Необходимо заполнить хотя бы одно поле.")
 

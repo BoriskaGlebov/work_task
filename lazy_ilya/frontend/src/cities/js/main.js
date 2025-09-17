@@ -16,5 +16,5 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalHandler = new CityModalHandler('city-modal3', citiesDO, false, {Inputmask});
     autocomplite.setModalHandler(modalHandler);
     window.globusAutocomplete = new InlineGlobusAutocomplete('#modal-globus', '#globus-hint', cities);
-    window.globusAutocomplete = new InlineGlobusAutocomplete('#modal-globus2', '#globus-hint2', cities);
+    window.globusAutocomplete2 = new InlineGlobusAutocomplete('#modal-globus2', '#globus-hint2', cities);
 });

@@ -382,9 +382,11 @@ class CityInfoView(LoginRequiredMixin, UserPassesTestMixin, View):
                 return JsonResponse({"errors": form.errors}, status=400)
 
         elif "korr" in data:
+            print("ПРоверка \n\n\n")
             form = CityInfoDoForm(data)
             if form.is_valid():
                 obj = form.save()
+                print(obj)
                 logger.bind(user=request.user.username).info(
                     f"Город успешно создан: {obj.id}"
                 )

@@ -28,6 +28,7 @@ export class CityModalHandler {
         this.citiesData = citiesData;
 
         this.bindEvents();
+        this.flag = observeCards;
         if (observeCards) this.observeCards();
         const phone1 = document.getElementById('modal-phone_number');
         const phone2 = document.getElementById('modal-phone_number2');
@@ -161,12 +162,21 @@ export class CityModalHandler {
                 table_id: this.currentCity?.table_id || null
             };
         } else if (this.modal.querySelector('#modal-korr')) {
-            globusAutocomplete.updateHint();
-            this.globusID = globusAutocomplete.getSelectedPk();
-            // Если this.currentCity есть — обновляем globus_id, если нет — создаём новый
-            if (this.currentCity) {
-                this.currentCity.globus_id = this.globusID;
+            if (this.flag) {
+                globusAutocomplete.updateHint();
+                this.globusID = globusAutocomplete.getSelectedPk();
+                // Если this.currentCity есть — обновляем globus_id, если нет — создаём новый
+                if (this.currentCity) {
+                    this.currentCity.globus_id = this.globusID;
+                }
+                console.log(this.currentCity);
+            } else {
+                globusAutocomplete2.updateHint();
+                this.globusID = globusAutocomplete2.getSelectedPk();
+                console.log(this.globusID)
             }
+
+
             const globusField = this.modal.querySelector('#modal-globus') || this.modal.querySelector('#modal-globus2');
             const globusValue = globusField ? globusField.value.trim() : '';
 
@@ -182,7 +192,7 @@ export class CityModalHandler {
                 phone_number: phoneNumber,
                 ip_phone: this.modal.querySelector('#modal-ip_phone').value.trim(),
                 notes: this.modal.querySelector("#modal-notes").value.trim(),
-                globus_id: this.currentCity?.globus_id || null
+                globus_id: this.currentCity?.globus_id || this.globusID,
             };
         }
 
@@ -259,7 +269,6 @@ export class CityModalHandler {
                 ) {
 
                     card.dataset.city = JSON.stringify(currentCity);
-                    console.log(card)
                     const props = cityData.table_id
                         ? [
                             ['Организация', currentCity.name_organ],
