@@ -88,6 +88,7 @@ export class KanbanTasks {
             minDate: "2024-01-01",
             maxDate: "2029-12-31",
             allowInput: true,
+            disableMobile: true, // <--- добавь это
             onReady: function (selectedDates, dateStr, instance) {
                 const btn = document.createElement('button');
                 btn.textContent = "Сегодня";
