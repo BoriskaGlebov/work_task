@@ -120,10 +120,15 @@ export class InlineGlobusAutocomplete {
                 matchLength = i + 1;
             }
 
-            // Формируем подсказку: ввод + оставшаяся часть псевдонима
-            const hintText = queryRaw + originalPseudonim.slice(matchLength);
+            // Канонически введённая часть
+            const correctedTypedPart = originalPseudonim.slice(0, matchLength);
+            // Хвост подсказки
+            const hintPart = originalPseudonim.slice(matchLength);
 
-            this.hintInput.value = hintText;
+            // В инпут пишем исправленный кусок
+            this.input.value = correctedTypedPart;
+            // В подсказку — только хвост
+            this.hintInput.value = correctedTypedPart + hintPart;
             this.input.classList.add('correct_input');
         } else {
             // Нет совпадений — помечаем ввод как ошибочный

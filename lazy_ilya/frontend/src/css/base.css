@@ -206,6 +206,9 @@ p {
     text-xs md:text-sm xl:text-base;
 
 }
+.correct_input_hint{
+    @apply  text-xs md:text-sm xl:text-base;
+}
 
 .error_input {
     @apply rounded-lg transition-all
