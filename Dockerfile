@@ -1,6 +1,6 @@
 FROM python:3.12-slim
 
-RUN apt-get update && apt-get install -y libicu-dev && apt-get clean
+#RUN apt-get update && apt-get install -y libicu-dev && apt-get clean
 
 # Создаем рабочую директорию
 WORKDIR /work_task
@@ -28,4 +28,4 @@ WORKDIR /work_task/lazy_ilya
 EXPOSE 8000
 
 # Устанавливаем точку входа — запускаем shell-скрипт
-ENTRYPOINT ["sh","/work_task/entrypoint.sh"]
+ENTRYPOINT ["/work_task/entrypoint.sh"]
