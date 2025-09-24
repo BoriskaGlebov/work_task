@@ -1,6 +1,4 @@
-FROM python:3.12-slim
-
-#RUN apt-get update && apt-get install -y libicu-dev && apt-get clean
+FROM python:3.12-bookworm
 
 # Создаем рабочую директорию
 WORKDIR /work_task
@@ -11,7 +9,7 @@ COPY dist2 dist2/
 
 # Устанавливаем зависимости из локальной папки
 RUN pip install --no-index --find-links dist2 -r requirements2.txt
-
+RUN rm -rf dist2
 # Копируем entrypoint отдельно с правильными правами
 COPY --chmod=755 entrypoint.sh /work_task/entrypoint.sh
 
