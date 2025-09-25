@@ -30,5 +30,6 @@ USER appuser
 # Рабочая директория для manage.py
 WORKDIR /work_task/lazy_ilya
 
+
 # Точка входа
 ENTRYPOINT ["/work_task/entrypoint.sh"]
