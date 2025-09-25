@@ -14,6 +14,7 @@ RUN pip install --no-index --find-links dist2 -r requirements2.txt \
 # Копируем весь проект
 COPY . .
 
+
 # Рабочая директория для manage.py
 WORKDIR /work_task/lazy_ilya
 
