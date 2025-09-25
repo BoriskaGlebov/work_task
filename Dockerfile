@@ -5,7 +5,7 @@ RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 # Создаем рабочую директорию и даем права пользователю
 WORKDIR /work_task
-RUN chown appuser:appuser /work_task
+
 
 # Копируем зависимости
 COPY requirements2.txt .
@@ -22,8 +22,11 @@ COPY --chown=appuser:appuser --chmod=755 entrypoint.sh /work_task/entrypoint.sh
 COPY --chown=appuser:appuser . .
 
 RUN mkdir -p /work_task/lazy_ilya/staticfiles \
-    && chown -R appuser:appuser /work_task/lazy_ilya/staticfiles
+    && chown -R appuser:appuser /work_task/lazy_ilya/staticfiles \
+    && mkdir -p /work_task/lazy_ilya/db \
+    && chown -R appuser:appuser /work_task/lazy_ilya/db
 
+RUN chown -R appuser:appuser /work_task
 # Переключаемся на неправа root пользователя
 USER appuser
 

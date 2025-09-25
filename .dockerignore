@@ -4,7 +4,7 @@ dist
 dist_3.12
 requirements.txt
 requirements_3.12.txt
-lazy_ilya/db.sqlite3
+lazy_ilya/db
 lazy_ilya/logs
 lazy_ilya/collected_static
 lazy_ilya/frontend
