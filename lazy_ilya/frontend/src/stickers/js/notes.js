@@ -133,6 +133,10 @@ export class KanbanStickyNotes {
         if (owner !== undefined) noteCard.dataset.user = owner;
         noteCard.dataset.order = order ?? this.noteBoard.children.length;
 
+        const authorLabel = document.createElement('span');
+        authorLabel.className = 'ml-2 text-xs text-right text-gray-600 italic';
+        authorLabel.textContent = `Автор: ${owner}`;
+
         // --- Автор ---
         const authorBtn = document.createElement('button');
         authorBtn.className = 'relative author-btn';
@@ -287,6 +291,7 @@ export class KanbanStickyNotes {
                 author_name: authorBtn.textContent
             });
         }
+        noteCard.appendChild(authorLabel);
 
         return noteCard;
     }
