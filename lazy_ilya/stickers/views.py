@@ -55,7 +55,7 @@ class StickyNoteView(LoginRequiredMixin, View):
         users = list(
             CustomUser.objects.filter(is_active=True).values(
                 "username", "first_name", "last_name"
-            )
+            ).order_by("username","last_name","first_name")
         )
 
         notes_data = [note.to_dict() for note in notes]
