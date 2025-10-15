@@ -12,9 +12,11 @@ import os
 import django
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
-from cities.routing import websocket_urlpatterns
+from cities.routing import websocket_urlpatterns as city_urlpatterns
+from stickers.routing import websocket_urlpatterns as sticker_urlpatterns
 from django.core.asgi import get_asgi_application
 
+websocket_urlpatterns = sticker_urlpatterns + city_urlpatterns
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lazy_ilya.settings")
 django.setup()
 application = ProtocolTypeRouter(

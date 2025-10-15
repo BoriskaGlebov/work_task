@@ -2,9 +2,11 @@ import json
 from datetime import datetime
 from typing import Optional, Union
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import (Case, Exists, IntegerField, OuterRef, Q, Value,
-                              When)
+                              When, F)
 from django.http import (HttpRequest, HttpResponse, HttpResponseBadRequest,
                          JsonResponse)
 from django.shortcuts import render
@@ -55,7 +57,7 @@ class StickyNoteView(LoginRequiredMixin, View):
         users = list(
             CustomUser.objects.filter(is_active=True).values(
                 "username", "first_name", "last_name"
-            ).order_by("username","last_name","first_name")
+            ).order_by("username", "last_name", "first_name")
         )
 
         notes_data = [note.to_dict() for note in notes]
@@ -91,7 +93,7 @@ class StickyNoteView(LoginRequiredMixin, View):
                 )
                 .select_related("assignee")
                 .prefetch_related("tags")
-                .order_by("deleted_order", "done_order",  "deadline","priority_order",)
+                .order_by("deleted_order", "done_order", "deadline", "priority_order", )
             )
         else:
             tasks = (
@@ -119,7 +121,7 @@ class StickyNoteView(LoginRequiredMixin, View):
                 )
                 .select_related("assignee")
                 .prefetch_related("tags")
-                .order_by("deleted_order", "done_order",  "deadline","priority_order",)
+                .order_by("deleted_order", "done_order", "deadline", "priority_order", )
             )
 
         tasks_list = [task.to_dict() for task in tasks]
@@ -154,6 +156,38 @@ class StickyNoteView(LoginRequiredMixin, View):
             note.owner = request.user
             note.save()
             logger.bind(user=request.user.username).info(f"Создана заметка #{note.id}")
+            # 🚀 Отправляем событие через WebSocket
+            channel_layer = get_channel_layer()
+            author_name = note.author_name.split(" ")
+            # Вычисляем, кому послать — “Всем!” или конкретному
+            recipients = []
+
+            if note.author_name == "Всем!":
+                # Все активные пользователи, кроме автора
+                recipients = list(
+                    CustomUser.objects.exclude(id=request.user.id).filter(is_active=True)
+                )
+            else:
+                # Только конкретный пользователь (по author_name)
+                recipients = CustomUser.objects.filter(
+                    Q(username=note.author_name)
+                    | Q(first_name=author_name[0] if len(author_name) > 0 else "")
+                    | Q(last_name=author_name[1] if len(author_name) > 1 else "")
+                ).exclude(id=request.user.id)
+                print(recipients)
+
+            for user in recipients:
+                async_to_sync(channel_layer.group_send)(
+                    f"user_{user.id}",
+                    {
+                        "type": "send_note_update",
+                        "data": {
+                            "action": "create",
+                            "note": note.to_dict(),
+                        },
+                    },
+                )
+
             return JsonResponse({"success": True, "data": note.to_dict()}, status=201)
 
         logger.bind(user=request.user.username).error(f"Ошибки формы: {form.errors}")
@@ -185,13 +219,69 @@ class StickyNoteView(LoginRequiredMixin, View):
             return JsonResponse(
                 {"success": False, "errors": {"id": ["Заметка не найдена"]}}, status=404
             )
-
+            # 🧠 Сохраняем старых получателей ДО обновления
+        old_recipients = set()
+        if note.author_name == "Всем!":
+            old_recipients.update(CustomUser.objects.filter(is_active=True).exclude(id=request.user.id))
+        else:
+            parts = note.author_name.split(" ")
+            old_recipients.update(
+                CustomUser.objects.filter(
+                    Q(username=note.author_name)
+                    | Q(first_name=parts[0] if len(parts) > 0 else "")
+                    | Q(last_name=parts[1] if len(parts) > 1 else "")
+                ).exclude(id=request.user.id)
+            )
         form = StickyNoteForm(data, instance=note)
         if form.is_valid():
             updated_note = form.save()
             logger.bind(user=request.user.username).info(
                 f"Обновлена заметка #{updated_note.id}"
             )
+            # 🚀 Отправляем событие через WebSocket
+            channel_layer = get_channel_layer()
+            author_name = updated_note.author_name.split(" ")
+
+            new_recipients = set()
+            if updated_note.author_name == "Всем!":
+                # Все активные пользователи, кроме автора
+                new_recipients.update(
+                    CustomUser.objects.exclude(id=request.user.id).filter(is_active=True)
+                )
+            else:
+                # Только конкретный пользователь (по author_name)
+                new_recipients.update(CustomUser.objects.filter(
+                    Q(username=updated_note.author_name)
+                    | Q(first_name=author_name[0] if len(author_name) > 0 else "")
+                    | Q(last_name=author_name[1] if len(author_name) > 1 else "")
+                ).exclude(id=request.user.id))
+
+            # 💥 Добавляем владельца заметки, если изменения сделал не он
+            if updated_note.owner != request.user:
+                new_recipients.add(updated_note.owner)
+            remove_users=old_recipients - new_recipients
+            for user in new_recipients:
+                async_to_sync(channel_layer.group_send)(
+                    f"user_{user.id}",
+                    {
+                        "type": "send_note_update",
+                        "data": {
+                            "action": "update",
+                            "note": updated_note.to_dict(),
+                        },
+                    },
+                )
+            for user in remove_users:
+                async_to_sync(channel_layer.group_send)(
+                    f"user_{user.id}",
+                    {
+                        "type": "send_note_update",
+                        "data": {
+                            "action": "delete",
+                            "note": {"id": updated_note.id},
+                        },
+                    },
+                )
             return JsonResponse({"success": True, "data": updated_note.to_dict()})
 
         logger.bind(user=request.user.username).error(f"Ошибки формы: {form.errors}")
@@ -212,19 +302,31 @@ class StickyNoteView(LoginRequiredMixin, View):
                 user.username,
             ]
             is_assigned_to_all = note.author_name == "Всем!"
-
+            channel_layer = get_channel_layer()
+            recipients = []
             if is_owner or is_assigned_to_user:
                 # Пользователь владелец или назначен — удаляем заметку полностью
                 note.delete()
                 logger.bind(user=user.username).info(f"Удалена заметка #{note_id}")
+                # Уведомляем всех активных пользователей, кроме автора
+                recipients = list(CustomUser.objects.exclude(id=user.id).filter(is_active=True))
+                for u in recipients:
+                    async_to_sync(channel_layer.group_send)(
+                        f"user_{u.id}",
+                        {
+                            "type": "send_note_update",
+                            "data": {
+                                "action": "delete",
+                                "note": {"id": note_id},
+                            },
+                        },
+                    )
                 return JsonResponse(
                     {"success": True, "data": {"message": f"Заметка {note_id} удалена"}}
                 )
             elif is_assigned_to_all and not is_owner:
                 # Заметка назначена "Всем!", но пользователь не владелец — скрываем
                 # Обновляем или создаём запись видимости с is_visible=False
-                pass
-
                 visibility_obj, created = StickyNoteVisibility.objects.update_or_create(
                     sticky_note=note,
                     user=user,
@@ -232,6 +334,17 @@ class StickyNoteView(LoginRequiredMixin, View):
                 )
                 logger.bind(user=user.username).info(
                     f"Заметка #{note_id} скрыта для пользователя {user.username}"
+                )
+                # Отправляем событие только этому пользователю
+                async_to_sync(channel_layer.group_send)(
+                    f"user_{user.id}",
+                    {
+                        "type": "send_note_update",
+                        "data": {
+                            "action": "delete",
+                            "note": {"id": note_id},
+                        },
+                    },
                 )
                 return JsonResponse(
                     {"success": True, "data": {"message": f"Заметка {note_id} скрыта"}}
@@ -389,7 +502,7 @@ class TaskView(LoginRequiredMixin, View):
         return JsonResponse(task.to_dict(), status=201)
 
     def patch(
-        self, request: HttpRequest, task_id: int
+            self, request: HttpRequest, task_id: int
     ) -> HttpResponseBadRequest | JsonResponse:
         """
         Частичное обновление задачи по ID.

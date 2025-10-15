@@ -1,5 +1,6 @@
 import Sortable from 'sortablejs';
 import {showError} from "./utils.js";
+import {WebSocketClient} from "./ws_client.js";
 
 /**
  * Класс для управления стикерами (заметками) в стиле Kanban.
@@ -47,6 +48,12 @@ export class KanbanStickyNotes {
         document.getElementById('btn-notes').addEventListener('click', () => {
             const itemName = document.getElementById('item-name');
             itemName.scrollIntoView({behavior: 'smooth', block: 'start'});
+        });
+        // 🔔 WebSocket
+        this.wsClient = new WebSocketClient({
+            url: window.location.origin,
+            userId: window.currentUserId,
+            onMessage: this.handleWebSocketMessage.bind(this),
         });
     }
 
@@ -238,15 +245,26 @@ export class KanbanStickyNotes {
 
         // --- Удаление ---
         const deleteBtn = document.createElement('button');
-        deleteBtn.textContent = '×';
-        deleteBtn.title = 'Удалить заметку';
+
+        if (currentUser === owner && currentUser !== author_name) {
+            deleteBtn.textContent = '-';
+            deleteBtn.title = 'Скрыть заметку';
+        } else {
+            deleteBtn.textContent = '×';
+            deleteBtn.title = 'Удалить заметку';
+        }
         deleteBtn.className = 'delete-btn';
         deleteBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
             const data = {
                 stickerData: contentDiv.textContent.slice(0, 30) || 'заметку'
             }
-            const confirmed = await this.showDeleteConfirmation(data);
+            let confirmed = '';
+            if (deleteBtn.textContent === '-') {
+                confirmed = await this.showDeleteConfirmation(data, 'скрытие');
+            } else {
+                confirmed = await this.showDeleteConfirmation(data);
+            }
             if (!confirmed) return;
             const noteId = noteCard.dataset.id;
             if (noteId) this.deleteNoteFromServer(noteId);
@@ -467,14 +485,14 @@ export class KanbanStickyNotes {
         }
     }
 
-    async showDeleteConfirmation(data) {
+    async showDeleteConfirmation(data, mess = 'удаление') {
         return new Promise((resolve) => {
             const serverInfo = document.getElementById('server-info');
             serverInfo.classList.remove('hidden', 'animate-popup-reverse');
             serverInfo.classList.add('flex', 'animate-popup');
-            serverInfo.querySelector('h3').textContent = 'Подтверждение удаления стикера';
+            serverInfo.querySelector('h3').textContent = `Подтверждение ${mess} стикера`;
             serverInfo.querySelector('p').textContent =
-                `Вы уверены, что хотите удалить "${data.stickerData}"?`;
+                `Вы уверены, что хотите совершить ${mess} "${data.stickerData}"?`;
             serverInfo.scrollIntoView({behavior: 'smooth', block: 'start'});
 
             const divBtn = document.getElementById('btn-div');
@@ -530,6 +548,56 @@ export class KanbanStickyNotes {
             });
         });
     }
+
+    handleWebSocketMessage(data) {
+        const {action, note} = data;
+
+        switch (action) {
+            case "create":
+                this.handleNoteCreate(note);
+                break;
+            case "update":
+                this.handleNoteUpdate(note);
+                break;
+            case "delete":
+                this.handleNoteDelete(note.id);
+                break;
+            default:
+                console.warn("⚠️ Неизвестное действие WebSocket:", action);
+        }
+    }
+
+    handleNoteCreate(note) {
+        const existing = this.noteBoard.querySelector(`[data-id="${note.id}"]`);
+        if (!existing) {
+            this.buildNoteCard(note, note.owner);
+        }
+    }
+
+    handleNoteUpdate(note) {
+        const noteCard = this.noteBoard.querySelector(`[data-id="${note.id}"]`);
+        if (!noteCard) {
+            this.buildNoteCard(note, note.owner);
+            return;
+        }
+
+        const contentDiv = noteCard.querySelector("[contenteditable]");
+        const authorBtn = noteCard.querySelector(".author-btn");
+
+        if (contentDiv) contentDiv.innerHTML = note.text;
+        if (authorBtn) authorBtn.textContent = note.author_name;
+
+        noteCard.style.backgroundColor = note.color;
+        noteCard.style.width = note.width + "px";
+        noteCard.style.height = note.height + "px";
+        noteCard.dataset.order = note.order;
+    }
+
+    handleNoteDelete(noteId) {
+        const noteCard = this.noteBoard.querySelector(`[data-id="${noteId}"]`);
+        if (noteCard) noteCard.remove();
+    }
+
 
 }
 

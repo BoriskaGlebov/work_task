@@ -148,6 +148,7 @@ STATICFILES_DIRS = [
     BASE_DIR / "cities/static",
     BASE_DIR / "statistics_app/static",
     BASE_DIR / "stickers/static",
+    BASE_DIR / "myauth/static",
 ]
 
 # Default primary key field type
