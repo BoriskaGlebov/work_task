@@ -47,5 +47,5 @@ volumes:
 
 networks:
   common_net:
-    name: common_net
+    name: shared_net
     external: true
