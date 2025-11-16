@@ -18,7 +18,7 @@ services:
         reservations:
           memory: 256M
     networks:
-      - common_net
+      - shared_net
 
   nginx_django:
     image: nginx:alpine
@@ -39,13 +39,13 @@ services:
         reservations:
           memory: 256M
     networks:
-      - common_net
+      - shared_net
 
 volumes:
   static_data:
   db_sql:
 
 networks:
-  common_net:
+  shared_net:
     name: shared_net
     external: true
