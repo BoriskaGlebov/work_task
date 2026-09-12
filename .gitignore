@@ -182,3 +182,4 @@ cython_debug/
 /dist_img/nginx_alpine.tar
 /dist_img/python3.12.tar
 /dist_img/python_3.12_bookworm.tar
+/CLAUDE.md
